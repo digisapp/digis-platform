@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { db } from '@/lib/data/system';
-import { users, profiles, creatorGoals, contentItems, contentLikes, contentPurchases, creatorLinks } from '@/lib/data/system';
+import { users, profiles, creatorGoals, cloudItems, cloudPurchases, creatorLinks } from '@/lib/data/system';
 import { eq, and, desc, asc, sql, inArray } from 'drizzle-orm';
 import { FollowService } from '@/lib/explore/follow-service';
 import { CallService } from '@/lib/services/call-service';
@@ -96,15 +96,15 @@ export async function GET(
           )
         : Promise.resolve([]),
 
-      // 5. Get content preview if creator (non-essential) - initial 12 items
+      // 5. Get content preview if creator (non-essential) - initial 12 live drops
       user.role === 'creator'
         ? withTimeout(
-            db.query.contentItems.findMany({
+            db.query.cloudItems.findMany({
               where: and(
-                eq(contentItems.creatorId, user.id),
-                eq(contentItems.isPublished, true)
+                eq(cloudItems.creatorId, user.id),
+                eq(cloudItems.status, 'live')
               ),
-              orderBy: [desc(contentItems.createdAt)],
+              orderBy: [desc(cloudItems.publishedAt)],
               limit: 13, // Fetch 13 to check if there's more (hasMore = length > 12)
             }).catch(() => []),
             []
@@ -180,7 +180,7 @@ export async function GET(
       }
     }
 
-    // Get user's likes and purchases for this content if authenticated
+    // Get user's purchases for this content if authenticated
     let contentWithStatus = content.map((item: any) => ({
       ...item,
       isLiked: false,
@@ -191,35 +191,24 @@ export async function GET(
       try {
         const contentIds = content.map((c: any) => c.id);
 
-        // Fetch likes and purchases in parallel
-        const [likes, purchases] = await Promise.all([
-          db.query.contentLikes.findMany({
-            where: and(
-              eq(contentLikes.userId, currentUser.id),
-              inArray(contentLikes.contentId, contentIds)
-            ),
-            columns: { contentId: true },
-          }),
-          db.query.contentPurchases.findMany({
-            where: and(
-              eq(contentPurchases.userId, currentUser.id),
-              inArray(contentPurchases.contentId, contentIds)
-            ),
-            columns: { contentId: true },
-          }),
-        ]);
+        const purchases = await db.query.cloudPurchases.findMany({
+          where: and(
+            eq(cloudPurchases.buyerId, currentUser.id),
+            inArray(cloudPurchases.itemId, contentIds)
+          ),
+          columns: { itemId: true },
+        });
 
-        const likedIds = new Set(likes.map(l => l.contentId));
-        const purchasedIds = new Set(purchases.map(p => p.contentId));
+        const purchasedIds = new Set(purchases.map(p => p.itemId));
 
         contentWithStatus = content.map((item: any) => ({
           ...item,
-          isLiked: likedIds.has(item.id),
+          isLiked: false,
           // User has access if: they're the creator OR they purchased it
           hasPurchased: currentUser.id === user.id || purchasedIds.has(item.id),
         }));
       } catch (err) {
-        // Fail gracefully - just return content without like/purchase status
+        // Fail gracefully - just return content without purchase status
       }
     }
 

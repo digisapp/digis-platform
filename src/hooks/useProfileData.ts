@@ -5,20 +5,28 @@ import { createClient } from '@/lib/supabase/client';
 import type { ProfileData, ContentItem, StreamItem, ClipItem } from '@/components/profile/types';
 
 function transformContentItem(item: any): ContentItem {
+  // Supports both cloudItems (new) and contentItems (legacy) field names
+  const type = item.type || (item.contentType === 'video' ? 'video' : 'photo');
+  const thumbnail = item.thumbnailUrl || item.previewUrl || item.fileUrl;
+  const url = item.fileUrl || item.mediaUrl;
+  const priceCoins = item.priceCoins ?? item.unlockPrice ?? 0;
+  const isFree = item.priceCoins === null || item.priceCoins === undefined || item.isFree === true;
+  const timestamp = item.publishedAt || item.uploadedAt || item.createdAt;
+
   return {
     id: item.id,
-    type: item.contentType === 'video' ? 'video' : 'photo',
-    title: item.title,
-    thumbnail: item.thumbnailUrl,
-    url: item.mediaUrl,
-    description: item.description,
+    type,
+    title: item.title || '',
+    thumbnail,
+    url,
+    description: item.description || '',
     likes: item.likeCount || 0,
     isLiked: item.isLiked || false,
-    views: item.viewCount,
-    isLocked: !item.isFree && !item.hasPurchased,
-    unlockPrice: item.unlockPrice,
-    isFree: item.isFree,
-    timestamp: new Date(item.createdAt).toLocaleDateString(),
+    views: item.viewCount || 0,
+    isLocked: !isFree && !item.hasPurchased,
+    unlockPrice: priceCoins,
+    isFree,
+    timestamp: timestamp ? new Date(timestamp).toLocaleDateString() : '',
     featured: false,
   };
 }

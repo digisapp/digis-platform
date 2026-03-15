@@ -1,5 +1,5 @@
 import { db } from '@/lib/data/system';
-import { contentItems, contentPurchases, users } from '@/lib/data/system';
+import { contentItems, contentPurchases, cloudItems, cloudPurchases, users } from '@/lib/data/system';
 import { WalletService } from '@/lib/wallet/wallet-service';
 import { eq, and, desc, sql } from 'drizzle-orm';
 import { createClient } from '@/lib/supabase/server';
@@ -55,6 +55,19 @@ export class ContentService {
       })
       .returning();
 
+    // Mirror to cloudItems so it appears on the profile (which reads from cloud_items)
+    await db.insert(cloudItems).values({
+      id: content.id, // Same ID for cross-referencing
+      creatorId,
+      fileUrl: mediaUrl,
+      thumbnailUrl,
+      type: contentType === 'video' ? 'video' : 'photo',
+      durationSeconds,
+      status: 'live',
+      priceCoins: unlockPrice === 0 ? null : unlockPrice,
+      publishedAt: new Date(),
+    }).onConflictDoNothing();
+
     return content;
   }
 
@@ -104,6 +117,15 @@ export class ContentService {
           })
           .returning();
 
+        // Mirror to cloudPurchases so profile shows as unlocked
+        await tx.insert(cloudPurchases).values({
+          buyerId: userId,
+          creatorId: content.creatorId,
+          itemId: contentId,
+          coinsSpent: 0,
+          idempotencyKey: `content_${userId}_${contentId}`,
+        }).onConflictDoNothing();
+
         return { success: true, purchase };
       }
 
@@ -146,6 +168,16 @@ export class ContentService {
           transactionId: debitTx.id,
         })
         .returning();
+
+      // Mirror to cloudPurchases so profile shows as unlocked
+      await tx.insert(cloudPurchases).values({
+        buyerId: userId,
+        creatorId: content.creatorId,
+        itemId: contentId,
+        coinsSpent: content.unlockPrice,
+        transactionId: debitTx.id,
+        idempotencyKey: `content_${userId}_${contentId}`,
+      }).onConflictDoNothing();
 
       // Update content stats
       await tx
