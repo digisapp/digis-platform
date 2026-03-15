@@ -86,7 +86,7 @@ export function BulkActionsModal({
               tab === 'price' ? 'bg-white/10 text-white' : 'text-gray-500 hover:text-gray-300'
             }`}
           >
-            <DollarSign className="w-4 h-4" />
+            <Coins className="w-4 h-4" />
             Set Price
           </button>
         </div>
