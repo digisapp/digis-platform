@@ -97,11 +97,10 @@ export default function CloudPage() {
             {/* Upload button */}
             <button
               onClick={() => setShowUpload(true)}
-              className="relative flex items-center gap-2 px-5 py-3 rounded-xl bg-gradient-to-r from-purple-500 via-pink-500 to-cyan-500 text-white font-bold text-sm shadow-lg shadow-purple-500/25 hover:shadow-purple-500/40 hover:scale-105 active:scale-95 transition-all duration-200 overflow-hidden group"
+              className="flex items-center gap-3 px-5 py-3 rounded-2xl bg-gradient-to-br from-cyan-500/20 to-blue-500/20 border border-cyan-500/30 hover:border-cyan-500/50 transition-all hover:scale-[1.02] active:scale-[0.98]"
             >
-              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
-              <Upload className="w-5 h-5" />
-              Upload Content
+              <Upload className="w-5 h-5 text-cyan-400" />
+              <span className="text-base font-semibold text-white">Upload Content</span>
             </button>
           </div>
         </div>
