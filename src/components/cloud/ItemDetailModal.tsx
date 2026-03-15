@@ -137,10 +137,9 @@ export function ItemDetailModal({ isOpen, onClose, item, onUpdate, onDelete }: I
         </div>
 
         {/* Info */}
-        <div className="flex gap-4 text-sm text-gray-400">
-          <span className="capitalize">{item.type}</span>
-          {item.sizeBytes && <span>{formatSize(item.sizeBytes)}</span>}
-        </div>
+        {item.sizeBytes && (
+          <p className="text-sm text-gray-400">{formatSize(item.sizeBytes)}</p>
+        )}
 
         {/* Price input */}
         <div className="space-y-1.5">

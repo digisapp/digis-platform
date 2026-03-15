@@ -100,7 +100,7 @@ export default function CloudPage() {
               className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-cyan-500 to-cyan-600 text-black font-semibold hover:from-cyan-400 hover:to-cyan-500 transition-all"
             >
               <Upload className="w-4 h-4" />
-              <span className="hidden sm:inline">Upload</span>
+              Upload Content
             </button>
           </div>
         </div>
