@@ -1,8 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { GlassModal } from '@/components/ui/GlassModal';
-import { Lock, Eye, Trash2, Play, AlertCircle, Coins } from 'lucide-react';
+import { Lock, Eye, Trash2, Play, AlertCircle, Coins, Check } from 'lucide-react';
 import type { CloudItem } from '@/hooks/useCloudData';
 
 interface ItemDetailModalProps {
@@ -14,8 +14,8 @@ interface ItemDetailModalProps {
 }
 
 const statusOptions = [
-  { value: 'private', label: 'Private', icon: Lock, color: 'text-gray-400', bg: 'bg-gray-500/20' },
-  { value: 'live', label: 'Live', icon: Eye, color: 'text-green-400', bg: 'bg-green-500/20' },
+  { value: 'private', label: 'Private', icon: Lock, color: 'text-gray-400', bg: 'bg-gray-500/20', desc: 'Only you can see' },
+  { value: 'live', label: 'Live', icon: Eye, color: 'text-green-400', bg: 'bg-green-500/20', desc: 'Visible to fans' },
 ];
 
 export function ItemDetailModal({ isOpen, onClose, item, onUpdate, onDelete }: ItemDetailModalProps) {
@@ -24,45 +24,60 @@ export function ItemDetailModal({ isOpen, onClose, item, onUpdate, onDelete }: I
   const [deleting, setDeleting] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
+  const lastItemId = useRef<string | null>(null);
 
-  // Sync price input when item changes
-  if (item && price === '' && item.priceCoins) {
-    setPrice(item.priceCoins.toString());
+  // Reset price input when item changes
+  if (item && item.id !== lastItemId.current) {
+    lastItemId.current = item.id;
+    setPrice(item.priceCoins ? item.priceCoins.toString() : '');
+    setError('');
+    setSuccess('');
+    setConfirmDelete(false);
   }
 
   if (!item) return null;
+
+  const showSuccess = (msg: string) => {
+    setSuccess(msg);
+    setTimeout(() => setSuccess(''), 2000);
+  };
 
   const handleStatusChange = async (status: string) => {
     setSaving(true);
     setError('');
 
     const updates: any = { status };
-    // If going live and no price set, try to use the input value
+    // If going live, also send the current price input value
     if (status === 'live' && !item.priceCoins) {
       const p = parseInt(price);
-      if (!p || p <= 0) {
-        setError('Set a price before going live');
-        setSaving(false);
-        return;
-      }
-      updates.priceCoins = p;
+      if (p > 0) updates.priceCoins = p;
     }
 
     const result = await onUpdate(item.id, updates);
-    if (!result.success) setError(result.error || 'Failed to update');
+    if (result.success) {
+      showSuccess(status === 'live' ? 'Now live!' : 'Set to private');
+    } else {
+      setError(result.error || 'Failed to update');
+    }
     setSaving(false);
   };
 
   const handlePriceSave = async () => {
     const p = parseInt(price);
-    if (isNaN(p) || p < 0) {
+    if (price !== '' && price !== '0' && (isNaN(p) || p < 0)) {
       setError('Enter a valid price');
       return;
     }
     setSaving(true);
     setError('');
-    const result = await onUpdate(item.id, { priceCoins: p || null });
-    if (!result.success) setError(result.error || 'Failed to update');
+    const coins = (!price || p === 0) ? null : p;
+    const result = await onUpdate(item.id, { priceCoins: coins });
+    if (result.success) {
+      showSuccess(coins ? 'Price saved' : 'Set to free');
+    } else {
+      setError(result.error || 'Failed to update');
+    }
     setSaving(false);
   };
 
@@ -84,14 +99,18 @@ export function ItemDetailModal({ isOpen, onClose, item, onUpdate, onDelete }: I
   };
 
   const handleClose = () => {
+    lastItemId.current = null;
     setPrice('');
     setError('');
+    setSuccess('');
     setConfirmDelete(false);
     onClose();
   };
 
+  const title = item.type === 'video' ? 'Video Details' : 'Photo Details';
+
   return (
-    <GlassModal isOpen={isOpen} onClose={handleClose} title="Item Details" size="sm">
+    <GlassModal isOpen={isOpen} onClose={handleClose} title={title} size="sm">
       <div className="space-y-5">
         {/* Preview */}
         <div className="relative rounded-xl overflow-hidden aspect-[3/4] max-h-[300px]">
@@ -121,7 +140,6 @@ export function ItemDetailModal({ isOpen, onClose, item, onUpdate, onDelete }: I
         <div className="flex gap-4 text-sm text-gray-400">
           <span className="capitalize">{item.type}</span>
           {item.sizeBytes && <span>{formatSize(item.sizeBytes)}</span>}
-          <span>{new Date(item.uploadedAt).toLocaleDateString()}</span>
         </div>
 
         {/* Price input */}
@@ -133,10 +151,10 @@ export function ItemDetailModal({ isOpen, onClose, item, onUpdate, onDelete }: I
               <input
                 type="number"
                 min="0"
-                placeholder="0"
+                placeholder="Free"
                 value={price}
                 onChange={(e) => setPrice(e.target.value)}
-                className="w-full bg-white/5 border border-white/10 rounded-lg pl-9 pr-16 py-2.5 text-white placeholder:text-gray-600 focus:outline-none focus:border-cyan-500/40"
+                className="w-full bg-white/5 border border-white/10 rounded-lg pl-9 pr-16 py-2.5 text-white placeholder:text-gray-500 focus:outline-none focus:border-cyan-500/40"
               />
               <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 text-xs">coins</span>
             </div>
@@ -158,7 +176,7 @@ export function ItemDetailModal({ isOpen, onClose, item, onUpdate, onDelete }: I
         {/* Status */}
         <div className="space-y-1.5">
           <label className="text-sm font-medium text-gray-300">Status</label>
-          <div className="grid grid-cols-3 gap-2">
+          <div className="grid grid-cols-2 gap-2">
             {statusOptions.map(opt => {
               const Icon = opt.icon;
               const isActive = item.status === opt.value;
@@ -167,21 +185,32 @@ export function ItemDetailModal({ isOpen, onClose, item, onUpdate, onDelete }: I
                   key={opt.value}
                   onClick={() => handleStatusChange(opt.value)}
                   disabled={saving}
-                  className={`flex flex-col items-center gap-1.5 p-3 rounded-xl border transition-all ${
+                  className={`flex items-center gap-3 p-3 rounded-xl border transition-all text-left ${
                     isActive
                       ? `${opt.bg} border-white/20`
                       : 'bg-white/5 border-transparent hover:bg-white/10'
                   }`}
                 >
-                  <Icon className={`w-5 h-5 ${isActive ? opt.color : 'text-gray-500'}`} />
-                  <span className={`text-xs font-medium ${isActive ? 'text-white' : 'text-gray-500'}`}>
-                    {opt.label}
-                  </span>
+                  <Icon className={`w-5 h-5 flex-shrink-0 ${isActive ? opt.color : 'text-gray-500'}`} />
+                  <div>
+                    <p className={`text-sm font-medium ${isActive ? 'text-white' : 'text-gray-500'}`}>
+                      {opt.label}
+                    </p>
+                    <p className="text-[10px] text-gray-600">{opt.desc}</p>
+                  </div>
                 </button>
               );
             })}
           </div>
         </div>
+
+        {/* Success toast */}
+        {success && (
+          <div className="flex items-center gap-2 text-green-400 text-sm bg-green-500/10 rounded-xl p-3">
+            <Check className="w-4 h-4 flex-shrink-0" />
+            {success}
+          </div>
+        )}
 
         {error && (
           <div className="flex items-center gap-2 text-red-400 text-sm bg-red-500/10 rounded-xl p-3">
@@ -214,7 +243,7 @@ export function ItemDetailModal({ isOpen, onClose, item, onUpdate, onDelete }: I
               className="flex items-center justify-center gap-2 w-full py-2.5 rounded-lg text-gray-500 hover:text-red-400 hover:bg-red-500/10 text-sm transition-colors"
             >
               <Trash2 className="w-4 h-4" />
-              Delete item
+              Delete
             </button>
           )}
         </div>
