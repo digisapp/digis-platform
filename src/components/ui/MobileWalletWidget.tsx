@@ -138,11 +138,11 @@ export function MobileWalletWidget() {
                   </div>
                 </button>
 
-                {/* New Drop */}
+                {/* Cloud */}
                 <button
                   onClick={() => {
                     setShowDropdown(false);
-                    router.push('/creator/content/new');
+                    router.push('/cloud');
                   }}
                   className="w-full px-4 py-4 flex items-center gap-3 hover:bg-cyan-500/10 active:bg-cyan-500/20 transition-colors border-b border-cyan-500/20"
                 >
@@ -150,8 +150,8 @@ export function MobileWalletWidget() {
                     <FileText className="w-5 h-5 text-white" />
                   </div>
                   <div className="flex-1 text-left">
-                    <div className="font-bold text-white drop-shadow">New Drop</div>
-                    <div className="text-xs text-white/70">Share PPV content</div>
+                    <div className="font-bold text-white drop-shadow">Cloud</div>
+                    <div className="text-xs text-white/70">Upload, price & publish content</div>
                   </div>
                 </button>
 
