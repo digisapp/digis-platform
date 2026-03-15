@@ -172,7 +172,7 @@ export default function CloudPage() {
 
         {/* Filter bar */}
         <div className="flex items-center justify-between mb-4">
-          <div className="flex gap-1 bg-white/5 rounded-xl p-1">
+          <div className="flex items-center gap-1 bg-white/5 rounded-xl p-1">
             {statusFilters.map(filter => {
               const Icon = filter.icon;
               const isActive = cloud.statusFilter === filter.value;
@@ -197,23 +197,31 @@ export default function CloudPage() {
                 </button>
               );
             })}
-          </div>
 
-          {/* Type filter */}
-          <div className="flex gap-1">
-            {(['all', 'photo', 'video'] as const).map(t => (
-              <button
-                key={t}
-                onClick={() => cloud.setTypeFilter(t)}
-                className={`px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all ${
-                  cloud.typeFilter === t
-                    ? 'bg-white/10 text-white'
-                    : 'text-gray-500 hover:text-gray-300'
-                }`}
-              >
-                {t === 'all' ? 'All' : t === 'photo' ? 'Photos' : 'Videos'}
-              </button>
-            ))}
+            <div className="w-px h-5 bg-white/10 mx-1" />
+
+            <button
+              onClick={() => cloud.setTypeFilter(cloud.typeFilter === 'photo' ? 'all' : 'photo')}
+              className={`p-1.5 rounded-lg transition-all ${
+                cloud.typeFilter === 'photo'
+                  ? 'bg-white/10 text-cyan-400'
+                  : 'text-gray-500 hover:text-gray-300'
+              }`}
+              title="Photos only"
+            >
+              <Image className="w-4 h-4" />
+            </button>
+            <button
+              onClick={() => cloud.setTypeFilter(cloud.typeFilter === 'video' ? 'all' : 'video')}
+              className={`p-1.5 rounded-lg transition-all ${
+                cloud.typeFilter === 'video'
+                  ? 'bg-white/10 text-cyan-400'
+                  : 'text-gray-500 hover:text-gray-300'
+              }`}
+              title="Videos only"
+            >
+              <Film className="w-4 h-4" />
+            </button>
           </div>
 
           {/* Selection mode toggle + Quick Sell */}
