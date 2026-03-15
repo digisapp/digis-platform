@@ -14,8 +14,8 @@ export interface ActiveStream {
 
 export const PRIVACY_OPTIONS = [
   { value: 'public', label: 'Public' },
-  { value: 'followers', label: 'Followers Only' },
-  { value: 'subscribers', label: 'Subscribers Only' },
+  { value: 'followers', label: 'Followers' },
+  { value: 'subscribers', label: 'Subscribers' },
 ] as const;
 
 export const isMobileDevice = () => {

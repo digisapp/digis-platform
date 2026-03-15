@@ -101,10 +101,7 @@ export function GoLiveDevicePreview({
             }`}
           >
             <span className="text-2xl">📱</span>
-            <div className="text-left">
-              <div className="font-semibold text-white text-sm">Portrait</div>
-              <div className="text-xs text-gray-400">9:16 vertical</div>
-            </div>
+            <div className="font-semibold text-white text-sm">Portrait</div>
           </button>
           <button
             type="button"
@@ -116,10 +113,7 @@ export function GoLiveDevicePreview({
             }`}
           >
             <span className="text-2xl rotate-90 inline-block">📱</span>
-            <div className="text-left">
-              <div className="font-semibold text-white text-sm">Landscape</div>
-              <div className="text-xs text-gray-400">16:9 horizontal</div>
-            </div>
+            <div className="font-semibold text-white text-sm">Landscape</div>
           </button>
         </div>
       </div>
