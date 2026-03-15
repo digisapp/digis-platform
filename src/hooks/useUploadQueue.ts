@@ -191,7 +191,7 @@ export function useUploadQueue() {
           if (!uploadRes.ok) {
             updateItem(next.id, {
               status: 'failed',
-              error: 'Upload to storage failed',
+              error: uploadRes.error || 'Upload to storage failed',
             });
             continue;
           }
@@ -324,7 +324,7 @@ function uploadWithProgress(
   contentType: string,
   token: string,
   onProgress: (pct: number) => void,
-): Promise<{ ok: boolean }> {
+): Promise<{ ok: boolean; error?: string }> {
   return new Promise((resolve) => {
     const xhr = new XMLHttpRequest();
 
@@ -335,19 +335,29 @@ function uploadWithProgress(
     });
 
     xhr.addEventListener('load', () => {
-      resolve({ ok: xhr.status >= 200 && xhr.status < 300 });
+      if (xhr.status >= 200 && xhr.status < 300) {
+        resolve({ ok: true });
+      } else {
+        let error = `Storage error ${xhr.status}`;
+        try {
+          const body = JSON.parse(xhr.responseText);
+          if (body.error || body.message) error = body.error || body.message;
+        } catch {}
+        resolve({ ok: false, error });
+      }
     });
 
     xhr.addEventListener('error', () => {
-      resolve({ ok: false });
+      resolve({ ok: false, error: 'Network error — check your connection' });
     });
 
     xhr.addEventListener('abort', () => {
-      resolve({ ok: false });
+      resolve({ ok: false, error: 'Upload cancelled' });
     });
 
     xhr.open('PUT', signedUrl);
     xhr.setRequestHeader('Content-Type', contentType);
+    xhr.setRequestHeader('Authorization', `Bearer ${token}`);
     xhr.setRequestHeader('x-upsert', 'false');
     xhr.send(file);
   });

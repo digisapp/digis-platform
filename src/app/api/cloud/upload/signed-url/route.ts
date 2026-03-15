@@ -7,7 +7,7 @@ import { rateLimit } from '@/lib/rate-limit';
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
-const validImageTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+const validImageTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp', 'image/heic', 'image/heif'];
 const validVideoTypes = ['video/mp4', 'video/quicktime', 'video/x-msvideo', 'video/webm'];
 const CLOUD_STORAGE_QUOTA = 50 * 1024 * 1024 * 1024; // 50GB
 
@@ -17,6 +17,8 @@ const EXT_MAP: Record<string, string> = {
   'image/png': 'png',
   'image/gif': 'gif',
   'image/webp': 'webp',
+  'image/heic': 'heic',
+  'image/heif': 'heif',
   'video/mp4': 'mp4',
   'video/quicktime': 'mov',
   'video/x-msvideo': 'avi',

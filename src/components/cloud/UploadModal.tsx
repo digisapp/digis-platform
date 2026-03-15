@@ -12,7 +12,7 @@ interface UploadModalProps {
 }
 
 const MAX_FILES = 50;
-const ACCEPTED_TYPES = 'image/jpeg,image/png,image/gif,image/webp,video/mp4,video/quicktime,video/webm';
+const ACCEPTED_TYPES = 'image/*,video/*';
 
 function formatSize(bytes: number) {
   if (bytes >= 1024 * 1024 * 1024) return `${(bytes / (1024 * 1024 * 1024)).toFixed(1)} GB`;
@@ -216,7 +216,9 @@ function QueueItemRow({
         <p className="text-white text-xs truncate">{item.fileName}</p>
         <div className="flex items-center gap-2 mt-0.5">
           <span className="text-gray-500 text-xs">{formatSize(item.fileSize)}</span>
-          <span className={`text-xs ${config.color}`}>{config.label}</span>
+          <span className={`text-xs ${config.color}`}>
+            {item.status === 'failed' && item.error ? item.error : config.label}
+          </span>
         </div>
         {/* Progress bar */}
         {isUploading && (
