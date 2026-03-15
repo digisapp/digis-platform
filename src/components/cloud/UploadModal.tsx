@@ -108,7 +108,7 @@ export function UploadModal({ isOpen, onClose, onUploadComplete }: UploadModalPr
           <p className="text-white font-medium text-sm">
             {dragging ? 'Drop files here' : 'Select photos & videos'}
           </p>
-          <p className="text-gray-500 text-xs mt-1">Drag & drop or tap · uploads resume if interrupted</p>
+          <p className="text-gray-500 text-xs mt-1">Upload all your photos first, then upload videos separately</p>
           <input
             ref={inputRef}
             type="file"
