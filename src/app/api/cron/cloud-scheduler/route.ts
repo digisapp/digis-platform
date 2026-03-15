@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { timingSafeEqual } from 'crypto';
 import { db } from '@/lib/data/system';
-import { cloudScheduledDrops, cloudItems, cloudCreatorStreaks } from '@/db/schema';
+import { cloudScheduledDrops, cloudItems, cloudCreatorStreaks } from '@/lib/data/system';
 import { eq, and, lte, sql } from 'drizzle-orm';
 import { NotificationService } from '@/lib/services/notification-service';
 

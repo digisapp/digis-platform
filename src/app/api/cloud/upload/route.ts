@@ -33,7 +33,7 @@ const validImageTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'i
 const validVideoTypes = ['video/mp4', 'video/quicktime', 'video/x-msvideo', 'video/webm'];
 const MAX_IMAGE_SIZE = 50 * 1024 * 1024;  // 50MB
 const MAX_VIDEO_SIZE = 500 * 1024 * 1024; // 500MB (larger for Drops — creators upload full camera roll)
-const HUB_STORAGE_QUOTA = 50 * 1024 * 1024 * 1024; // 50GB
+const CLOUD_STORAGE_QUOTA = 50 * 1024 * 1024 * 1024; // 50GB
 
 /**
  * POST - Upload one or more files to Drops
@@ -67,7 +67,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Check storage quota (50GB for Drops)
-    if (dbUser.storageUsed >= HUB_STORAGE_QUOTA) {
+    if (dbUser.storageUsed >= CLOUD_STORAGE_QUOTA) {
       return NextResponse.json(
         { error: `Storage limit reached (${(dbUser.storageUsed / (1024 * 1024 * 1024)).toFixed(1)}GB / 50GB).` },
         { status: 413 }

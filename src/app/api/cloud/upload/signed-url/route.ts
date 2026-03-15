@@ -9,7 +9,7 @@ export const dynamic = 'force-dynamic';
 
 const validImageTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
 const validVideoTypes = ['video/mp4', 'video/quicktime', 'video/x-msvideo', 'video/webm'];
-const HUB_STORAGE_QUOTA = 50 * 1024 * 1024 * 1024; // 50GB
+const CLOUD_STORAGE_QUOTA = 50 * 1024 * 1024 * 1024; // 50GB
 
 const EXT_MAP: Record<string, string> = {
   'image/jpeg': 'jpg',
@@ -71,7 +71,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Check storage quota
-    if (dbUser.storageUsed + sizeBytes > HUB_STORAGE_QUOTA) {
+    if (dbUser.storageUsed + sizeBytes > CLOUD_STORAGE_QUOTA) {
       return NextResponse.json({
         error: `Storage limit reached (${(dbUser.storageUsed / (1024 * 1024 * 1024)).toFixed(1)}GB / 50GB).`,
       }, { status: 413 });

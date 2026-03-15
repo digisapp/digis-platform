@@ -23,7 +23,7 @@ export interface QueueItem {
   progress: number;            // 0-100
   storagePath: string | null;
   signedUrl: string | null;
-  itemId: string | null;       // Drops item ID after registration
+  itemId: string | null;       // Cloud item ID after registration
   error: string | null;
   addedAt: number;
 }
