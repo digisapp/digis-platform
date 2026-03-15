@@ -10,7 +10,7 @@ import {
   creatorSettings,
   subscriptions,
   calls,
-  contentPurchases,
+  cloudPurchases,
   follows,
 } from '@/lib/data/system';
 import { eq, and, or, desc, sql, inArray } from 'drizzle-orm';
@@ -81,10 +81,10 @@ export class MessageService {
         columns: { id: true },
       }),
       // Check if recipient has purchased sender's content
-      db.query.contentPurchases.findFirst({
+      db.query.cloudPurchases.findFirst({
         where: and(
-          eq(contentPurchases.userId, recipientId),
-          sql`${contentPurchases.contentId} IN (SELECT id FROM content_items WHERE creator_id = ${senderId})`
+          eq(cloudPurchases.buyerId, recipientId),
+          eq(cloudPurchases.creatorId, senderId)
         ),
         columns: { id: true },
       }),

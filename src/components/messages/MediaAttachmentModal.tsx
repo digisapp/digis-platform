@@ -8,11 +8,10 @@ import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 interface ContentItem {
   id: string;
   title: string;
-  contentType: 'photo' | 'video' | 'gallery';
-  thumbnailUrl: string;
-  mediaUrl: string;
-  unlockPrice: number;
-  isFree: boolean;
+  type: 'photo' | 'video';
+  thumbnailUrl: string | null;
+  fileUrl: string;
+  priceCoins: number | null;
 }
 
 interface MediaAttachmentModalProps {
@@ -60,10 +59,10 @@ export function MediaAttachmentModal({ onClose, onSend, isCreator = false, recip
   const fetchLibraryContent = async () => {
     setLoadingLibrary(true);
     try {
-      const response = await fetch('/api/content/creator?limit=50');
+      const response = await fetch('/api/cloud/items?status=live&limit=50');
       const data = await response.json();
-      if (response.ok && data.content) {
-        setLibraryContent(data.content);
+      if (response.ok && data.items) {
+        setLibraryContent(data.items);
       }
     } catch (error) {
       console.error('Error fetching content:', error);
@@ -113,9 +112,9 @@ export function MediaAttachmentModal({ onClose, onSend, isCreator = false, recip
     setMediaType(null);
     setCaption(content.title || '');
     // Default to same pricing as the content
-    if (!content.isFree && content.unlockPrice > 0) {
+    if (content.priceCoins !== null && content.priceCoins > 0) {
       setIsLocked(true);
-      setUnlockPrice(content.unlockPrice);
+      setUnlockPrice(content.priceCoins);
     }
   };
 
@@ -133,8 +132,8 @@ export function MediaAttachmentModal({ onClose, onSend, isCreator = false, recip
         // Sending from library (creators only)
         await onSend({
           contentId: selectedContent.id,
-          mediaUrl: selectedContent.mediaUrl,
-          mediaType: selectedContent.contentType === 'video' ? 'video' : 'image',
+          mediaUrl: selectedContent.fileUrl,
+          mediaType: selectedContent.type === 'video' ? 'video' : 'image',
           caption,
           isLocked: finalIsLocked,
           unlockPrice: finalUnlockPrice,
@@ -158,8 +157,8 @@ export function MediaAttachmentModal({ onClose, onSend, isCreator = false, recip
   };
 
   const hasSelection = file || selectedContent;
-  const currentPreview = file ? preview : selectedContent?.thumbnailUrl;
-  const currentMediaType = file ? mediaType : (selectedContent?.contentType === 'video' ? 'video' : 'image');
+  const currentPreview = file ? preview : (selectedContent?.thumbnailUrl || selectedContent?.fileUrl);
+  const currentMediaType = file ? mediaType : (selectedContent?.type === 'video' ? 'video' : 'image');
 
   return (
     <div className="fixed inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center z-[100] p-4">
@@ -256,19 +255,19 @@ export function MediaAttachmentModal({ onClose, onSend, isCreator = false, recip
                       className="relative aspect-square rounded-lg overflow-hidden border-2 border-transparent hover:border-cyan-500 transition-colors group"
                     >
                       <img
-                        src={content.thumbnailUrl}
-                        alt={content.title}
+                        src={content.thumbnailUrl || content.fileUrl}
+                        alt={content.title || ''}
                         className="w-full h-full object-cover"
                       />
-                      {content.contentType === 'video' && (
+                      {content.type === 'video' && (
                         <div className="absolute top-1 left-1 bg-black/60 text-white text-[10px] px-1.5 py-0.5 rounded">
                           VIDEO
                         </div>
                       )}
-                      {!content.isFree && (
+                      {content.priceCoins !== null && content.priceCoins > 0 && (
                         <div className="absolute top-1 right-1 bg-yellow-500/80 text-white text-[10px] px-1.5 py-0.5 rounded flex items-center gap-0.5">
                           <Coins className="w-2.5 h-2.5" />
-                          {content.unlockPrice}
+                          {content.priceCoins}
                         </div>
                       )}
                       <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors" />
@@ -286,7 +285,7 @@ export function MediaAttachmentModal({ onClose, onSend, isCreator = false, recip
                 <div className="relative rounded-xl overflow-hidden bg-black border border-white/10">
                   {currentMediaType === 'video' ? (
                     <video
-                      src={file ? preview || '' : selectedContent?.mediaUrl}
+                      src={file ? preview || '' : selectedContent?.fileUrl}
                       controls
                       className="w-full max-h-64"
                     />

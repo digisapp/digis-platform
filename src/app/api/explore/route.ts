@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/data/system';
-import { users, creatorCategories, streams, contentItems } from '@/lib/data/system';
+import { users, creatorCategories, streams, cloudItems } from '@/lib/data/system';
 import { eq, ilike, or, desc, sql, and, gte } from 'drizzle-orm';
 import { success, degraded } from '@/types/api';
 import { nanoid } from 'nanoid';
@@ -177,11 +177,11 @@ export async function GET(request: NextRequest) {
 
       // 5. Recent content (last 7 days) - for activity scoring
       Promise.race([
-        db.select({ creatorId: contentItems.creatorId })
-          .from(contentItems)
+        db.select({ creatorId: cloudItems.creatorId })
+          .from(cloudItems)
           .where(and(
-            eq(contentItems.isPublished, true),
-            gte(contentItems.createdAt, sevenDaysAgo)
+            eq(cloudItems.status, 'live'),
+            gte(cloudItems.publishedAt, sevenDaysAgo)
           )),
         new Promise<any[]>((resolve) => setTimeout(() => resolve([]), 2000))
       ]).catch(() => []),

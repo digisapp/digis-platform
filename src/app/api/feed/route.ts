@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { db } from '@/lib/data/system';
-import { users, follows, streams, shows, contentItems } from '@/lib/data/system';
+import { users, follows, streams, shows, cloudItems } from '@/lib/data/system';
 import { eq, and, desc, sql, inArray, gte, or } from 'drizzle-orm';
 
 export const runtime = 'nodejs';
@@ -102,11 +102,11 @@ export async function GET(request: NextRequest) {
       }) : Promise.resolve([]),
 
       // Recent content from followed creators (last 7 days)
-      hasFollowing ? db.query.contentItems.findMany({
+      hasFollowing ? db.query.cloudItems.findMany({
         where: and(
-          inArray(contentItems.creatorId, followedIds),
-          eq(contentItems.isPublished, true),
-          gte(contentItems.createdAt, new Date(Date.now() - 7 * 24 * 60 * 60 * 1000))
+          inArray(cloudItems.creatorId, followedIds),
+          eq(cloudItems.status, 'live'),
+          gte(cloudItems.publishedAt, new Date(Date.now() - 7 * 24 * 60 * 60 * 1000))
         ),
         with: {
           creator: {
@@ -118,7 +118,7 @@ export async function GET(request: NextRequest) {
             },
           },
         },
-        orderBy: [desc(contentItems.createdAt)],
+        orderBy: [desc(cloudItems.publishedAt)],
         limit: 12,
       }) : Promise.resolve([]),
 
@@ -207,13 +207,11 @@ export async function GET(request: NextRequest) {
       })),
       recentContent: recentContent.map(content => ({
         id: content.id,
-        title: content.title,
-        description: content.description,
-        contentType: content.contentType,
-        thumbnailUrl: content.thumbnailUrl,
-        price: content.unlockPrice,
-        isFree: content.isFree,
-        createdAt: content.createdAt,
+        contentType: content.type,
+        thumbnailUrl: content.thumbnailUrl || content.fileUrl,
+        price: content.priceCoins,
+        isFree: content.priceCoins === null,
+        createdAt: content.publishedAt || content.uploadedAt,
         creator: content.creator,
       })),
       suggestedCreators: suggestedWithLive,
