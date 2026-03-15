@@ -109,6 +109,7 @@ export function UploadModal({ isOpen, onClose, onUploadComplete }: UploadModalPr
             {dragging ? 'Drop files here' : 'Upload Pictures and Videos Separately'}
           </p>
           <p className="text-gray-400 text-sm mt-2 font-medium">Tap to select your files</p>
+          <p className="text-gray-500 text-xs mt-1">Videos may take a moment to prepare on iPhone</p>
           <input
             ref={inputRef}
             type="file"
