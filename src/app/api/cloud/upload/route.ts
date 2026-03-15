@@ -127,7 +127,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Upload files to Supabase Storage
-    const bucket = 'drops-content';
+    const bucket = 'content';
     const uploadedPaths: string[] = [];
     const createdItems: Array<typeof cloudItems.$inferSelect> = [];
     let totalSizeBytes = 0;

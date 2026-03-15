@@ -42,7 +42,7 @@ export async function POST(request: NextRequest) {
 
     // Download original file from storage
     const { data: fileData, error: dlError } = await supabase.storage
-      .from('drops-content')
+      .from('content')
       .download(storagePath);
 
     if (dlError || !fileData) {
@@ -64,14 +64,14 @@ export async function POST(request: NextRequest) {
     let thumbnailUrl = item.fileUrl;
     const thumbPath = `${baseName}_thumb.webp`;
     const { error: thumbErr } = await supabase.storage
-      .from('drops-content')
+      .from('content')
       .upload(thumbPath, processed.thumbnail, {
         cacheControl: '31536000',
         upsert: true,
         contentType: processed.thumbnailMime,
       });
     if (!thumbErr) {
-      thumbnailUrl = supabase.storage.from('drops-content').getPublicUrl(thumbPath).data.publicUrl;
+      thumbnailUrl = supabase.storage.from('content').getPublicUrl(thumbPath).data.publicUrl;
     }
 
     // Upload preview
@@ -79,14 +79,14 @@ export async function POST(request: NextRequest) {
     const previewExt = processed.previewMime === 'image/webp' ? 'webp' : 'jpg';
     const previewPath = `${baseName}_preview.${previewExt}`;
     const { error: prevErr } = await supabase.storage
-      .from('drops-content')
+      .from('content')
       .upload(previewPath, processed.preview, {
         cacheControl: '31536000',
         upsert: true,
         contentType: processed.previewMime,
       });
     if (!prevErr) {
-      previewUrl = supabase.storage.from('drops-content').getPublicUrl(previewPath).data.publicUrl;
+      previewUrl = supabase.storage.from('content').getPublicUrl(previewPath).data.publicUrl;
     }
 
     // Update item with processed URLs

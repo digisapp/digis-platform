@@ -47,7 +47,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Idempotency: check if item already registered for this storage path
-    const { data: { publicUrl } } = supabase.storage.from('drops-content').getPublicUrl(storagePath);
+    const { data: { publicUrl } } = supabase.storage.from('content').getPublicUrl(storagePath);
 
     const existing = await db.query.cloudItems.findFirst({
       where: and(
@@ -67,7 +67,7 @@ export async function POST(request: NextRequest) {
 
     // Verify file exists in storage
     const { data: fileData, error: fileError } = await supabase.storage
-      .from('drops-content')
+      .from('content')
       .list(storagePath.split('/').slice(0, -1).join('/'), {
         search: storagePath.split('/').pop(),
       });

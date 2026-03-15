@@ -133,9 +133,9 @@ export async function DELETE(
 
     // Delete from storage
     const fileUrl = item.fileUrl;
-    const bucket = 'drops-content';
+    const bucket = 'content';
     // Extract path from public URL
-    const pathMatch = fileUrl.match(/drops-content\/(.+)$/);
+    const pathMatch = fileUrl.match(/content\/(.+)$/);
     if (pathMatch) {
       await supabase.storage.from(bucket).remove([pathMatch[1]]);
     }

@@ -85,7 +85,7 @@ export async function POST(request: NextRequest) {
 
     // Create signed upload URL (valid for 2 hours)
     const { data, error: signError } = await supabase.storage
-      .from('drops-content')
+      .from('content')
       .createSignedUploadUrl(storagePath);
 
     if (signError || !data) {
