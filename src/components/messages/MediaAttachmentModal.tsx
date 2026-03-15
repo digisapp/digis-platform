@@ -245,7 +245,7 @@ export function MediaAttachmentModal({ onClose, onSend, isCreator = false, recip
                 <div className="text-center py-12">
                   <FolderOpen className="w-12 h-12 text-gray-600 mx-auto mb-3" />
                   <p className="text-gray-400">No content yet</p>
-                  <p className="text-sm text-gray-500">Upload content from the Post page first</p>
+                  <p className="text-sm text-gray-500">Upload content from the Drop page first</p>
                 </div>
               ) : (
                 <div className="grid grid-cols-3 gap-2 max-h-64 overflow-y-auto">

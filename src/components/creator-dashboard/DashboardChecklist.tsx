@@ -96,7 +96,7 @@ export function DashboardChecklist({ userProfile, dismissedChecklist, onDismiss,
           )}
           <div className="text-left">
             <span className={`text-sm font-medium block ${hasPostedContent ? 'text-green-400' : 'text-white'}`}>
-              Post your first content
+              Drop your first content
             </span>
             {!hasPostedContent && (
               <span className="text-xs text-gray-400">Photo, video, or gallery — free or paid</span>

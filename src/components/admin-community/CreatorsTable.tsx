@@ -100,7 +100,7 @@ export function CreatorsTable({
               <th className={`text-right ${thClass}`} onClick={() => handleSort('total_earned')}>Earned<SortIcon column="total_earned" sortKey={sortKey} sortDir={sortDir} /></th>
               <th className={`text-right ${thClass}`} onClick={() => handleSort('follower_count')}>Followers<SortIcon column="follower_count" sortKey={sortKey} sortDir={sortDir} /></th>
               <th className={`text-right ${thClass}`} onClick={() => handleSort('content_count')}>Content<SortIcon column="content_count" sortKey={sortKey} sortDir={sortDir} /></th>
-              <th className={`text-left ${thClass}`} onClick={() => handleSort('last_post_at')}>Last Post<SortIcon column="last_post_at" sortKey={sortKey} sortDir={sortDir} /></th>
+              <th className={`text-left ${thClass}`} onClick={() => handleSort('last_post_at')}>Last Drop<SortIcon column="last_post_at" sortKey={sortKey} sortDir={sortDir} /></th>
               <th className={`text-right ${thClass}`} onClick={() => handleSort('total_streams')}>Streams<SortIcon column="total_streams" sortKey={sortKey} sortDir={sortDir} /></th>
               <th className={`text-right ${thClass}`} onClick={() => handleSort('active_subscribers')}>Subs<SortIcon column="active_subscribers" sortKey={sortKey} sortDir={sortDir} /></th>
               <th className={`text-right ${thClass}`} onClick={() => handleSort('profile_views')}>Traffic<SortIcon column="profile_views" sortKey={sortKey} sortDir={sortDir} /></th>

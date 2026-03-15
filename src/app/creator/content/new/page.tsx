@@ -570,7 +570,7 @@ export default function CreateContentPage() {
               </div>
             </GlassCard>
 
-            {/* RIGHT: Details + Pricing + Post */}
+            {/* RIGHT: Details + Pricing + Drop */}
             <div className="space-y-4">
 
               {/* Step 2: Title & Description */}
@@ -664,7 +664,7 @@ export default function CreateContentPage() {
                 </div>
               )}
 
-              {/* Post */}
+              {/* Drop */}
               <GlassButton
                 type="submit"
                 variant="gradient"

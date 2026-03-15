@@ -56,7 +56,7 @@ interface Clip {
 }
 
 const TABS = [
-  { id: 'digitals', label: 'Digitals', icon: ImageIcon },
+  { id: 'digitals', label: 'Drops', icon: ImageIcon },
   { id: 'clips', label: 'Clips', icon: Scissors },
   { id: 'vods', label: 'VODs', icon: Film },
 ];
