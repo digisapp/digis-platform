@@ -91,8 +91,8 @@ export function MobileHeader() {
 
   return (
     <div className="md:hidden fixed top-0 left-0 right-0 z-40" style={{ paddingTop: 'env(safe-area-inset-top)' }}>
-      {/* Tron-themed background - extends behind safe area */}
-      <div className="absolute inset-0 -top-[env(safe-area-inset-top)] bg-black/95 backdrop-blur-xl" style={{ top: 'calc(-1 * env(safe-area-inset-top, 0px))' }} />
+      {/* iOS-style frosted glass background - extends behind safe area */}
+      <div className="absolute inset-0 -top-[env(safe-area-inset-top)] bg-black/70 backdrop-blur-2xl saturate-150" style={{ top: 'calc(-1 * env(safe-area-inset-top, 0px))' }} />
 
       {/* Gradient line at bottom */}
       <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-cyan-400 to-transparent" />

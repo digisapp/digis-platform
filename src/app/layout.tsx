@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Poppins } from "next/font/google";
+import { Poppins, Inter } from "next/font/google";
 import "./globals.css";
 import { AuthNavGate } from "@/components/layout/AuthNavGate";
 import { AuthProvider } from "@/context/AuthContext";
@@ -14,6 +14,12 @@ const poppins = Poppins({
   subsets: ["latin"],
   weight: ["400", "500", "600", "700"],
   variable: "--font-poppins",
+  display: "swap",
+});
+
+const inter = Inter({
+  subsets: ["latin"],
+  variable: "--font-inter",
   display: "swap",
 });
 
@@ -82,7 +88,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`bg-black ${poppins.variable}`}>
+    <html lang="en" className={`bg-black ${poppins.variable} ${inter.variable}`}>
       <head>
         <OrganizationJsonLd
           name="Digis"

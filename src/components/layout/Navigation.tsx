@@ -572,8 +572,8 @@ export function Navigation() {
       
       {/* Mobile Bottom Navigation (iPhone Optimized) - Dark Tron Theme */}
       <nav className="fixed bottom-0 left-0 right-0 z-50 md:hidden">
-        {/* Tron-themed background - pointer-events-none to not block touches */}
-        <div className="absolute inset-0 bg-black/95 backdrop-blur-xl pointer-events-none" />
+        {/* iOS-style frosted glass background */}
+        <div className="absolute inset-0 bg-black/70 backdrop-blur-2xl saturate-150 pointer-events-none" />
 
         {/* Gradient line at top - pointer-events-none to not block touches */}
         <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-cyan-400 to-transparent pointer-events-none" />

@@ -22,6 +22,58 @@ body {
   min-height: -webkit-fill-available;
 }
 
+/* ═══ iOS Native Feel ═══ */
+
+/* Prevent rubber-band overscroll on the page body (keeps it for scrollable containers) */
+body {
+  overscroll-behavior-y: none;
+}
+
+/* Remove tap highlight — iOS shows a grey/blue flash on tap by default */
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* iOS-style text selection color */
+::selection {
+  background: rgba(34, 211, 238, 0.3);
+  color: inherit;
+}
+
+/* iOS-style press feedback — subtle scale-down on active for all interactive elements */
+@media (hover: none) and (pointer: coarse) {
+  button, a, [role="button"], .interactive {
+    transition: transform 0.15s cubic-bezier(0.25, 0.46, 0.45, 0.94), opacity 0.15s ease;
+  }
+  button:active, a:active, [role="button"]:active, .interactive:active {
+    transform: scale(0.97);
+    opacity: 0.7;
+  }
+}
+
+/* Prevent text selection on UI elements (iOS-like behavior) */
+nav, button, [role="button"], .no-select {
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+/* iOS-style spring transitions */
+.transition-spring {
+  transition-timing-function: cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+/* iOS-style smooth transitions for modals and overlays */
+.transition-ios {
+  transition-timing-function: cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+/* Frosted glass — heavier blur like iOS Control Center */
+.glass-ios {
+  background: rgba(0, 0, 0, 0.65);
+  backdrop-filter: saturate(180%) blur(20px);
+  -webkit-backdrop-filter: saturate(180%) blur(20px);
+}
+
 /* Support for safe-area-inset on iOS */
 @supports (padding: max(0px)) {
   .pb-safe-area {
@@ -47,7 +99,14 @@ body {
 body {
   color: var(--foreground);
   background: #000000;
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-inter), -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Helvetica Neue', system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Headings use Poppins (brand font) */
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-poppins), -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
 }
 
 @layer utilities {
@@ -169,31 +228,42 @@ body {
   }
 }
 
-/* Tron-themed scrollbars - Global */
-* {
-  scrollbar-width: thin;
-  scrollbar-color: rgba(34, 211, 238, 0.6) rgba(0, 0, 0, 0.3);
+/* Scrollbars — hidden on mobile (iOS-like), themed on desktop */
+@media (max-width: 767px) {
+  * {
+    scrollbar-width: none;
+  }
+  *::-webkit-scrollbar {
+    display: none;
+  }
 }
 
-*::-webkit-scrollbar {
-  width: 10px;
-  height: 10px;
-}
+@media (min-width: 768px) {
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(34, 211, 238, 0.6) rgba(0, 0, 0, 0.3);
+  }
 
-*::-webkit-scrollbar-track {
-  background: rgba(0, 0, 0, 0.3);
-  border-radius: 10px;
-}
+  *::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
 
-*::-webkit-scrollbar-thumb {
-  background: linear-gradient(180deg, rgba(34, 211, 238, 0.8) 0%, rgba(255, 46, 151, 0.8) 100%);
-  border-radius: 10px;
-  border: 2px solid rgba(0, 0, 0, 0.3);
-}
+  *::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 10px;
+  }
 
-*::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(180deg, rgba(34, 211, 238, 1) 0%, rgba(255, 46, 151, 1) 100%);
-  box-shadow: 0 0 10px rgba(34, 211, 238, 0.5);
+  *::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, rgba(34, 211, 238, 0.8) 0%, rgba(255, 46, 151, 0.8) 100%);
+    border-radius: 10px;
+    border: 2px solid rgba(0, 0, 0, 0.3);
+  }
+
+  *::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(180deg, rgba(34, 211, 238, 1) 0%, rgba(255, 46, 151, 1) 100%);
+    box-shadow: 0 0 10px rgba(34, 211, 238, 0.5);
+  }
 }
 
 /* Hide scrollbar but keep functionality */
