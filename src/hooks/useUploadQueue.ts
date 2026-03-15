@@ -2,6 +2,7 @@
 
 import { useState, useCallback, useRef, useEffect } from 'react';
 import * as tus from 'tus-js-client';
+import { createClient as createSupabaseClient } from '@/lib/supabase/client';
 
 export type UploadStatus =
   | 'local_queued'
@@ -378,9 +379,9 @@ function uploadWithXHR(
 
 /**
  * Upload large files via TUS resumable protocol (>= 6MB)
- * Supports files up to 500MB with automatic chunking and resume
+ * Uses Supabase browser client for reliable auth token retrieval
  */
-function uploadWithTUS(
+async function uploadWithTUS(
   storagePath: string,
   file: File,
   contentType: string,
@@ -390,20 +391,20 @@ function uploadWithTUS(
   const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
   const bucketName = 'content';
 
-  return new Promise((resolve) => {
-    // Get the access token from the Supabase auth cookie
-    const accessToken = getSupabaseAccessToken();
-    if (!accessToken) {
-      resolve({ ok: false, error: 'Not authenticated — please refresh and try again' });
-      return;
-    }
+  // Get access token from Supabase browser client (reliable, handles chunked cookies)
+  const supabase = createSupabaseClient();
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session?.access_token) {
+    return { ok: false, error: 'Not authenticated — please refresh and try again' };
+  }
 
+  return new Promise((resolve) => {
     const upload = new tus.Upload(file, {
       endpoint: `${supabaseUrl}/storage/v1/upload/resumable`,
       retryDelays: [0, 1000, 3000, 5000],
       chunkSize: 6 * 1024 * 1024, // 6MB chunks
       headers: {
-        authorization: `Bearer ${accessToken}`,
+        authorization: `Bearer ${session.access_token}`,
         apikey: supabaseKey,
         'x-upsert': 'false',
       },
@@ -417,7 +418,7 @@ function uploadWithTUS(
       },
       onError(err) {
         const msg = err.message || 'Upload failed';
-        resolve({ ok: false, error: msg.includes('413') ? 'File too large for current plan' : msg });
+        resolve({ ok: false, error: msg });
       },
       onProgress(bytesUploaded, bytesTotal) {
         onProgress(Math.round((bytesUploaded / bytesTotal) * 100));
@@ -435,33 +436,4 @@ function uploadWithTUS(
       upload.start();
     });
   });
-}
-
-/**
- * Extract Supabase access token from cookies
- */
-function getSupabaseAccessToken(): string | null {
-  try {
-    const cookies = document.cookie.split(';');
-    for (const cookie of cookies) {
-      const trimmed = cookie.trim();
-      // Supabase stores auth in a cookie like sb-<ref>-auth-token
-      if (trimmed.includes('-auth-token')) {
-        const value = trimmed.split('=').slice(1).join('=');
-        // Could be base64 JSON with access_token inside
-        try {
-          const parsed = JSON.parse(decodeURIComponent(value));
-          if (parsed.access_token) return parsed.access_token;
-          // Sometimes it's an array [access_token, refresh_token, ...]
-          if (Array.isArray(parsed) && parsed[0]) return parsed[0];
-        } catch {
-          // Not JSON, might be the raw token
-          return decodeURIComponent(value);
-        }
-      }
-    }
-    return null;
-  } catch {
-    return null;
-  }
 }
