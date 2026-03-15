@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { GlassModal } from '@/components/ui/GlassModal';
-import { Eye, AlertCircle, Lock, Coins } from 'lucide-react';
+import { Eye, AlertCircle, EyeOff, Coins } from 'lucide-react';
 
 interface BulkActionsModalProps {
   isOpen: boolean;
@@ -63,7 +63,7 @@ export function BulkActionsModal({
 
   const statusOptions = [
     { value: 'live' as const, label: 'Live', icon: Eye, description: 'Visible to fans, ready to buy', color: 'green' },
-    { value: 'private' as const, label: 'Private', icon: Lock, description: 'Hidden, only you can see', color: 'gray' },
+    { value: 'private' as const, label: 'Hidden', icon: EyeOff, description: 'Only you can see', color: 'gray' },
   ];
 
   return (

@@ -2,7 +2,7 @@
 
 import { useState, useRef } from 'react';
 import { GlassModal } from '@/components/ui/GlassModal';
-import { Lock, Eye, Trash2, Play, AlertCircle, Coins, Check } from 'lucide-react';
+import { EyeOff, Eye, Trash2, Play, AlertCircle, Coins, Check } from 'lucide-react';
 import type { CloudItem } from '@/hooks/useCloudData';
 
 interface ItemDetailModalProps {
@@ -14,7 +14,7 @@ interface ItemDetailModalProps {
 }
 
 const statusOptions = [
-  { value: 'private', label: 'Private', icon: Lock, color: 'text-gray-400', bg: 'bg-gray-500/20', desc: 'Only you can see' },
+  { value: 'private', label: 'Hidden', icon: EyeOff, color: 'text-gray-400', bg: 'bg-gray-500/20', desc: 'Only you can see' },
   { value: 'live', label: 'Live', icon: Eye, color: 'text-green-400', bg: 'bg-green-500/20', desc: 'Visible to fans' },
 ] as const;
 

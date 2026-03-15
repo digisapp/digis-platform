@@ -1,7 +1,7 @@
 'use client';
 
 import { memo } from 'react';
-import { Play, Lock, Eye, Check } from 'lucide-react';
+import { Play, EyeOff, Eye, Check } from 'lucide-react';
 import type { CloudItem } from '@/hooks/useCloudData';
 
 interface CloudGridProps {
@@ -13,7 +13,7 @@ interface CloudGridProps {
 }
 
 const statusBadge = {
-  private: { label: 'Private', color: 'bg-gray-500/80', icon: Lock },
+  private: { label: 'Hidden', color: 'bg-gray-500/80', icon: EyeOff },
   live: { label: 'Live', color: 'bg-green-500/80', icon: Eye },
 };
 

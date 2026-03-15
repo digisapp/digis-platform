@@ -15,7 +15,7 @@ import { LockedMessageModal } from '@/components/cloud/LockedMessageModal';
 import {
   Upload,
   Zap,
-  Lock,
+  EyeOff,
   CheckSquare,
   Eye,
   Image,
@@ -31,7 +31,7 @@ import {
 
 const statusFilters = [
   { value: 'all', label: 'All', icon: LayoutGrid },
-  { value: 'private', label: 'Private', icon: Lock },
+  { value: 'private', label: 'Hidden', icon: EyeOff },
   { value: 'live', label: 'Live', icon: Eye },
 ] as const;
 
