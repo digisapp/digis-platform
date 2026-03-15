@@ -30,7 +30,7 @@ export function QuickActionButtons({
   };
 
   return (
-    <div className="flex flex-wrap gap-2 p-3 border-b border-white/10">
+    <div className="flex gap-2 px-4 py-3 border-b border-white/5 overflow-x-auto scrollbar-hide">
       {QUICK_ACTIONS.map((action) => {
         const Icon = iconMap[action.icon] || Sparkles;
 
@@ -39,7 +39,7 @@ export function QuickActionButtons({
             key={action.id}
             onClick={() => handleClick(action)}
             disabled={disabled}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 text-gray-300 hover:text-white transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-medium bg-white/[0.04] hover:bg-purple-500/15 border border-white/10 hover:border-purple-500/25 text-gray-300 hover:text-purple-300 transition-all disabled:opacity-50 whitespace-nowrap flex-shrink-0"
           >
             <Icon className="w-3.5 h-3.5" />
             {action.label}

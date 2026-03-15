@@ -23,38 +23,37 @@ export function SuccessCoachMessage({ message }: SuccessCoachMessageProps) {
     }
   };
 
-  // Format timestamp
   const formatTime = (date: Date) => {
     return new Date(date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   };
 
   return (
-    <div className={`flex gap-2 ${isUser ? 'flex-row-reverse' : 'flex-row'}`}>
+    <div className={`flex gap-2.5 ${isUser ? 'flex-row-reverse' : 'flex-row'}`}>
       {/* Avatar */}
       <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${
         isUser
-          ? 'bg-gradient-to-br from-cyan-500/30 to-purple-500/30 border border-cyan-500/30'
-          : 'bg-gradient-to-br from-purple-500/30 to-pink-500/30 border border-purple-500/30'
+          ? 'bg-gradient-to-br from-cyan-500 to-blue-500 shadow-[0_0_10px_rgba(34,211,238,0.3)]'
+          : 'bg-gradient-to-br from-purple-500 to-pink-500 shadow-[0_0_10px_rgba(147,51,234,0.3)]'
       }`}>
         {isUser ? (
-          <User className="w-4 h-4 text-cyan-400" />
+          <User className="w-4 h-4 text-white" />
         ) : (
-          <Sparkles className="w-4 h-4 text-purple-400" />
+          <Sparkles className="w-4 h-4 text-white" />
         )}
       </div>
 
       {/* Message bubble */}
-      <div className={`max-w-[85%] ${isUser ? 'items-end' : 'items-start'}`}>
+      <div className={`max-w-[80%] ${isUser ? 'items-end' : 'items-start'}`}>
         <div className={`relative px-4 py-3 rounded-2xl ${
           isUser
-            ? 'bg-gradient-to-r from-cyan-500/20 to-purple-500/20 border border-cyan-500/20 rounded-tr-sm'
+            ? 'bg-gradient-to-br from-cyan-500/20 to-blue-500/20 border border-cyan-500/15 rounded-tr-md'
             : isScript
-              ? 'bg-gradient-to-r from-yellow-500/15 to-orange-500/15 border border-yellow-500/20 rounded-tl-sm'
-              : 'bg-gradient-to-r from-purple-500/15 to-pink-500/15 border border-purple-500/20 rounded-tl-sm'
+              ? 'bg-gradient-to-br from-yellow-500/10 to-orange-500/10 border border-yellow-500/15 rounded-tl-md'
+              : 'bg-white/[0.06] border border-white/10 rounded-tl-md'
         }`}>
           {/* Script badge */}
           {isScript && !isUser && (
-            <div className="flex items-center gap-1.5 mb-2 pb-2 border-b border-yellow-500/20">
+            <div className="flex items-center gap-1.5 mb-2 pb-2 border-b border-yellow-500/15">
               <Sparkles className="w-3.5 h-3.5 text-yellow-400" />
               <span className="text-xs font-medium text-yellow-400">Generated Script</span>
               {message.metadata?.scriptType && (
@@ -66,17 +65,17 @@ export function SuccessCoachMessage({ message }: SuccessCoachMessageProps) {
           )}
 
           {/* Message content */}
-          <p className={`text-sm whitespace-pre-wrap ${
+          <p className={`text-[13px] leading-relaxed whitespace-pre-wrap ${
             isUser ? 'text-white' : 'text-gray-200'
           }`}>
             {message.content}
           </p>
 
-          {/* Copy button for assistant messages */}
+          {/* Copy button */}
           {!isUser && (
             <button
               onClick={handleCopy}
-              className="absolute top-2 right-2 p-1.5 rounded-lg bg-white/5 hover:bg-white/10 transition-colors group"
+              className="absolute top-2 right-2 p-1.5 rounded-lg bg-white/5 hover:bg-white/15 transition-colors group"
               title="Copy to clipboard"
             >
               {copied ? (
@@ -89,7 +88,7 @@ export function SuccessCoachMessage({ message }: SuccessCoachMessageProps) {
         </div>
 
         {/* Timestamp */}
-        <p className={`text-[10px] text-gray-500 mt-1 px-1 ${isUser ? 'text-right' : 'text-left'}`}>
+        <p className={`text-[10px] text-gray-600 mt-1 px-1 ${isUser ? 'text-right' : 'text-left'}`}>
           {formatTime(message.timestamp)}
         </p>
       </div>
