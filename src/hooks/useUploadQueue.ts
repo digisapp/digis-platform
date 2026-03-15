@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useCallback, useRef, useEffect } from 'react';
+import * as tus from 'tus-js-client';
 
 export type UploadStatus =
   | 'local_queued'
@@ -152,7 +153,7 @@ export function useUploadQueue() {
         const next = current.find(i => i.status === 'local_queued' && i.file);
         if (!next) break;
 
-        // Step 1: Get signed upload URL
+        // Step 1: Validate and get storage path from API
         updateItem(next.id, { status: 'uploading', progress: 0 });
 
         try {
@@ -174,19 +175,29 @@ export function useUploadQueue() {
             continue;
           }
 
-          const { signedUrl, storagePath, token } = signData;
-          updateItem(next.id, { storagePath, signedUrl });
+          const { storagePath, token } = signData;
+          updateItem(next.id, { storagePath });
 
-          // Step 2: Upload file directly to Supabase Storage
-          const uploadRes = await uploadWithProgress(
-            signedUrl,
-            next.file!,
-            next.contentType,
-            token,
-            (progress) => {
-              updateItem(next.id, { progress });
-            }
-          );
+          // Step 2: Upload file — use TUS resumable for large files, XHR for small
+          const USE_TUS_THRESHOLD = 6 * 1024 * 1024; // 6MB
+          let uploadRes: { ok: boolean; error?: string };
+
+          if (next.fileSize > USE_TUS_THRESHOLD) {
+            uploadRes = await uploadWithTUS(
+              storagePath,
+              next.file!,
+              next.contentType,
+              (progress) => updateItem(next.id, { progress }),
+            );
+          } else {
+            uploadRes = await uploadWithXHR(
+              signData.signedUrl,
+              next.file!,
+              next.contentType,
+              token,
+              (progress) => updateItem(next.id, { progress }),
+            );
+          }
 
           if (!uploadRes.ok) {
             updateItem(next.id, {
@@ -318,9 +329,9 @@ export function useUploadQueue() {
 }
 
 /**
- * Upload a file via PUT with XHR for progress tracking
+ * Upload small files via XHR PUT to signed URL (< 6MB)
  */
-function uploadWithProgress(
+function uploadWithXHR(
   signedUrl: string,
   file: File,
   contentType: string,
@@ -363,4 +374,94 @@ function uploadWithProgress(
     xhr.setRequestHeader('x-upsert', 'false');
     xhr.send(file);
   });
+}
+
+/**
+ * Upload large files via TUS resumable protocol (>= 6MB)
+ * Supports files up to 500MB with automatic chunking and resume
+ */
+function uploadWithTUS(
+  storagePath: string,
+  file: File,
+  contentType: string,
+  onProgress: (pct: number) => void,
+): Promise<{ ok: boolean; error?: string }> {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+  const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+  const bucketName = 'content';
+
+  return new Promise((resolve) => {
+    // Get the access token from the Supabase auth cookie
+    const accessToken = getSupabaseAccessToken();
+    if (!accessToken) {
+      resolve({ ok: false, error: 'Not authenticated — please refresh and try again' });
+      return;
+    }
+
+    const upload = new tus.Upload(file, {
+      endpoint: `${supabaseUrl}/storage/v1/upload/resumable`,
+      retryDelays: [0, 1000, 3000, 5000],
+      chunkSize: 6 * 1024 * 1024, // 6MB chunks
+      headers: {
+        authorization: `Bearer ${accessToken}`,
+        apikey: supabaseKey,
+        'x-upsert': 'false',
+      },
+      uploadDataDuringCreation: true,
+      removeFingerprintOnSuccess: true,
+      metadata: {
+        bucketName,
+        objectName: storagePath,
+        contentType,
+        cacheControl: '3600',
+      },
+      onError(err) {
+        const msg = err.message || 'Upload failed';
+        resolve({ ok: false, error: msg.includes('413') ? 'File too large for current plan' : msg });
+      },
+      onProgress(bytesUploaded, bytesTotal) {
+        onProgress(Math.round((bytesUploaded / bytesTotal) * 100));
+      },
+      onSuccess() {
+        resolve({ ok: true });
+      },
+    });
+
+    // Check for previous uploads to resume
+    upload.findPreviousUploads().then((previousUploads) => {
+      if (previousUploads.length > 0) {
+        upload.resumeFromPreviousUpload(previousUploads[0]);
+      }
+      upload.start();
+    });
+  });
+}
+
+/**
+ * Extract Supabase access token from cookies
+ */
+function getSupabaseAccessToken(): string | null {
+  try {
+    const cookies = document.cookie.split(';');
+    for (const cookie of cookies) {
+      const trimmed = cookie.trim();
+      // Supabase stores auth in a cookie like sb-<ref>-auth-token
+      if (trimmed.includes('-auth-token')) {
+        const value = trimmed.split('=').slice(1).join('=');
+        // Could be base64 JSON with access_token inside
+        try {
+          const parsed = JSON.parse(decodeURIComponent(value));
+          if (parsed.access_token) return parsed.access_token;
+          // Sometimes it's an array [access_token, refresh_token, ...]
+          if (Array.isArray(parsed) && parsed[0]) return parsed[0];
+        } catch {
+          // Not JSON, might be the raw token
+          return decodeURIComponent(value);
+        }
+      }
+    }
+    return null;
+  } catch {
+    return null;
+  }
 }
