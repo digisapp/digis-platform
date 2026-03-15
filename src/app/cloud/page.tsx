@@ -10,7 +10,6 @@ import { QuickSellModal } from '@/components/cloud/QuickSellModal';
 import { PricingDefaultsModal } from '@/components/cloud/PricingDefaultsModal';
 import { ItemDetailModal } from '@/components/cloud/ItemDetailModal';
 import { BulkActionsModal } from '@/components/cloud/BulkActionsModal';
-import { FreeUpStorageModal } from '@/components/cloud/FreeUpStorageModal';
 import { TagsModal } from '@/components/cloud/TagsModal';
 import { ScheduleDropsModal } from '@/components/cloud/ScheduleDropsModal';
 import { LockedMessageModal } from '@/components/cloud/LockedMessageModal';
@@ -32,7 +31,6 @@ import {
   Calendar,
   Send,
   Flame,
-  HardDrive,
 } from 'lucide-react';
 
 const statusFilters = [
@@ -56,7 +54,6 @@ export default function CloudPage() {
   const [showScheduleDrops, setShowScheduleDrops] = useState(false);
   const [showLockedMessage, setShowLockedMessage] = useState(false);
   const [showBulkActions, setShowBulkActions] = useState(false);
-  const [showFreeStorage, setShowFreeStorage] = useState(false);
   const [selectedItem, setSelectedItem] = useState<CloudItem | null>(null);
   const [selectionMode, setSelectionMode] = useState(false);
 
@@ -105,17 +102,6 @@ export default function CloudPage() {
                 <Flame className="w-4 h-4 text-orange-400" />
                 <span className="text-orange-400 text-sm font-bold">{streak.currentStreak}</span>
               </div>
-            )}
-
-            {/* Free up storage */}
-            {cloud.total > 0 && (
-              <button
-                onClick={() => setShowFreeStorage(true)}
-                className="p-2.5 rounded-xl bg-white/5 text-gray-400 hover:bg-white/10 hover:text-white transition-colors"
-                title="Free up phone storage"
-              >
-                <HardDrive className="w-5 h-5" />
-              </button>
             )}
 
             {/* Pricing settings */}
@@ -383,10 +369,6 @@ export default function CloudPage() {
         onBulkSetPrice={cloud.bulkSetPrice}
       />
 
-      <FreeUpStorageModal
-        isOpen={showFreeStorage}
-        onClose={() => setShowFreeStorage(false)}
-      />
     </div>
   );
 }
