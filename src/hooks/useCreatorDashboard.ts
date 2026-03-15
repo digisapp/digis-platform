@@ -85,7 +85,7 @@ export function useCreatorDashboard() {
           router.push('/creator/go-live');
           break;
         case 'u':
-          router.push('/creator/content/new');
+          router.push('/cloud');
           break;
       }
     };

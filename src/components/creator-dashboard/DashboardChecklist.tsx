@@ -82,7 +82,7 @@ export function DashboardChecklist({ userProfile, dismissedChecklist, onDismiss,
         </button>
 
         <button
-          onClick={() => router.push('/creator/content/new')}
+          onClick={() => router.push('/cloud')}
           className={`flex items-center gap-3 p-4 rounded-xl transition-all md:col-span-2 ${
             hasPostedContent
               ? 'bg-green-500/10 border border-green-500/30'

@@ -195,46 +195,46 @@ export default function CloudPage() {
                     </button>
                     <button
                       onClick={() => setShowTags(true)}
-                      className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-white/5 text-gray-300 hover:bg-white/10 text-sm transition-colors"
-                      title="Tags"
+                      className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-white/5 text-gray-300 hover:bg-white/10 text-sm transition-colors"
                     >
-                      <Tag className="w-3.5 h-3.5" />
+                      <Tag className="w-4 h-4" />
+                      <span className="hidden sm:inline">Tags</span>
                     </button>
                     <button
                       onClick={() => setShowScheduleDrops(true)}
-                      className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-white/5 text-gray-300 hover:bg-white/10 text-sm transition-colors"
-                      title="Schedule drops"
+                      className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-white/5 text-gray-300 hover:bg-white/10 text-sm transition-colors"
                     >
-                      <Calendar className="w-3.5 h-3.5" />
+                      <Calendar className="w-4 h-4" />
+                      <span className="hidden sm:inline">Schedule</span>
                     </button>
                     <button
                       onClick={() => setShowLockedMessage(true)}
-                      className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-white/5 text-gray-300 hover:bg-white/10 text-sm transition-colors"
-                      title="Send as locked message"
+                      className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-white/5 text-gray-300 hover:bg-white/10 text-sm transition-colors"
                     >
-                      <Send className="w-3.5 h-3.5" />
+                      <Send className="w-4 h-4" />
+                      <span className="hidden sm:inline">Send</span>
                     </button>
                     <button
                       onClick={() => setShowBulkActions(true)}
-                      className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-white/5 text-gray-300 hover:bg-white/10 text-sm transition-colors"
-                      title="Bulk publish / price"
+                      className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-white/5 text-gray-300 hover:bg-white/10 text-sm transition-colors"
                     >
-                      <Eye className="w-3.5 h-3.5" />
+                      <Eye className="w-4 h-4" />
+                      <span className="hidden sm:inline">Publish</span>
                     </button>
                   </div>
                 )}
                 <button
                   onClick={cloud.selectAll}
-                  className="p-1.5 rounded-lg text-gray-400 hover:text-white hover:bg-white/10 transition-colors"
+                  className="p-2.5 rounded-lg text-gray-400 hover:text-white hover:bg-white/10 transition-colors"
                   title="Select all"
                 >
-                  <CheckCheck className="w-4 h-4" />
+                  <CheckCheck className="w-5 h-5" />
                 </button>
                 <button
                   onClick={() => { setSelectionMode(false); cloud.clearSelection(); }}
-                  className="p-1.5 rounded-lg text-gray-400 hover:text-white hover:bg-white/10 transition-colors"
+                  className="p-2.5 rounded-lg text-gray-400 hover:text-white hover:bg-white/10 transition-colors"
                 >
-                  <X className="w-4 h-4" />
+                  <X className="w-5 h-5" />
                 </button>
               </>
             ) : (

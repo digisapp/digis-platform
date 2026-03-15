@@ -149,7 +149,7 @@ export function DashboardActivity({ recentActivities, recentContent, onFulfillOr
             </div>
             <p className="text-gray-400">No content yet</p>
             <button
-              onClick={() => router.push('/creator/content/new')}
+              onClick={() => router.push('/cloud')}
               className="mt-2 text-sm text-cyan-400 hover:text-cyan-300"
             >
               Create your first post

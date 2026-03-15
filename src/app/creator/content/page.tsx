@@ -240,11 +240,11 @@ export default function CreatorContentPage() {
           {activeTab === 'digitals' && (
             <GlassButton
               variant="gradient"
-              onClick={() => router.push('/creator/content/new')}
+              onClick={() => router.push('/cloud')}
               className="flex items-center gap-2"
             >
               <Plus className="w-4 h-4" />
-              New Drop
+              Cloud
             </GlassButton>
           )}
         </div>
@@ -264,12 +264,12 @@ export default function CreatorContentPage() {
               <GlassButton
                 variant="gradient"
                 size="lg"
-                onClick={() => router.push('/creator/content/new')}
+                onClick={() => router.push('/cloud')}
                 className="flex items-center gap-2 mx-auto"
                 shimmer
               >
                 <Plus className="w-5 h-5" />
-                New Drop
+                Cloud
               </GlassButton>
             </GlassCard>
           ) : (
