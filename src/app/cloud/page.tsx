@@ -7,7 +7,6 @@ import { useCloudData, CloudItem } from '@/hooks/useCloudData';
 import { CloudGrid } from '@/components/cloud/HubGrid';
 import { UploadModal } from '@/components/cloud/UploadModal';
 import { QuickSellModal } from '@/components/cloud/QuickSellModal';
-import { PricingDefaultsModal } from '@/components/cloud/PricingDefaultsModal';
 import { ItemDetailModal } from '@/components/cloud/ItemDetailModal';
 import { BulkActionsModal } from '@/components/cloud/BulkActionsModal';
 import { TagsModal } from '@/components/cloud/TagsModal';
@@ -16,14 +15,11 @@ import { LockedMessageModal } from '@/components/cloud/LockedMessageModal';
 import {
   Upload,
   Zap,
-  Settings,
   Lock,
   CheckSquare,
   Eye,
   Image,
   Film,
-  DollarSign,
-  ChevronDown,
   X,
   CheckCheck,
   Tag,
@@ -46,7 +42,6 @@ export default function CloudPage() {
   // Modals
   const [showUpload, setShowUpload] = useState(false);
   const [showQuickSell, setShowQuickSell] = useState(false);
-  const [showPricing, setShowPricing] = useState(false);
   const [showTags, setShowTags] = useState(false);
   const [showScheduleDrops, setShowScheduleDrops] = useState(false);
   const [showLockedMessage, setShowLockedMessage] = useState(false);
@@ -76,8 +71,6 @@ export default function CloudPage() {
     );
   }
 
-  const hasNoPricing = !cloud.pricingDefaults?.photoPriceCoins && !cloud.pricingDefaults?.shortVideoPriceCoins && !cloud.pricingDefaults?.longVideoPriceCoins;
-
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-900 via-black to-gray-900">
       <div className="max-w-6xl mx-auto px-4 pt-6 pb-28">
@@ -101,19 +94,6 @@ export default function CloudPage() {
               </div>
             )}
 
-            {/* Pricing settings */}
-            <button
-              onClick={() => setShowPricing(true)}
-              className={`p-2.5 rounded-xl transition-colors ${
-                hasNoPricing
-                  ? 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/30'
-                  : 'bg-white/5 text-gray-400 hover:bg-white/10 hover:text-white'
-              }`}
-              title="Default prices"
-            >
-              <Settings className="w-5 h-5" />
-            </button>
-
             {/* Upload button */}
             <button
               onClick={() => setShowUpload(true)}
@@ -125,47 +105,19 @@ export default function CloudPage() {
           </div>
         </div>
 
-        {/* First-time setup banner */}
-        {hasNoPricing && cloud.total === 0 && (
+        {/* Welcome banner for empty state */}
+        {cloud.total === 0 && (
           <div className="mb-6 bg-gradient-to-r from-cyan-500/10 to-pink-500/10 border border-cyan-500/20 rounded-2xl p-6 text-center">
             <h2 className="text-lg font-bold text-white mb-2">Welcome to Cloud</h2>
             <p className="text-gray-400 text-sm mb-4">
-              Back up your content. Free up your phone. Start earning when you&apos;re ready.
-            </p>
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
-              <button
-                onClick={() => setShowPricing(true)}
-                className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-white/10 text-white hover:bg-white/20 transition-colors text-sm font-medium"
-              >
-                <DollarSign className="w-4 h-4" />
-                Set your default prices
-              </button>
-              <button
-                onClick={() => setShowUpload(true)}
-                className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-cyan-500 to-cyan-600 text-black font-semibold hover:from-cyan-400 hover:to-cyan-500 transition-all text-sm"
-              >
-                <Upload className="w-4 h-4" />
-                Upload your first content
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* Suggested Actions */}
-        {cloud.total > 0 && cloud.stats.unpriced > 0 && !hasNoPricing && (
-          <div className="mb-6 bg-white/5 rounded-xl p-4 space-y-2">
-            <p className="text-gray-400 text-sm font-medium">
-              {cloud.stats.unpriced} items not yet earning
+              Upload your content, set prices, and start earning.
             </p>
             <button
-              onClick={async () => {
-                const result = await cloud.bulkPriceAll();
-                if (!result.success) console.error(result.error);
-              }}
-              className="flex items-center gap-2 text-cyan-400 hover:text-cyan-300 text-sm font-medium transition-colors"
+              onClick={() => setShowUpload(true)}
+              className="flex items-center gap-2 mx-auto px-5 py-2.5 rounded-xl bg-gradient-to-r from-cyan-500 to-cyan-600 text-black font-semibold hover:from-cyan-400 hover:to-cyan-500 transition-all text-sm"
             >
-              <DollarSign className="w-4 h-4" />
-              Price all at default prices
+              <Upload className="w-4 h-4" />
+              Upload your first content
             </button>
           </div>
         )}
@@ -372,15 +324,7 @@ export default function CloudPage() {
         onClose={() => setShowQuickSell(false)}
         selectedCount={cloud.selectedItems.size}
         selectedItemIds={Array.from(cloud.selectedItems)}
-        pricingDefaults={cloud.pricingDefaults}
         onQuickSell={cloud.quickSell}
-      />
-
-      <PricingDefaultsModal
-        isOpen={showPricing}
-        onClose={() => setShowPricing(false)}
-        defaults={cloud.pricingDefaults}
-        onSave={cloud.savePricingDefaults}
       />
 
       <ItemDetailModal

@@ -38,13 +38,6 @@ export interface CloudTag {
   itemCount: number;
 }
 
-export interface PricingDefaults {
-  photoPriceCoins: number | null;
-  shortVideoPriceCoins: number | null;
-  longVideoPriceCoins: number | null;
-  packDiscountPct: number;
-}
-
 type StatusFilter = 'private' | 'live';
 
 export function useCloudData() {
@@ -52,7 +45,6 @@ export function useCloudData() {
   const [total, setTotal] = useState(0);
   const [packs, setPacks] = useState<CloudPack[]>([]);
   const [tags, setTags] = useState<CloudTag[]>([]);
-  const [pricingDefaults, setPricingDefaults] = useState<PricingDefaults | null>(null);
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('private');
   const [typeFilter, setTypeFilter] = useState<'all' | 'photo' | 'video'>('all');
   const [tagFilter, setTagFilter] = useState<string | null>(null);
@@ -103,22 +95,11 @@ export function useCloudData() {
     }
   }, []);
 
-  // ── Fetch pricing defaults ──
-  const fetchPricingDefaults = useCallback(async () => {
-    try {
-      const res = await fetch('/api/cloud/pricing-defaults');
-      const data = await res.json();
-      if (res.ok) setPricingDefaults(data.defaults);
-    } catch (err) {
-      console.error('[useCloudData] fetchPricingDefaults error:', err);
-    }
-  }, []);
-
   // ── Initial load ──
   useEffect(() => {
     const load = async () => {
       setLoading(true);
-      await Promise.all([fetchItems(1), fetchPacks(), fetchTags(), fetchPricingDefaults()]);
+      await Promise.all([fetchItems(1), fetchPacks(), fetchTags()]);
       setLoading(false);
     };
     load();
@@ -200,24 +181,6 @@ export function useCloudData() {
   }, []);
 
   // ── Bulk actions ──
-  const bulkPriceAll = useCallback(async () => {
-    try {
-      const res = await fetch('/api/cloud/items/bulk', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'price_all' }),
-      });
-      const data = await res.json();
-      if (res.ok) {
-        await fetchItems(page);
-        return { success: true, updated: data.updated };
-      }
-      return { success: false, error: data.error };
-    } catch (err: any) {
-      return { success: false, error: err.message };
-    }
-  }, [fetchItems, page]);
-
   const bulkSetStatus = useCallback(async (itemIds: string[], status: string) => {
     try {
       const res = await fetch('/api/cloud/items/bulk', {
@@ -277,25 +240,6 @@ export function useCloudData() {
     }
   }, [fetchItems, fetchPacks]);
 
-  // ── Save pricing defaults ──
-  const savePricingDefaults = useCallback(async (defaults: PricingDefaults) => {
-    try {
-      const res = await fetch('/api/cloud/pricing-defaults', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(defaults),
-      });
-      const data = await res.json();
-      if (res.ok) {
-        setPricingDefaults(data.defaults);
-        return { success: true };
-      }
-      return { success: false, error: data.error };
-    } catch (err: any) {
-      return { success: false, error: err.message };
-    }
-  }, []);
-
   // ── Create pack ──
   const createPack = useCallback(async (title: string, priceCoins: number, itemIds: string[]) => {
     try {
@@ -350,7 +294,6 @@ export function useCloudData() {
     total,
     packs,
     tags,
-    pricingDefaults,
     stats,
 
     // State
@@ -373,11 +316,9 @@ export function useCloudData() {
     uploadFiles,
     updateItem,
     deleteItem,
-    bulkPriceAll,
     bulkSetStatus,
     bulkSetPrice,
     quickSell,
-    savePricingDefaults,
     createPack,
     fetchItems,
     fetchPacks,

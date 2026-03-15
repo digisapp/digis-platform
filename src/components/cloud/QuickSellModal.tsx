@@ -2,15 +2,13 @@
 
 import { useState } from 'react';
 import { GlassModal } from '@/components/ui/GlassModal';
-import { Lock, Package, Save, DollarSign, Image, Film, AlertCircle } from 'lucide-react';
-import type { PricingDefaults } from '@/hooks/useCloudData';
+import { Lock, Package, Save, AlertCircle } from 'lucide-react';
 
 interface QuickSellModalProps {
   isOpen: boolean;
   onClose: () => void;
   selectedCount: number;
   selectedItemIds: string[];
-  pricingDefaults: PricingDefaults | null;
   onQuickSell: (action: string, itemIds: string[], packTitle?: string, packPrice?: number) => Promise<{ success: boolean; error?: string }>;
 }
 
@@ -19,17 +17,12 @@ export function QuickSellModal({
   onClose,
   selectedCount,
   selectedItemIds,
-  pricingDefaults,
   onQuickSell,
 }: QuickSellModalProps) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [packTitle, setPackTitle] = useState('');
-
-  const hasDefaults = pricingDefaults && (
-    pricingDefaults.photoPriceCoins || pricingDefaults.shortVideoPriceCoins || pricingDefaults.longVideoPriceCoins
-  );
 
   const handleAction = async (action: string) => {
     setLoading(true);
@@ -68,17 +61,10 @@ export function QuickSellModal({
           <p className="text-gray-400 text-sm">items selected</p>
         </div>
 
-        {!hasDefaults && (
-          <div className="flex items-center gap-2 text-yellow-400 text-sm bg-yellow-500/10 rounded-xl p-3">
-            <AlertCircle className="w-4 h-4 flex-shrink-0" />
-            Set your default prices first to use Quick Drop
-          </div>
-        )}
-
         {/* Lock Individually */}
         <button
           onClick={() => handleAction('lock_individually')}
-          disabled={loading || !hasDefaults}
+          disabled={loading}
           className="w-full flex items-center gap-4 p-4 rounded-xl bg-white/5 hover:bg-white/10 border border-cyan-500/20 hover:border-cyan-500/40 transition-all disabled:opacity-40 disabled:cursor-not-allowed text-left"
         >
           <div className="w-10 h-10 rounded-full bg-cyan-500/20 flex items-center justify-center flex-shrink-0">
@@ -86,7 +72,7 @@ export function QuickSellModal({
           </div>
           <div>
             <p className="text-white font-medium">Lock individually</p>
-            <p className="text-gray-400 text-sm">Apply default prices & publish each item</p>
+            <p className="text-gray-400 text-sm">Publish each item as a live drop</p>
           </div>
         </button>
 
@@ -94,7 +80,7 @@ export function QuickSellModal({
         <div className="space-y-2">
           <button
             onClick={() => handleAction('lock_as_pack')}
-            disabled={loading || !hasDefaults}
+            disabled={loading}
             className="w-full flex items-center gap-4 p-4 rounded-xl bg-white/5 hover:bg-white/10 border border-pink-500/20 hover:border-pink-500/40 transition-all disabled:opacity-40 disabled:cursor-not-allowed text-left"
           >
             <div className="w-10 h-10 rounded-full bg-pink-500/20 flex items-center justify-center flex-shrink-0">
