@@ -15,7 +15,7 @@ import {
   StreamingTipsModal,
 } from '@/components/go-live';
 import { OBSStreamSetup } from '@/components/go-live/OBSStreamSetup';
-import { Video, Monitor, Camera } from 'lucide-react';
+import { Video, Monitor } from 'lucide-react';
 
 export default function GoLivePage() {
   const router = useRouter();
@@ -111,34 +111,6 @@ export default function GoLivePage() {
           </button>
         )}
 
-        {/* Stream Method Toggle */}
-        <div className="flex items-center gap-3 mb-6">
-          <button
-            type="button"
-            onClick={() => data.setStreamMethod('browser')}
-            className={`flex items-center gap-2 px-4 py-3 rounded-xl border-2 transition-all duration-300 ${
-              data.streamMethod === 'browser'
-                ? 'border-purple-500 bg-purple-500/20 text-white shadow-[0_0_15px_rgba(168,85,247,0.3)]'
-                : 'border-white/10 bg-white/5 text-gray-400 hover:border-white/20'
-            }`}
-          >
-            <Camera className="w-5 h-5" />
-            <span className="font-semibold">Browser Camera</span>
-          </button>
-          <button
-            type="button"
-            onClick={() => data.setStreamMethod('rtmp')}
-            className={`flex items-center gap-2 px-4 py-3 rounded-xl border-2 transition-all duration-300 ${
-              data.streamMethod === 'rtmp'
-                ? 'border-purple-500 bg-purple-500/20 text-white shadow-[0_0_15px_rgba(168,85,247,0.3)]'
-                : 'border-white/10 bg-white/5 text-gray-400 hover:border-white/20'
-            }`}
-          >
-            <Monitor className="w-5 h-5" />
-            <span className="font-semibold">OBS / Encoder</span>
-          </button>
-        </div>
-
         {/* 2-Column Layout */}
         <form
           onSubmit={(e) => data.handleStartStream(e, {
@@ -178,6 +150,8 @@ export default function GoLivePage() {
               hasAiTwin={data.hasAiTwin}
               aiChatModEnabled={data.aiChatModEnabled}
               setAiChatModEnabled={data.setAiChatModEnabled}
+              streamMethod={data.streamMethod}
+              setStreamMethod={data.setStreamMethod}
             />
 
             {/* Right Column: Device Preview or RTMP Info */}

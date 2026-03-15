@@ -2,10 +2,11 @@
 
 import { useState } from 'react';
 import { STREAM_CATEGORIES, getSuggestedTags } from '@/lib/constants/stream-categories';
-import { HelpCircle, ChevronDown } from 'lucide-react';
+import { HelpCircle, ChevronDown, Monitor } from 'lucide-react';
 import { FeaturedCreatorSelector } from '@/components/streams/FeaturedCreatorSelector';
 import { PRIVACY_OPTIONS } from './types';
 import type { FeaturedCreator } from './types';
+import type { StreamMethod } from '@/hooks/useGoLiveData';
 
 interface GoLiveStreamFormProps {
   title: string;
@@ -34,6 +35,8 @@ interface GoLiveStreamFormProps {
   hasAiTwin: boolean;
   aiChatModEnabled: boolean;
   setAiChatModEnabled: (v: boolean) => void;
+  streamMethod: StreamMethod;
+  setStreamMethod: (v: StreamMethod) => void;
 }
 
 export function GoLiveStreamForm({
@@ -48,6 +51,7 @@ export function GoLiveStreamForm({
   featuredCreators, setFeaturedCreators,
   featuredCreatorCommission, setFeaturedCreatorCommission,
   hasAiTwin, aiChatModEnabled, setAiChatModEnabled,
+  streamMethod, setStreamMethod,
 }: GoLiveStreamFormProps) {
   const [showAdvanced, setShowAdvanced] = useState(false);
 
@@ -57,6 +61,7 @@ export function GoLiveStreamForm({
     aiChatModEnabled,
     goPrivateEnabled,
     featuredCreators.length > 0,
+    streamMethod === 'rtmp',
   ].filter(Boolean).length;
 
   return (
@@ -402,6 +407,34 @@ export function GoLiveStreamForm({
               </div>
             </div>
           )}
+
+          {/* OBS / Encoder Mode */}
+          <div>
+            <button
+              type="button"
+              onClick={() => setStreamMethod(streamMethod === 'rtmp' ? 'browser' : 'rtmp')}
+              className={`w-full flex items-center gap-3 p-3 rounded-xl border-2 transition-all text-left ${
+                streamMethod === 'rtmp'
+                  ? 'border-purple-500/50 bg-purple-500/10'
+                  : 'border-white/10 bg-white/5 hover:border-white/20'
+              }`}
+            >
+              <Monitor className={`w-5 h-5 flex-shrink-0 ${streamMethod === 'rtmp' ? 'text-purple-400' : 'text-gray-500'}`} />
+              <div className="flex-1">
+                <p className={`text-sm font-medium ${streamMethod === 'rtmp' ? 'text-white' : 'text-gray-400'}`}>
+                  Stream from OBS / external encoder
+                </p>
+                <p className="text-xs text-gray-600">Use RTMP credentials instead of browser camera</p>
+              </div>
+              <div className={`relative w-12 h-6 rounded-full transition-colors flex-shrink-0 ${
+                streamMethod === 'rtmp' ? 'bg-purple-500' : 'bg-gray-600'
+              }`}>
+                <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-transform ${
+                  streamMethod === 'rtmp' ? 'translate-x-7' : 'translate-x-1'
+                }`} />
+              </div>
+            </button>
+          </div>
         </div>
       )}
     </div>
