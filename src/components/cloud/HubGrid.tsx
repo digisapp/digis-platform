@@ -63,7 +63,7 @@ const CloudGridItem = memo(({ item, selected, selectionMode, onToggleSelect, onI
 
       {/* Selection checkbox */}
       {selectionMode && (
-        <div className={`absolute top-2 left-2 w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all ${
+        <div className={`absolute top-2 left-2 w-7 h-7 rounded-full border-2 flex items-center justify-center transition-all ${
           selected
             ? 'bg-cyan-500 border-cyan-400'
             : 'bg-black/40 border-white/60 backdrop-blur-sm'

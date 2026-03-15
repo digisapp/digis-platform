@@ -26,9 +26,11 @@ import {
   Calendar,
   Send,
   Flame,
+  LayoutGrid,
 } from 'lucide-react';
 
 const statusFilters = [
+  { value: 'all', label: 'All', icon: LayoutGrid },
   { value: 'private', label: 'Private', icon: Lock },
   { value: 'live', label: 'Live', icon: Eye },
 ] as const;
@@ -75,34 +77,33 @@ export default function CloudPage() {
     <div className="min-h-screen bg-gradient-to-b from-gray-900 via-black to-gray-900">
       <div className="max-w-6xl mx-auto px-4 pt-6 pb-28">
         {/* Header */}
-        <div className="flex items-center justify-between mb-6">
-          <div>
-            <h1 className="text-2xl font-bold bg-gradient-to-r from-white via-cyan-100 to-white bg-clip-text text-transparent">
-              Cloud
-            </h1>
-            <p className="text-gray-500 text-sm mt-0.5">
-              {cloud.total} items
-            </p>
-          </div>
-
-          <div className="flex items-center gap-2">
+        <div className="flex items-center justify-between mb-6 gap-3">
+          <div className="flex items-center gap-3 min-w-0">
+            <div>
+              <h1 className="text-2xl font-bold bg-gradient-to-r from-white via-cyan-100 to-white bg-clip-text text-transparent">
+                Cloud
+              </h1>
+              <p className="text-gray-500 text-sm mt-0.5">
+                {cloud.total} items
+              </p>
+            </div>
             {/* Streak badge */}
             {streak && streak.currentStreak > 0 && (
-              <div className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-orange-500/10 border border-orange-500/20">
+              <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-orange-500/10 border border-orange-500/20">
                 <Flame className="w-4 h-4 text-orange-400" />
                 <span className="text-orange-400 text-sm font-bold">{streak.currentStreak}</span>
               </div>
             )}
-
-            {/* Upload button */}
-            <button
-              onClick={() => setShowUpload(true)}
-              className="flex items-center gap-3 px-5 py-3 rounded-2xl bg-gradient-to-br from-cyan-500/20 to-blue-500/20 border border-cyan-500/30 hover:border-cyan-500/50 transition-all hover:scale-[1.02] active:scale-[0.98]"
-            >
-              <Upload className="w-5 h-5 text-cyan-400" />
-              <span className="text-base font-semibold text-white">Upload Content</span>
-            </button>
           </div>
+
+          {/* Upload button */}
+          <button
+            onClick={() => setShowUpload(true)}
+            className="flex items-center gap-2 sm:gap-3 px-4 sm:px-5 py-3 rounded-2xl bg-gradient-to-br from-cyan-500/20 to-blue-500/20 border border-cyan-500/30 hover:border-cyan-500/50 transition-all hover:scale-[1.02] active:scale-[0.98] flex-shrink-0"
+          >
+            <Upload className="w-5 h-5 text-cyan-400" />
+            <span className="text-sm sm:text-base font-semibold text-white">Upload</span>
+          </button>
         </div>
 
         {/* Welcome banner for empty state */}
@@ -123,17 +124,16 @@ export default function CloudPage() {
         )}
 
         {/* Filter bar */}
-        <div className="flex items-center justify-between mb-4 gap-2">
-          <div className="flex items-center gap-1 bg-white/5 rounded-xl p-1 overflow-x-auto">
+        <div className="flex flex-wrap items-center justify-between mb-4 gap-2">
+          <div className="flex items-center gap-1 bg-white/5 rounded-xl p-1 overflow-x-auto scrollbar-hide">
             {statusFilters.map(filter => {
               const Icon = filter.icon;
               const isActive = cloud.statusFilter === filter.value;
-              const count = isActive ? cloud.total : 0;
               return (
                 <button
                   key={filter.value}
                   onClick={() => cloud.setStatusFilter(filter.value)}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
+                  className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium transition-all whitespace-nowrap ${
                     isActive
                       ? 'bg-white/10 text-white'
                       : 'text-gray-500 hover:text-gray-300'
@@ -141,20 +141,15 @@ export default function CloudPage() {
                 >
                   <Icon className="w-4 h-4" />
                   <span>{filter.label}</span>
-                  {count > 0 && (
-                    <span className={`text-xs ${isActive ? 'text-cyan-400' : 'text-gray-600'}`}>
-                      {count}
-                    </span>
-                  )}
                 </button>
               );
             })}
 
-            <div className="w-px h-5 bg-white/10 mx-1" />
+            <div className="w-px h-5 bg-white/10 mx-1 flex-shrink-0" />
 
             <button
               onClick={() => cloud.setTypeFilter(cloud.typeFilter === 'photo' ? 'all' : 'photo')}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
+              className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium transition-all whitespace-nowrap ${
                 cloud.typeFilter === 'photo'
                   ? 'bg-white/10 text-cyan-400'
                   : 'text-gray-500 hover:text-gray-300'
@@ -165,7 +160,7 @@ export default function CloudPage() {
             </button>
             <button
               onClick={() => cloud.setTypeFilter(cloud.typeFilter === 'video' ? 'all' : 'video')}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
+              className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium transition-all whitespace-nowrap ${
                 cloud.typeFilter === 'video'
                   ? 'bg-white/10 text-cyan-400'
                   : 'text-gray-500 hover:text-gray-300'
@@ -176,52 +171,13 @@ export default function CloudPage() {
             </button>
           </div>
 
-          {/* Selection mode toggle + Quick Sell */}
+          {/* Selection mode toggle */}
           <div className="flex items-center gap-2">
             {selectionMode ? (
               <>
                 <span className="text-sm text-gray-400">
                   {cloud.selectedItems.size} selected
                 </span>
-                {cloud.selectedItems.size > 0 && (
-                  <div className="flex items-center gap-1.5">
-                    <button
-                      onClick={() => setShowQuickSell(true)}
-                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gradient-to-r from-pink-500 to-pink-600 text-white text-sm font-medium hover:from-pink-400 hover:to-pink-500 transition-all"
-                    >
-                      <Zap className="w-3.5 h-3.5" />
-                      Quick Drop
-                    </button>
-                    <button
-                      onClick={() => setShowTags(true)}
-                      className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-white/5 text-gray-300 hover:bg-white/10 text-sm transition-colors"
-                    >
-                      <Tag className="w-4 h-4" />
-                      <span className="hidden sm:inline">Tags</span>
-                    </button>
-                    <button
-                      onClick={() => setShowScheduleDrops(true)}
-                      className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-white/5 text-gray-300 hover:bg-white/10 text-sm transition-colors"
-                    >
-                      <Calendar className="w-4 h-4" />
-                      <span className="hidden sm:inline">Schedule</span>
-                    </button>
-                    <button
-                      onClick={() => setShowLockedMessage(true)}
-                      className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-white/5 text-gray-300 hover:bg-white/10 text-sm transition-colors"
-                    >
-                      <Send className="w-4 h-4" />
-                      <span className="hidden sm:inline">Send</span>
-                    </button>
-                    <button
-                      onClick={() => setShowBulkActions(true)}
-                      className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-white/5 text-gray-300 hover:bg-white/10 text-sm transition-colors"
-                    >
-                      <Eye className="w-4 h-4" />
-                      <span className="hidden sm:inline">Publish</span>
-                    </button>
-                  </div>
-                )}
                 <button
                   onClick={cloud.selectAll}
                   className="p-2.5 rounded-lg text-gray-400 hover:text-white hover:bg-white/10 transition-colors"
@@ -239,14 +195,55 @@ export default function CloudPage() {
             ) : (
               <button
                 onClick={() => setSelectionMode(true)}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-gray-400 hover:text-white hover:bg-white/10 text-sm transition-colors"
+                className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-gray-400 hover:text-white hover:bg-white/10 text-sm transition-colors"
               >
-                <CheckSquare className="w-3.5 h-3.5" />
+                <CheckSquare className="w-4 h-4" />
                 Select
               </button>
             )}
           </div>
         </div>
+
+        {/* Bulk action bar — shown when items are selected */}
+        {selectionMode && cloud.selectedItems.size > 0 && (
+          <div className="flex items-center gap-2 mb-4 overflow-x-auto pb-1 scrollbar-hide">
+            <button
+              onClick={() => setShowQuickSell(true)}
+              className="flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-gradient-to-r from-pink-500 to-pink-600 text-white text-sm font-medium hover:from-pink-400 hover:to-pink-500 transition-all whitespace-nowrap flex-shrink-0"
+            >
+              <Zap className="w-4 h-4" />
+              Quick Drop
+            </button>
+            <button
+              onClick={() => setShowTags(true)}
+              className="flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-white/5 text-gray-300 hover:bg-white/10 text-sm transition-colors whitespace-nowrap flex-shrink-0"
+            >
+              <Tag className="w-4 h-4" />
+              Tags
+            </button>
+            <button
+              onClick={() => setShowScheduleDrops(true)}
+              className="flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-white/5 text-gray-300 hover:bg-white/10 text-sm transition-colors whitespace-nowrap flex-shrink-0"
+            >
+              <Calendar className="w-4 h-4" />
+              Schedule
+            </button>
+            <button
+              onClick={() => setShowLockedMessage(true)}
+              className="flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-white/5 text-gray-300 hover:bg-white/10 text-sm transition-colors whitespace-nowrap flex-shrink-0"
+            >
+              <Send className="w-4 h-4" />
+              Send
+            </button>
+            <button
+              onClick={() => setShowBulkActions(true)}
+              className="flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-white/5 text-gray-300 hover:bg-white/10 text-sm transition-colors whitespace-nowrap flex-shrink-0"
+            >
+              <Eye className="w-4 h-4" />
+              Publish
+            </button>
+          </div>
+        )}
 
         {/* Tag filter pills */}
         {cloud.tags.length > 0 && (
@@ -294,17 +291,17 @@ export default function CloudPage() {
             <button
               onClick={() => { cloud.setPage(cloud.page - 1); cloud.fetchItems(cloud.page - 1); }}
               disabled={cloud.page <= 1}
-              className="px-4 py-2 rounded-lg bg-white/5 text-gray-400 hover:bg-white/10 disabled:opacity-30 transition-colors"
+              className="px-5 py-2.5 rounded-xl bg-white/5 text-gray-400 hover:bg-white/10 disabled:opacity-30 transition-colors text-sm font-medium"
             >
               Previous
             </button>
             <span className="text-gray-500 text-sm">
-              Page {cloud.page} of {Math.ceil(cloud.total / 50)}
+              {cloud.page} / {Math.ceil(cloud.total / 50)}
             </span>
             <button
               onClick={() => { cloud.setPage(cloud.page + 1); cloud.fetchItems(cloud.page + 1); }}
               disabled={cloud.page >= Math.ceil(cloud.total / 50)}
-              className="px-4 py-2 rounded-lg bg-white/5 text-gray-400 hover:bg-white/10 disabled:opacity-30 transition-colors"
+              className="px-5 py-2.5 rounded-xl bg-white/5 text-gray-400 hover:bg-white/10 disabled:opacity-30 transition-colors text-sm font-medium"
             >
               Next
             </button>

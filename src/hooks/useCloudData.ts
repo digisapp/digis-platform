@@ -38,14 +38,14 @@ export interface CloudTag {
   itemCount: number;
 }
 
-type StatusFilter = 'private' | 'live';
+type StatusFilter = 'all' | 'private' | 'live';
 
 export function useCloudData() {
   const [items, setItems] = useState<CloudItem[]>([]);
   const [total, setTotal] = useState(0);
   const [packs, setPacks] = useState<CloudPack[]>([]);
   const [tags, setTags] = useState<CloudTag[]>([]);
-  const [statusFilter, setStatusFilter] = useState<StatusFilter>('private');
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
   const [typeFilter, setTypeFilter] = useState<'all' | 'photo' | 'video'>('all');
   const [tagFilter, setTagFilter] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -58,7 +58,7 @@ export function useCloudData() {
   const fetchItems = useCallback(async (p = page) => {
     try {
       const params = new URLSearchParams({ page: String(p), limit: '50' });
-      params.set('status', statusFilter);
+      if (statusFilter !== 'all') params.set('status', statusFilter);
       if (typeFilter !== 'all') params.set('type', typeFilter);
       if (tagFilter) params.set('tag', tagFilter);
 
