@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { LoadingSpinner } from '@/components/ui';
 import { MobileHeader } from '@/components/layout/MobileHeader';
-import { Search, UserCircle, Radio, Sparkles, BadgeCheck, X, Users } from 'lucide-react';
+import { Search, UserCircle, Radio, Sparkles, BadgeCheck, X } from 'lucide-react';
 
 interface Creator {
   id: string;
@@ -362,15 +362,12 @@ const LiveCreatorCard = memo(function LiveCreatorCard({ creator, onClick }: { cr
             <BadgeCheck className="w-4 h-4 text-cyan-400 flex-shrink-0" />
           )}
         </div>
-        {creator.bio && (
-          <p className="text-white/60 text-xs mt-0.5 line-clamp-1">{creator.bio}</p>
-        )}
       </div>
     </div>
   );
 });
 
-// Regular Creator Card — portrait, rich info
+// Regular Creator Card — portrait, clean design
 const CreatorCard = memo(function CreatorCard({ creator, onClick }: { creator: Creator; onClick: () => void }) {
   const cardImage = creator.creatorCardImageUrl || creator.avatarUrl;
   const [imgError, setImgError] = useState(false);
@@ -446,14 +443,6 @@ const CreatorCard = memo(function CreatorCard({ creator, onClick }: { creator: C
           )}
         </div>
 
-        {creator.bio && (
-          <p className="text-gray-500 text-xs mt-1 line-clamp-2 leading-relaxed">{creator.bio}</p>
-        )}
-
-        <div className="flex items-center gap-1.5 mt-2 text-gray-500">
-          <Users className="w-3 h-3" />
-          <span className="text-xs">{creator.followerCount.toLocaleString()}</span>
-        </div>
       </div>
     </div>
   );
