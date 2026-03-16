@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { db } from '@/lib/data/system';
-import { cloudItems, cloudPurchases, users } from '@/db/schema';
+import { cloudItems, cloudPurchases, cloudLikes, users } from '@/db/schema';
 import { eq, and, desc, sql, inArray } from 'drizzle-orm';
 import { withTimeoutAndRetry } from '@/lib/async-utils';
 
@@ -41,7 +41,7 @@ export async function GET(
         });
 
         if (!user || user.role !== 'creator') {
-          return { content: [], userPurchases: [] as string[], creatorId: null as string | null, totalCount: 0 };
+          return { content: [], userPurchases: [] as string[], userLikes: [] as string[], creatorId: null as string | null, totalCount: 0 };
         }
 
         // Build where clause — only live items (drops)
@@ -72,23 +72,34 @@ export async function GET(
           offset,
         });
 
-        // Get user's purchases for this content if authenticated
+        // Get user's purchases and likes for this content if authenticated
         let userPurchases: string[] = [];
+        let userLikes: string[] = [];
         if (currentUser && content.length > 0) {
           const contentIds = content.map(c => c.id);
 
-          const purchases = await db.query.cloudPurchases.findMany({
-            where: and(
-              eq(cloudPurchases.buyerId, currentUser.id),
-              inArray(cloudPurchases.itemId, contentIds)
-            ),
-            columns: { itemId: true },
-          });
+          const [purchases, likes] = await Promise.all([
+            db.query.cloudPurchases.findMany({
+              where: and(
+                eq(cloudPurchases.buyerId, currentUser.id),
+                inArray(cloudPurchases.itemId, contentIds)
+              ),
+              columns: { itemId: true },
+            }),
+            db.query.cloudLikes.findMany({
+              where: and(
+                eq(cloudLikes.userId, currentUser.id),
+                inArray(cloudLikes.itemId, contentIds)
+              ),
+              columns: { itemId: true },
+            }),
+          ]);
 
           userPurchases = purchases.map(p => p.itemId).filter((id): id is string => id !== null);
+          userLikes = likes.map(l => l.itemId).filter((id): id is string => id !== null);
         }
 
-        return { content, userPurchases, creatorId: user.id, totalCount };
+        return { content, userPurchases, userLikes, creatorId: user.id, totalCount };
       },
       { timeoutMs: 5000, retries: 1, tag: 'profileContent' }
     );
@@ -100,8 +111,8 @@ export async function GET(
     // Add purchase status to each content item
     const contentWithStatus = contentToReturn.map(item => ({
       ...item,
-      isLiked: false,
-      // Content is unlocked if: user is the creator, content is free (null price), or user has purchased it
+      isLiked: result.userLikes.includes(item.id),
+      likeCount: item.likeCount || 0,
       hasPurchased: result.userPurchases.includes(item.id) || currentUser?.id === result.creatorId,
     }));
 

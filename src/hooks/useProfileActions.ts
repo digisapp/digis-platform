@@ -296,10 +296,8 @@ export function useProfileActions({
     }));
 
     try {
-      const response = await fetch('/api/content/like', {
+      const response = await fetch(`/api/cloud/items/${contentId}/like`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ contentId }),
       });
 
       if (!response.ok) {

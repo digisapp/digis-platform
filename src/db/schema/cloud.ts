@@ -28,6 +28,9 @@ export const cloudItems = pgTable('cloud_items', {
   status: cloudItemStatusEnum('status').default('private').notNull(),
   priceCoins: integer('price_coins'),           // Null = unpriced
 
+  // Stats
+  likeCount: integer('like_count').default(0).notNull(),
+
   // Timestamps
   uploadedAt: timestamp('uploaded_at').defaultNow().notNull(),
   publishedAt: timestamp('published_at'),       // Set when status → live
@@ -60,6 +63,19 @@ export const cloudItemTags = pgTable('cloud_item_tags', {
   itemIdx: index('cloud_item_tags_item_idx').on(table.itemId),
   tagIdx: index('cloud_item_tags_tag_idx').on(table.tagId),
   uniqueItemTag: uniqueIndex('cloud_item_tags_unique').on(table.itemId, table.tagId),
+}));
+
+// ─── Cloud Likes ──────────────────────────────────────────────────────────────
+
+export const cloudLikes = pgTable('cloud_likes', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  itemId: uuid('item_id').references(() => cloudItems.id, { onDelete: 'cascade' }).notNull(),
+  userId: uuid('user_id').references(() => users.id, { onDelete: 'cascade' }).notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+}, (table) => ({
+  itemIdx: index('cloud_likes_item_idx').on(table.itemId),
+  userIdx: index('cloud_likes_user_idx').on(table.userId),
+  uniqueLike: uniqueIndex('cloud_likes_unique').on(table.itemId, table.userId),
 }));
 
 // ─── Cloud Packs ───────────────────────────────────────────────────────────────
@@ -155,6 +171,7 @@ export const cloudItemsRelations = relations(cloudItems, ({ one, many }) => ({
     references: [users.id],
   }),
   tags: many(cloudItemTags),
+  likes: many(cloudLikes),
   packItems: many(cloudPackItems),
   purchases: many(cloudPurchases),
 }));
@@ -195,6 +212,17 @@ export const cloudPackItemsRelations = relations(cloudPackItems, ({ one }) => ({
   item: one(cloudItems, {
     fields: [cloudPackItems.itemId],
     references: [cloudItems.id],
+  }),
+}));
+
+export const cloudLikesRelations = relations(cloudLikes, ({ one }) => ({
+  item: one(cloudItems, {
+    fields: [cloudLikes.itemId],
+    references: [cloudItems.id],
+  }),
+  user: one(users, {
+    fields: [cloudLikes.userId],
+    references: [users.id],
   }),
 }));
 
@@ -244,5 +272,7 @@ export type CloudPackItem = typeof cloudPackItems.$inferSelect;
 export type NewCloudPackItem = typeof cloudPackItems.$inferInsert;
 export type CloudPurchase = typeof cloudPurchases.$inferSelect;
 export type NewCloudPurchase = typeof cloudPurchases.$inferInsert;
+export type CloudLike = typeof cloudLikes.$inferSelect;
+export type NewCloudLike = typeof cloudLikes.$inferInsert;
 export type CreatorPricingDefaults = typeof creatorPricingDefaults.$inferSelect;
 export type NewCreatorPricingDefaults = typeof creatorPricingDefaults.$inferInsert;
