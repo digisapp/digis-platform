@@ -45,16 +45,14 @@ export const GET = withAdminParams<{ conversationId: string }>(async ({ request,
       return NextResponse.json({ error: 'Conversation not found' }, { status: 404 });
     }
 
-    // Get total message count
-    const [{ total }] = await db
-      .select({ total: count() })
-      .from(messages)
-      .where(eq(messages.conversationId, conversationId));
-
-    // Get messages with sender info
+    // Run count + messages in parallel
     const sender = alias(users, 'sender');
-    const messageRows = await db
-      .select({
+    const [countResult, messageRows] = await Promise.all([
+      db.select({ total: count() })
+        .from(messages)
+        .where(eq(messages.conversationId, conversationId)),
+
+      db.select({
         id: messages.id,
         content: messages.content,
         messageType: messages.messageType,
@@ -70,12 +68,15 @@ export const GET = withAdminParams<{ conversationId: string }>(async ({ request,
         senderDisplayName: sender.displayName,
         senderAvatarUrl: sender.avatarUrl,
       })
-      .from(messages)
-      .innerJoin(sender, eq(messages.senderId, sender.id))
-      .where(eq(messages.conversationId, conversationId))
-      .orderBy(asc(messages.createdAt))
-      .limit(limit)
-      .offset(offset);
+        .from(messages)
+        .innerJoin(sender, eq(messages.senderId, sender.id))
+        .where(eq(messages.conversationId, conversationId))
+        .orderBy(asc(messages.createdAt))
+        .limit(limit)
+        .offset(offset),
+    ]);
+
+    const total = countResult[0]?.total ?? 0;
 
     const formattedMessages = messageRows.map(m => ({
       id: m.id,
@@ -119,7 +120,7 @@ export const GET = withAdminParams<{ conversationId: string }>(async ({ request,
       totalPages: Math.ceil(total / limit),
     });
   } catch (error: unknown) {
-    console.error('Error fetching conversation messages:', error);
+    console.error('[ADMIN CHAT MESSAGES] Error:', error instanceof Error ? error.stack : error);
     return NextResponse.json({ error: 'Failed to fetch messages' }, { status: 500 });
   }
 });

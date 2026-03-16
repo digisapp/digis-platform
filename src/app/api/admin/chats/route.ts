@@ -21,7 +21,6 @@ export const GET = withAdmin(async ({ request }) => {
     const user1 = alias(users, 'user1');
     const user2 = alias(users, 'user2');
 
-    // Build search condition
     const searchCondition = search.trim()
       ? or(
           ilike(user1.displayName, `%${search}%`),
@@ -31,17 +30,17 @@ export const GET = withAdmin(async ({ request }) => {
         )
       : undefined;
 
-    // Get total count
-    const [{ total }] = await db
-      .select({ total: count() })
-      .from(conversations)
-      .innerJoin(user1, eq(conversations.user1Id, user1.id))
-      .innerJoin(user2, eq(conversations.user2Id, user2.id))
-      .where(searchCondition);
+    // Run count + conversations + stats in parallel
+    const [countResult, rows, statsResult] = await Promise.all([
+      // Total count
+      db.select({ total: count() })
+        .from(conversations)
+        .innerJoin(user1, eq(conversations.user1Id, user1.id))
+        .innerJoin(user2, eq(conversations.user2Id, user2.id))
+        .where(searchCondition),
 
-    // Get conversations with participant info
-    const rows = await db
-      .select({
+      // Conversations page
+      db.select({
         id: conversations.id,
         lastMessageText: conversations.lastMessageText,
         lastMessageAt: conversations.lastMessageAt,
@@ -57,15 +56,25 @@ export const GET = withAdmin(async ({ request }) => {
         user2AvatarUrl: user2.avatarUrl,
         user2Role: user2.role,
       })
-      .from(conversations)
-      .innerJoin(user1, eq(conversations.user1Id, user1.id))
-      .innerJoin(user2, eq(conversations.user2Id, user2.id))
-      .where(searchCondition)
-      .orderBy(desc(conversations.lastMessageAt))
-      .limit(limit)
-      .offset(offset);
+        .from(conversations)
+        .innerJoin(user1, eq(conversations.user1Id, user1.id))
+        .innerJoin(user2, eq(conversations.user2Id, user2.id))
+        .where(searchCondition)
+        .orderBy(desc(conversations.lastMessageAt))
+        .limit(limit)
+        .offset(offset),
 
-    // Get message counts for these conversations
+      // Aggregate stats in a single query
+      db.select({
+        totalConversations: sql<number>`(SELECT count(*) FROM conversations)`,
+        totalMessages: sql<number>`(SELECT count(*) FROM messages)`,
+        activeToday: sql<number>`(SELECT count(*) FROM conversations WHERE last_message_at >= CURRENT_DATE)`,
+      }).from(sql`(SELECT 1) AS _`),
+    ]);
+
+    const total = countResult[0]?.total ?? 0;
+
+    // Get message counts for this page's conversations
     const conversationIds = rows.map(r => r.id);
     const messageCounts = conversationIds.length > 0
       ? await db
@@ -102,25 +111,7 @@ export const GET = withAdmin(async ({ request }) => {
       },
     }));
 
-    // Get aggregate stats
-    const [stats] = await db
-      .select({
-        totalConversations: count(),
-      })
-      .from(conversations);
-
-    const [msgStats] = await db
-      .select({
-        totalMessages: count(),
-      })
-      .from(messages);
-
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const [activeToday] = await db
-      .select({ count: count() })
-      .from(conversations)
-      .where(sql`${conversations.lastMessageAt} >= ${today}`);
+    const stats = statsResult[0];
 
     return NextResponse.json({
       conversations: conversationsList,
@@ -128,13 +119,13 @@ export const GET = withAdmin(async ({ request }) => {
       page,
       totalPages: Math.ceil(total / limit),
       stats: {
-        totalConversations: stats.totalConversations,
-        totalMessages: msgStats.totalMessages,
-        activeToday: activeToday.count,
+        totalConversations: Number(stats?.totalConversations ?? 0),
+        totalMessages: Number(stats?.totalMessages ?? 0),
+        activeToday: Number(stats?.activeToday ?? 0),
       },
     });
   } catch (error: unknown) {
-    console.error('Error fetching admin chats:', error instanceof Error ? error.message : error);
+    console.error('[ADMIN CHATS] Error:', error instanceof Error ? error.stack : error);
     return NextResponse.json({ error: 'Failed to fetch conversations' }, { status: 500 });
   }
 });
