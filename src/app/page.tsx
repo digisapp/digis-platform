@@ -21,6 +21,8 @@ import {
   Camera,
   Dumbbell,
   Heart,
+  BadgeCheck,
+  X,
 } from 'lucide-react';
 
 // Types
@@ -304,7 +306,7 @@ function FanDashboard() {
                           <p className="text-sm text-gray-400 truncate">
                             @{stream.creator.username}
                             {stream.creator.isCreatorVerified && (
-                              <span className="ml-1 text-cyan-400">✓</span>
+                              <BadgeCheck className="inline w-3.5 h-3.5 ml-1 text-cyan-400" />
                             )}
                           </p>
                         </div>
@@ -377,13 +379,20 @@ function FanDashboard() {
                     setSearching(true);
                   }}
                   placeholder="Search creators..."
-                  className="w-full pl-12 pr-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-cyan-500/50 transition-colors"
+                  className="w-full pl-12 pr-10 py-3 bg-white/5 border border-white/10 rounded-2xl text-white placeholder-gray-500 focus:outline-none focus:border-cyan-500/50 transition-colors"
                 />
-                {searching && (
+                {searchTerm ? (
+                  <button
+                    onClick={() => { setSearchTerm(''); setSearching(false); }}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 p-1 rounded-full hover:bg-white/10 transition-colors"
+                  >
+                    <X className="w-4 h-4 text-gray-400" />
+                  </button>
+                ) : searching ? (
                   <div className="absolute right-4 top-1/2 -translate-y-1/2">
                     <LoadingSpinner size="sm" />
                   </div>
-                )}
+                ) : null}
               </div>
             </div>
 
@@ -408,7 +417,7 @@ function FanDashboard() {
 
             {/* Creators Grid */}
             {creatorsLoading ? (
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 md:gap-4">
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
                 {[...Array(10)].map((_, i) => (
                   <SkeletonCard key={i} />
                 ))}
@@ -425,7 +434,7 @@ function FanDashboard() {
               </div>
             ) : (
               <>
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 md:gap-4">
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
                   {creators.map((creator) => (
                     <CreatorCard
                       key={creator.id}
@@ -451,11 +460,10 @@ function FanDashboard() {
 // Skeleton Card
 function SkeletonCard() {
   return (
-    <div className="bg-white/5 rounded-2xl overflow-hidden animate-pulse">
-      <div className="aspect-square bg-white/10" />
-      <div className="p-3">
-        <div className="h-4 bg-white/10 rounded w-3/4 mb-2" />
-        <div className="h-3 bg-white/10 rounded w-1/2" />
+    <div className="rounded-2xl overflow-hidden animate-pulse bg-white/5">
+      <div className="aspect-[3/4] bg-white/10" />
+      <div className="p-3 space-y-2">
+        <div className="h-4 bg-white/10 rounded w-3/4" />
       </div>
     </div>
   );
@@ -463,21 +471,27 @@ function SkeletonCard() {
 
 // Live Creator Card
 function LiveCreatorCard({ creator, onClick }: { creator: Creator; onClick: () => void }) {
+  const [imgError, setImgError] = useState(false);
+
   return (
     <div
       onClick={onClick}
       className="relative rounded-2xl overflow-hidden cursor-pointer group border-2 border-red-500/50 hover:border-red-500 transition-all"
     >
-      <div className="absolute top-2 left-2 z-10 px-2.5 py-1 bg-red-500 rounded-full">
+      <div className="absolute top-2 left-2 z-10 flex items-center gap-1.5 px-2.5 py-1 bg-red-500 rounded-full">
+        <div className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
         <span className="text-xs font-bold text-white">LIVE</span>
       </div>
 
-      <div className="relative overflow-hidden" style={{ paddingBottom: '100%' }}>
-        {creator.avatarUrl ? (
-          <img
+      <div className="relative aspect-[3/4] overflow-hidden">
+        {creator.avatarUrl && !imgError ? (
+          <Image
             src={creator.avatarUrl}
             alt={creator.username}
-            className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+            fill
+            sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, 25vw"
+            className="object-cover group-hover:scale-105 transition-transform duration-300"
+            onError={() => setImgError(true)}
           />
         ) : (
           <div className="absolute inset-0 bg-gradient-to-br from-red-500/20 to-pink-500/20 flex items-center justify-center">
@@ -488,7 +502,12 @@ function LiveCreatorCard({ creator, onClick }: { creator: Creator; onClick: () =
       </div>
 
       <div className="absolute bottom-0 left-0 right-0 p-3">
-        <p className="font-bold text-white truncate">{creator.displayName || creator.username}</p>
+        <div className="flex items-center gap-1.5">
+          <p className="font-bold text-white truncate">{creator.displayName || creator.username}</p>
+          {creator.isCreatorVerified && (
+            <BadgeCheck className="w-4 h-4 text-cyan-400 flex-shrink-0" />
+          )}
+        </div>
       </div>
     </div>
   );
@@ -496,18 +515,26 @@ function LiveCreatorCard({ creator, onClick }: { creator: Creator; onClick: () =
 
 // Creator Card
 const CreatorCard = memo(function CreatorCard({ creator, onClick }: { creator: Creator; onClick: () => void }) {
+  const [imgError, setImgError] = useState(false);
+
+  const isNew = creator.createdAt &&
+    Math.floor((Date.now() - new Date(creator.createdAt).getTime()) / (1000 * 60 * 60 * 24)) <= 30;
+
   return (
     <div
-      className="rounded-2xl overflow-hidden cursor-pointer group bg-white/5 border border-white/10 hover:border-cyan-500/50 transition-all"
+      className="rounded-2xl overflow-hidden cursor-pointer group bg-white/[0.03] border border-white/[0.06] hover:border-cyan-500/30 transition-all"
       onClick={onClick}
     >
-      <div className="relative overflow-hidden" style={{ paddingBottom: '100%' }}>
-        {creator.avatarUrl ? (
-          <img
+      <div className="relative aspect-[3/4] overflow-hidden">
+        {creator.avatarUrl && !imgError ? (
+          <Image
             src={creator.avatarUrl}
             alt={creator.username}
-            className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+            fill
+            sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, 20vw"
+            className="object-cover group-hover:scale-105 transition-transform duration-300"
             loading="lazy"
+            onError={() => setImgError(true)}
           />
         ) : (
           <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/10 to-purple-500/10 flex items-center justify-center">
@@ -517,7 +544,8 @@ const CreatorCard = memo(function CreatorCard({ creator, onClick }: { creator: C
 
         <div className="absolute top-2 left-2 flex flex-col gap-1 z-10">
           {creator.isLive && (
-            <span className="px-2.5 py-0.5 bg-red-500 rounded-full text-xs font-bold text-white">
+            <span className="flex items-center gap-1 px-2 py-0.5 bg-red-500 rounded-full text-xs font-bold text-white">
+              <div className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
               LIVE
             </span>
           )}
@@ -526,29 +554,32 @@ const CreatorCard = memo(function CreatorCard({ creator, onClick }: { creator: C
               Online
             </span>
           )}
+          {isNew && (
+            <span className="flex items-center gap-1 px-2 py-0.5 bg-amber-500/80 rounded-full text-xs font-medium text-white">
+              <Sparkles className="w-3 h-3" />
+              New
+            </span>
+          )}
         </div>
 
-        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+        {creator.primaryCategory && (
+          <div className="absolute top-2 right-2 z-10">
+            <span className="px-2 py-0.5 bg-black/50 backdrop-blur-sm rounded-full text-[10px] font-medium text-gray-300">
+              {creator.primaryCategory}
+            </span>
+          </div>
+        )}
+
+        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
       </div>
 
       <div className="p-3">
-        <div className="flex items-center gap-1">
-          <p className="font-semibold text-white truncate">{creator.displayName || creator.username}</p>
+        <div className="flex items-center gap-1.5">
+          <p className="font-semibold text-white truncate text-sm">{creator.displayName || creator.username}</p>
           {creator.isCreatorVerified && (
-            <svg className="w-4 h-4 text-cyan-400 flex-shrink-0" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
+            <BadgeCheck className="w-4 h-4 text-cyan-400 flex-shrink-0" />
           )}
         </div>
-        {creator.createdAt && (() => {
-          const daysSinceJoined = Math.floor((Date.now() - new Date(creator.createdAt).getTime()) / (1000 * 60 * 60 * 24));
-          return daysSinceJoined <= 30 ? (
-            <div className="flex items-center gap-1 text-xs text-amber-400 mt-1">
-              <Sparkles className="w-3 h-3" />
-              <span>New Creator</span>
-            </div>
-          ) : null;
-        })()}
       </div>
     </div>
   );
@@ -637,7 +668,7 @@ function MarketingPage({
               </button>
             </div>
 
-            <div className="flex flex-wrap items-center justify-center gap-3 md:gap-4">
+            <div className="flex flex-wrap items-center justify-center gap-3">
               {['Live Streams', 'Video Calls', 'Chats', 'Exclusive Events', 'Virtual Gifts', 'Digitals'].map((feature, index) => (
                 <span
                   key={feature}
