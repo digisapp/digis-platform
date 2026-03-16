@@ -1,9 +1,8 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase/server';
-import { isAdminUser } from '@/lib/admin/check-admin';
+import { NextResponse } from 'next/server';
 import { db } from '@/lib/data/system';
 import { creatorInvites } from '@/db/schema';
-import { eq, and, sql } from 'drizzle-orm';
+import { eq, and } from 'drizzle-orm';
+import { withAdmin } from '@/lib/auth/withAdmin';
 
 export const runtime = 'nodejs';
 
@@ -11,19 +10,8 @@ export const runtime = 'nodejs';
  * GET /api/admin/onboarding/export
  * Export invites as CSV with invite links
  */
-export async function GET(request: NextRequest) {
+export const GET = withAdmin(async ({ request }) => {
   try {
-    const supabase = await createClient();
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
-
-    if (authError || !user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
-    if (!await isAdminUser(user)) {
-      return NextResponse.json({ error: 'Forbidden - Admin access required' }, { status: 403 });
-    }
-
     const { searchParams } = new URL(request.url);
     const status = searchParams.get('status') || 'pending';
     const batchId = searchParams.get('batchId');
@@ -83,10 +71,10 @@ export async function GET(request: NextRequest) {
       },
     });
   } catch (error: any) {
-    console.error('Error exporting invites:', error);
+    console.error('[ADMIN ONBOARDING EXPORT] Error:', error instanceof Error ? error.stack : error);
     return NextResponse.json(
       { error: 'Failed to export invites' },
       { status: 500 }
     );
   }
-}
+});

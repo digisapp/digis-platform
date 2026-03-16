@@ -1,7 +1,7 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase/server';
-import { db, users } from '@/lib/data/system';
-import { eq, sql } from 'drizzle-orm';
+import { NextResponse } from 'next/server';
+import { db } from '@/lib/data/system';
+import { sql } from 'drizzle-orm';
+import { withAdmin } from '@/lib/auth/withAdmin';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -11,24 +11,8 @@ export const dynamic = 'force-dynamic';
  * Syncs follower_count and following_count for all users
  * Also marks users as offline if not seen in 10 minutes
  */
-export async function POST(req: NextRequest) {
+export const POST = withAdmin(async () => {
   try {
-    const supabase = await createClient();
-    const { data: { user } } = await supabase.auth.getUser();
-
-    if (!user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
-    // Check if user is admin
-    const dbUser = await db.query.users.findFirst({
-      where: eq(users.id, user.id),
-      columns: { role: true, isAdmin: true },
-    });
-
-    if (!dbUser || (dbUser.role !== 'admin' && !dbUser.isAdmin)) {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
-    }
 
     // Sync follower counts from actual follows table
     const followerSync = await db.execute(sql`
@@ -95,10 +79,10 @@ export async function POST(req: NextRequest) {
       },
     });
   } catch (error) {
-    console.error('Sync counts error:', error);
+    console.error('[ADMIN SYNC COUNTS] Error:', error instanceof Error ? error.stack : error);
     return NextResponse.json(
       { error: 'Failed to sync counts' },
       { status: 500 }
     );
   }
-}
+});

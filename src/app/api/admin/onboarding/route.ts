@@ -1,10 +1,9 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase/server';
-import { isAdminUser } from '@/lib/admin/check-admin';
+import { NextResponse } from 'next/server';
 import { db } from '@/lib/data/system';
 import { creatorInvites } from '@/db/schema';
-import { eq, sql, and, isNull, gt, or, ilike } from 'drizzle-orm';
+import { eq, sql, and, or, ilike } from 'drizzle-orm';
 import { nanoid } from 'nanoid';
+import { withAdmin } from '@/lib/auth/withAdmin';
 
 export const runtime = 'nodejs';
 
@@ -17,19 +16,8 @@ function generateInviteCode(): string {
  * GET /api/admin/onboarding
  * Get invite statistics and list
  */
-export async function GET(request: NextRequest) {
+export const GET = withAdmin(async ({ request }) => {
   try {
-    const supabase = await createClient();
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
-
-    if (authError || !user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
-    if (!await isAdminUser(user)) {
-      return NextResponse.json({ error: 'Forbidden - Admin access required' }, { status: 403 });
-    }
-
     const { searchParams } = new URL(request.url);
     const status = searchParams.get('status');
     const batchId = searchParams.get('batchId');
@@ -105,31 +93,20 @@ export async function GET(request: NextRequest) {
       batches: batches.map(b => b.batchId).filter(Boolean),
     });
   } catch (error: any) {
-    console.error('Error fetching invites:', error);
+    console.error('[ADMIN ONBOARDING GET] Error:', error instanceof Error ? error.stack : error);
     return NextResponse.json(
       { error: 'Failed to fetch invites' },
       { status: 500 }
     );
   }
-}
+});
 
 /**
  * POST /api/admin/onboarding
  * Generate invites from parsed creator data
  */
-export async function POST(request: NextRequest) {
+export const POST = withAdmin(async ({ user, request }) => {
   try {
-    const supabase = await createClient();
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
-
-    if (authError || !user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
-    if (!await isAdminUser(user)) {
-      return NextResponse.json({ error: 'Forbidden - Admin access required' }, { status: 403 });
-    }
-
     const body = await request.json();
     const { creators, expiresInDays, batchName } = body;
 
@@ -213,10 +190,10 @@ export async function POST(request: NextRequest) {
       })),
     });
   } catch (error: any) {
-    console.error('Error generating invites:', error);
+    console.error('[ADMIN ONBOARDING POST] Error:', error instanceof Error ? error.stack : error);
     return NextResponse.json(
       { error: 'Failed to generate invites' },
       { status: 500 }
     );
   }
-}
+});

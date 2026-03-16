@@ -1,37 +1,17 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase/server';
+import { NextResponse } from 'next/server';
 import { db } from '@/lib/data/system';
-import { aiTwinSettings, users } from '@/db/schema';
+import { aiTwinSettings } from '@/db/schema';
 import { eq } from 'drizzle-orm';
+import { withAdminParams } from '@/lib/auth/withAdmin';
 
 export const runtime = 'nodejs';
 
 /**
  * GET /api/admin/ai-settings/[creatorId]
- *
  * Get a creator's AI Twin settings (admin only)
  */
-export async function GET(
-  request: NextRequest,
-  { params }: { params: Promise<{ creatorId: string }> }
-) {
+export const GET = withAdminParams<{ creatorId: string }>(async ({ params }) => {
   try {
-    const supabase = await createClient();
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
-
-    if (authError || !user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
-    // Check if user is admin
-    const adminUser = await db.query.users.findFirst({
-      where: eq(users.id, user.id),
-    });
-
-    if (adminUser?.role !== 'admin' && !adminUser?.isAdmin) {
-      return NextResponse.json({ error: 'Admin access required' }, { status: 403 });
-    }
-
     const { creatorId } = await params;
 
     // Get or create AI Twin settings for the creator
@@ -40,7 +20,6 @@ export async function GET(
     });
 
     if (!settings) {
-      // Create default settings
       const [newSettings] = await db
         .insert(aiTwinSettings)
         .values({
@@ -57,42 +36,18 @@ export async function GET(
     }
 
     return NextResponse.json({ settings });
-
   } catch (error) {
-    console.error('[Admin AI Settings] Get error:', error);
-    return NextResponse.json(
-      { error: 'Failed to get AI settings' },
-      { status: 500 }
-    );
+    console.error('[ADMIN AI SETTINGS GET] Error:', error instanceof Error ? error.stack : error);
+    return NextResponse.json({ error: 'Failed to get AI settings' }, { status: 500 });
   }
-}
+});
 
 /**
  * PUT /api/admin/ai-settings/[creatorId]
- *
  * Update a creator's AI Twin settings (admin only)
  */
-export async function PUT(
-  request: NextRequest,
-  { params }: { params: Promise<{ creatorId: string }> }
-) {
+export const PUT = withAdminParams<{ creatorId: string }>(async ({ params, request }) => {
   try {
-    const supabase = await createClient();
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
-
-    if (authError || !user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
-    // Check if user is admin
-    const adminUser = await db.query.users.findFirst({
-      where: eq(users.id, user.id),
-    });
-
-    if (adminUser?.role !== 'admin' && !adminUser?.isAdmin) {
-      return NextResponse.json({ error: 'Admin access required' }, { status: 403 });
-    }
-
     const { creatorId } = await params;
 
     const body = await request.json();
@@ -115,7 +70,6 @@ export async function PUT(
       return NextResponse.json({ error: 'Invalid voice option' }, { status: 400 });
     }
 
-    // Get existing settings or create new ones
     let settings = await db.query.aiTwinSettings.findFirst({
       where: eq(aiTwinSettings.creatorId, creatorId),
     });
@@ -164,18 +118,12 @@ export async function PUT(
       settings = created;
     }
 
-    console.log('[Admin AI Settings] Updated for creator:', creatorId, {
-      enabled: settings.enabled,
-      textChatEnabled: settings.textChatEnabled,
-    });
-
     return NextResponse.json({ settings });
-
   } catch (error: any) {
-    console.error('[Admin AI Settings] Update error:', error);
+    console.error('[ADMIN AI SETTINGS UPDATE] Error:', error instanceof Error ? error.stack : error);
     return NextResponse.json(
-      { error: 'Failed to update AI settings', details: error?.message },
+      { error: 'Failed to update AI settings' },
       { status: 500 }
     );
   }
-}
+});

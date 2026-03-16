@@ -1,9 +1,8 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase/server';
-import { isAdminUser } from '@/lib/admin/check-admin';
+import { NextResponse } from 'next/server';
 import { db } from '@/lib/data/system';
 import { users, creatorInvites } from '@/db/schema';
-import { sql, or, eq, inArray } from 'drizzle-orm';
+import { sql, and, eq } from 'drizzle-orm';
+import { withAdmin } from '@/lib/auth/withAdmin';
 
 export const runtime = 'nodejs';
 
@@ -20,19 +19,8 @@ interface ParsedCreator {
  * POST /api/admin/onboarding/parse
  * Parse CSV content and validate creators
  */
-export async function POST(request: NextRequest) {
+export const POST = withAdmin(async ({ request }) => {
   try {
-    const supabase = await createClient();
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
-
-    if (authError || !user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
-    if (!await isAdminUser(user)) {
-      return NextResponse.json({ error: 'Forbidden - Admin access required' }, { status: 403 });
-    }
-
     const body = await request.json();
     const { csvContent } = body;
 
@@ -114,9 +102,8 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    // Check existing usernames in database
+    // Check existing usernames in database using safe parameterized queries
     if (instagramHandles.length > 0) {
-      // Check for existing users with same username (batch in chunks to avoid query limits)
       const CHUNK_SIZE = 500;
       const existingUsernames = new Set<string>();
       const existingInviteHandles = new Set<string>();
@@ -124,21 +111,24 @@ export async function POST(request: NextRequest) {
       for (let i = 0; i < instagramHandles.length; i += CHUNK_SIZE) {
         const chunk = instagramHandles.slice(i, i + CHUNK_SIZE);
 
-        // Check for existing users with same username
+        // Check for existing users with same username (parameterized)
         const existingUsers = await db
           .select({ username: users.username })
           .from(users)
-          .where(sql`LOWER(${users.username}) = ANY(ARRAY[${sql.raw(chunk.map(h => `'${h.replace(/'/g, "''")}'`).join(','))}]::text[])`);
+          .where(sql`LOWER(${users.username}) IN (${sql.join(chunk.map(h => sql`${h}`), sql`, `)})`);
 
         existingUsers.forEach(u => {
           if (u.username) existingUsernames.add(u.username.toLowerCase());
         });
 
-        // Check for existing pending invites
+        // Check for existing pending invites (parameterized)
         const existingInvites = await db
           .select({ instagramHandle: creatorInvites.instagramHandle })
           .from(creatorInvites)
-          .where(sql`LOWER(${creatorInvites.instagramHandle}) = ANY(ARRAY[${sql.raw(chunk.map(h => `'${h.replace(/'/g, "''")}'`).join(','))}]::text[]) AND ${creatorInvites.status} = 'pending'`);
+          .where(and(
+            sql`LOWER(${creatorInvites.instagramHandle}) IN (${sql.join(chunk.map(h => sql`${h}`), sql`, `)})`,
+            eq(creatorInvites.status, 'pending')
+          ));
 
         existingInvites.forEach(inv => {
           existingInviteHandles.add(inv.instagramHandle.toLowerCase());
@@ -182,13 +172,13 @@ export async function POST(request: NextRequest) {
       },
     });
   } catch (error: any) {
-    console.error('Error parsing CSV:', error);
+    console.error('[ADMIN ONBOARDING PARSE] Error:', error instanceof Error ? error.stack : error);
     return NextResponse.json(
       { error: 'Failed to parse CSV' },
       { status: 500 }
     );
   }
-}
+});
 
 // Parse a single CSV line handling quoted values
 function parseCSVLine(line: string): string[] {

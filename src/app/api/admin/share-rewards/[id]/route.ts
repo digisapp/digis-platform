@@ -1,32 +1,17 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase/server';
+import { NextResponse } from 'next/server';
 import { db } from '@/lib/data/system';
 import { socialShareSubmissions, rewardConfig } from '@/db/schema/rewards';
-import { users, wallets } from '@/db/schema';
-import { eq } from 'drizzle-orm';
-import { isAdminUser } from '@/lib/admin/check-admin';
+import { wallets } from '@/db/schema';
+import { eq, sql } from 'drizzle-orm';
+import { withAdminParams } from '@/lib/auth/withAdmin';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
 // POST /api/admin/share-rewards/[id] - Approve or reject a submission
-export async function POST(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export const POST = withAdminParams<{ id: string }>(async ({ user, params, request }) => {
   try {
     const { id } = await params;
-    const supabase = await createClient();
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
-
-    if (authError || !user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
-    if (!await isAdminUser(user)) {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
-    }
-
     const { action, rejectionReason } = await request.json();
 
     if (!['approve', 'reject'].includes(action)) {
@@ -42,17 +27,11 @@ export async function POST(
     });
 
     if (!submission) {
-      return NextResponse.json(
-        { error: 'Submission not found' },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: 'Submission not found' }, { status: 404 });
     }
 
     if (submission.status !== 'pending') {
-      return NextResponse.json(
-        { error: 'Submission has already been reviewed' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Submission has already been reviewed' }, { status: 400 });
     }
 
     if (action === 'approve') {
@@ -62,36 +41,39 @@ export async function POST(
       });
       const coinsToAward = reward?.coinsAmount || 100;
 
-      // Award coins to creator
-      const creatorWallet = await db.query.wallets.findFirst({
-        where: eq(wallets.userId, submission.creatorId),
-      });
+      // Use transaction with row locking for wallet update
+      await db.transaction(async (tx) => {
+        // Lock the wallet row
+        const lockedRows = await tx.execute(
+          sql`SELECT * FROM wallets WHERE user_id = ${submission.creatorId} FOR UPDATE`
+        );
+        const creatorWallet = (lockedRows as unknown as Array<{ balance: number }>)[0];
 
-      if (creatorWallet) {
-        await db.update(wallets)
+        if (creatorWallet) {
+          await tx.update(wallets)
+            .set({
+              balance: sql`${wallets.balance} + ${coinsToAward}`,
+              updatedAt: new Date(),
+            })
+            .where(eq(wallets.userId, submission.creatorId));
+        } else {
+          await tx.insert(wallets).values({
+            userId: submission.creatorId,
+            balance: coinsToAward,
+          });
+        }
+
+        // Update submission
+        await tx.update(socialShareSubmissions)
           .set({
-            balance: creatorWallet.balance + coinsToAward,
+            status: 'approved',
+            coinsAwarded: coinsToAward,
+            reviewedBy: user.id,
+            reviewedAt: new Date(),
             updatedAt: new Date(),
           })
-          .where(eq(wallets.userId, submission.creatorId));
-      } else {
-        // Create wallet if doesn't exist
-        await db.insert(wallets).values({
-          userId: submission.creatorId,
-          balance: coinsToAward,
-        });
-      }
-
-      // Update submission
-      await db.update(socialShareSubmissions)
-        .set({
-          status: 'approved',
-          coinsAwarded: coinsToAward,
-          reviewedBy: user.id,
-          reviewedAt: new Date(),
-          updatedAt: new Date(),
-        })
-        .where(eq(socialShareSubmissions.id, id));
+          .where(eq(socialShareSubmissions.id, id));
+      });
 
       return NextResponse.json({
         success: true,
@@ -101,10 +83,7 @@ export async function POST(
     } else {
       // Reject
       if (!rejectionReason) {
-        return NextResponse.json(
-          { error: 'Rejection reason is required' },
-          { status: 400 }
-        );
+        return NextResponse.json({ error: 'Rejection reason is required' }, { status: 400 });
       }
 
       await db.update(socialShareSubmissions)
@@ -123,10 +102,10 @@ export async function POST(
       });
     }
   } catch (error: any) {
-    console.error('Error reviewing submission:', error);
+    console.error('[ADMIN SHARE REWARDS] Error:', error instanceof Error ? error.stack : error);
     return NextResponse.json(
       { error: 'Failed to review submission' },
       { status: 500 }
     );
   }
-}
+});

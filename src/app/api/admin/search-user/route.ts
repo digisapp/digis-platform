@@ -1,10 +1,10 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase/server';
+import { NextResponse } from 'next/server';
 import { db } from '@/lib/data/system';
 import { users } from '@/lib/data/system';
-import { eq, or, ilike } from 'drizzle-orm';
+import { or, ilike } from 'drizzle-orm';
 import { success, failure } from '@/types/api';
 import { nanoid } from 'nanoid';
+import { withAdmin } from '@/lib/auth/withAdmin';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -12,35 +12,12 @@ export const dynamic = 'force-dynamic';
 /**
  * Admin-only endpoint to search for users by email or username
  */
-export async function GET(request: NextRequest) {
+export const GET = withAdmin(async ({ request }) => {
   const requestId = nanoid(10);
 
   try {
-    // Verify admin authentication
-    const supabase = await createClient();
-    const { data: { user: adminUser }, error: authError } = await supabase.auth.getUser();
-
-    if (authError || !adminUser) {
-      return NextResponse.json(
-        failure('Unauthorized', 'auth', requestId),
-        { status: 401, headers: { 'x-request-id': requestId } }
-      );
-    }
-
-    // Verify admin role
-    const admin = await db.query.users.findFirst({
-      where: eq(users.id, adminUser.id),
-    });
-
-    if (!admin || (admin.role !== 'admin' && !admin.isAdmin)) {
-      return NextResponse.json(
-        failure('Admin access required', 'auth', requestId),
-        { status: 403, headers: { 'x-request-id': requestId } }
-      );
-    }
-
-    const { searchParams } = new URL(request.url);
-    const query = searchParams.get('q');
+    const url = new URL(request.url);
+    const query = url.searchParams.get('q');
 
     if (!query || query.length < 2) {
       return NextResponse.json(
@@ -49,7 +26,6 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Search by email or username (case-insensitive)
     const searchResults = await db.query.users.findMany({
       where: or(
         ilike(users.email, `%${query}%`),
@@ -72,17 +48,11 @@ export async function GET(request: NextRequest) {
       success({ users: searchResults }, requestId),
       { headers: { 'x-request-id': requestId } }
     );
-
   } catch (error: any) {
-    console.error('[ADMIN_SEARCH_USER_ERROR]', {
-      requestId,
-      error: error.message,
-      stack: error.stack
-    });
-
+    console.error('[ADMIN SEARCH USER] Error:', error instanceof Error ? error.stack : error);
     return NextResponse.json(
       failure('Failed to search users', 'unknown', requestId),
       { status: 500, headers: { 'x-request-id': requestId } }
     );
   }
-}
+});

@@ -1,9 +1,8 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase/server';
-import { isAdminUser } from '@/lib/admin/check-admin';
+import { NextResponse } from 'next/server';
 import { db } from '@/lib/data/system';
 import { creatorInvites } from '@/db/schema';
 import { eq } from 'drizzle-orm';
+import { withAdminParams } from '@/lib/auth/withAdmin';
 
 export const runtime = 'nodejs';
 
@@ -11,22 +10,8 @@ export const runtime = 'nodejs';
  * DELETE /api/admin/onboarding/[id]
  * Revoke an invite
  */
-export async function DELETE(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export const DELETE = withAdminParams<{ id: string }>(async ({ params }) => {
   try {
-    const supabase = await createClient();
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
-
-    if (authError || !user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
-    if (!await isAdminUser(user)) {
-      return NextResponse.json({ error: 'Forbidden - Admin access required' }, { status: 403 });
-    }
-
     const { id } = await params;
 
     // Get the invite
@@ -56,34 +41,20 @@ export async function DELETE(
 
     return NextResponse.json({ success: true });
   } catch (error: any) {
-    console.error('Error revoking invite:', error);
+    console.error('[ADMIN ONBOARDING DELETE] Error:', error instanceof Error ? error.stack : error);
     return NextResponse.json(
       { error: 'Failed to revoke invite' },
       { status: 500 }
     );
   }
-}
+});
 
 /**
  * PATCH /api/admin/onboarding/[id]
  * Update invite (resend, extend expiration)
  */
-export async function PATCH(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export const PATCH = withAdminParams<{ id: string }>(async ({ params, request }) => {
   try {
-    const supabase = await createClient();
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
-
-    if (authError || !user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
-    if (!await isAdminUser(user)) {
-      return NextResponse.json({ error: 'Forbidden - Admin access required' }, { status: 403 });
-    }
-
     const { id } = await params;
     const body = await request.json();
     const { action, expiresInDays } = body;
@@ -128,10 +99,10 @@ export async function PATCH(
 
     return NextResponse.json({ error: 'Invalid action' }, { status: 400 });
   } catch (error: any) {
-    console.error('Error updating invite:', error);
+    console.error('[ADMIN ONBOARDING PATCH] Error:', error instanceof Error ? error.stack : error);
     return NextResponse.json(
       { error: 'Failed to update invite' },
       { status: 500 }
     );
   }
-}
+});

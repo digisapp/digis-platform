@@ -1,32 +1,14 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase/server';
+import { NextResponse } from 'next/server';
 import { db } from '@/lib/data/system';
-import { users } from '@/lib/data/system';
-import { eq, sql } from 'drizzle-orm';
+import { sql } from 'drizzle-orm';
+import { withAdmin } from '@/lib/auth/withAdmin';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
-export async function GET(req: NextRequest) {
+export const GET = withAdmin(async ({ request }) => {
   try {
-    const supabase = await createClient();
-    const { data: { user } } = await supabase.auth.getUser();
-
-    if (!user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
-    // Check if user is admin
-    const dbUser = await db.query.users.findFirst({
-      where: eq(users.id, user.id),
-      columns: { role: true, isAdmin: true },
-    });
-
-    if (!dbUser || (dbUser.role !== 'admin' && !dbUser.isAdmin)) {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
-    }
-
-    const { searchParams } = new URL(req.url);
+    const { searchParams } = new URL(request.url);
     const tab = searchParams.get('tab') || 'creators';
     const page = parseInt(searchParams.get('page') || '1');
     const limit = parseInt(searchParams.get('limit') || '50');
@@ -158,10 +140,7 @@ export async function GET(req: NextRequest) {
         OFFSET ${offset}
       `;
 
-      const creatorsResult = await db.execute(creatorsQuery);
-      const creators = creatorsResult as unknown as Array<Record<string, unknown>>;
-
-      // Get total count with filter
+      // Run data + count queries in parallel
       const countQuery = sql`
         SELECT COUNT(*) as total
         FROM users u
@@ -169,7 +148,13 @@ export async function GET(req: NextRequest) {
         ${search ? sql`AND (u.username ILIKE ${`%${search}%`} OR u.email ILIKE ${`%${search}%`} OR u.display_name ILIKE ${`%${search}%`})` : sql``}
         ${filterCondition}
       `;
-      const countResult = await db.execute(countQuery);
+
+      const [creatorsResult, countResult] = await Promise.all([
+        db.execute(creatorsQuery),
+        db.execute(countQuery),
+      ]);
+
+      const creators = creatorsResult as unknown as Array<Record<string, unknown>>;
       const countRows = countResult as unknown as Array<{ total: string | number }>;
       const total = Number(countRows[0]?.total || 0);
 
@@ -276,18 +261,21 @@ export async function GET(req: NextRequest) {
         OFFSET ${offset}
       `;
 
-      const fansResult = await db.execute(fansQuery);
-      const fans = fansResult as unknown as Array<Record<string, unknown>>;
-
-      // Get total count with filter
-      const countQuery = sql`
+      // Run data + count queries in parallel
+      const fansCountQuery = sql`
         SELECT COUNT(*) as total
         FROM users u
         WHERE u.role = 'fan'
         ${search ? sql`AND (u.username ILIKE ${`%${search}%`} OR u.email ILIKE ${`%${search}%`} OR u.display_name ILIKE ${`%${search}%`})` : sql``}
         ${filterCondition}
       `;
-      const countResult = await db.execute(countQuery);
+
+      const [fansResult, countResult] = await Promise.all([
+        db.execute(fansQuery),
+        db.execute(fansCountQuery),
+      ]);
+
+      const fans = fansResult as unknown as Array<Record<string, unknown>>;
       const countRows = countResult as unknown as Array<{ total: string | number }>;
       const total = Number(countRows[0]?.total || 0);
 
@@ -304,10 +292,10 @@ export async function GET(req: NextRequest) {
 
     return NextResponse.json({ error: 'Invalid tab' }, { status: 400 });
   } catch (error) {
-    console.error('Admin community error:', error);
+    console.error('[ADMIN COMMUNITY] Error:', error instanceof Error ? error.stack : error);
     return NextResponse.json(
       { error: 'Failed to fetch community data' },
       { status: 500 }
     );
   }
-}
+});

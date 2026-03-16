@@ -1,30 +1,18 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase/server';
+import { NextResponse } from 'next/server';
 import { db } from '@/lib/data/system';
 import { socialShareSubmissions } from '@/db/schema/rewards';
 import { users } from '@/db/schema/users';
 import { eq, desc, sql } from 'drizzle-orm';
-import { isAdminUser } from '@/lib/admin/check-admin';
+import { withAdmin } from '@/lib/auth/withAdmin';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
 // GET /api/admin/share-rewards - Get all submissions for admin review
-export async function GET(request: NextRequest) {
+export const GET = withAdmin(async ({ request }) => {
   try {
-    const supabase = await createClient();
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
-
-    if (authError || !user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
-    if (!await isAdminUser(user)) {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
-    }
-
-    const { searchParams } = new URL(request.url);
-    const status = searchParams.get('status') || 'pending';
+    const url = new URL(request.url);
+    const status = url.searchParams.get('status') || 'pending';
 
     // Get submissions with creator info
     const submissions = await db
@@ -51,26 +39,35 @@ export async function GET(request: NextRequest) {
       .where(status !== 'all' ? eq(socialShareSubmissions.status, status as any) : sql`1=1`)
       .orderBy(desc(socialShareSubmissions.createdAt));
 
-    // Get stats
-    const allSubmissions = await db.query.socialShareSubmissions.findMany();
-    const stats = {
-      pending: allSubmissions.filter(s => s.status === 'pending').length,
-      approved: allSubmissions.filter(s => s.status === 'approved').length,
-      rejected: allSubmissions.filter(s => s.status === 'rejected').length,
-      totalCoinsAwarded: allSubmissions
-        .filter(s => s.status === 'approved')
-        .reduce((sum, s) => sum + (s.coinsAwarded || 0), 0),
-    };
+    // Get stats with a single DB query instead of loading all rows
+    const statsResult = await db
+      .select({
+        status: socialShareSubmissions.status,
+        count: sql<number>`count(*)::int`,
+        totalCoins: sql<number>`COALESCE(SUM(${socialShareSubmissions.coinsAwarded}), 0)::int`,
+      })
+      .from(socialShareSubmissions)
+      .groupBy(socialShareSubmissions.status);
+
+    const statsMap = statsResult.reduce((acc, s) => {
+      acc[s.status] = { count: s.count, totalCoins: s.totalCoins };
+      return acc;
+    }, {} as Record<string, { count: number; totalCoins: number }>);
 
     return NextResponse.json({
       submissions,
-      stats,
+      stats: {
+        pending: statsMap.pending?.count || 0,
+        approved: statsMap.approved?.count || 0,
+        rejected: statsMap.rejected?.count || 0,
+        totalCoinsAwarded: statsMap.approved?.totalCoins || 0,
+      },
     });
   } catch (error: any) {
-    console.error('Error fetching share submissions:', error);
+    console.error('[ADMIN SHARE REWARDS] Error:', error instanceof Error ? error.stack : error);
     return NextResponse.json(
       { error: 'Failed to fetch submissions' },
       { status: 500 }
     );
   }
-}
+});

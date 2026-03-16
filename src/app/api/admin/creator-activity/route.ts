@@ -1,22 +1,11 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase/server';
+import { NextResponse } from 'next/server';
 import { db, users, userActivityLogs } from '@/lib/data/system';
-import { eq, sql, desc, and, gte, count } from 'drizzle-orm';
-import { isAdminUser } from '@/lib/admin/check-admin';
+import { eq, desc, and, gte, count } from 'drizzle-orm';
+import { withAdmin } from '@/lib/auth/withAdmin';
 
 // GET /api/admin/creator-activity - Get creator login/activity stats
-export async function GET(request: NextRequest) {
+export const GET = withAdmin(async () => {
   try {
-    const supabase = await createClient();
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
-
-    if (authError || !user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
-    if (!await isAdminUser(user)) {
-      return NextResponse.json({ error: 'Forbidden - Admin access required' }, { status: 403 });
-    }
 
     // Get time ranges
     const now = new Date();
@@ -150,10 +139,10 @@ export async function GET(request: NextRequest) {
       creators: creatorsWithActivityData,
     });
   } catch (error: any) {
-    console.error('Error fetching creator activity:', error);
+    console.error('[ADMIN CREATOR ACTIVITY] Error:', error instanceof Error ? error.stack : error);
     return NextResponse.json(
       { error: 'Failed to fetch creator activity' },
       { status: 500 }
     );
   }
-}
+});

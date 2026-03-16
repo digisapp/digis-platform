@@ -1,32 +1,14 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase/server';
+import { NextResponse } from 'next/server';
 import { createClient as createAdminClient } from '@supabase/supabase-js';
-import { isAdminUser } from '@/lib/admin/check-admin';
+import { withAdminParams } from '@/lib/auth/withAdmin';
 
-// Force Node.js runtime
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
 // POST /api/admin/users/[userId]/suspend - Suspend or unsuspend user
-export async function POST(
-  request: NextRequest,
-  { params }: { params: Promise<{ userId: string }> }
-) {
+export const POST = withAdminParams<{ userId: string }>(async ({ user, params, request }) => {
   try {
     const { userId } = await params;
-
-    const supabase = await createClient();
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
-
-    if (authError || !user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
-    // Check if user is admin (email first, then DB)
-    if (!await isAdminUser(user)) {
-      return NextResponse.json({ error: 'Forbidden - Admin access required' }, { status: 403 });
-    }
-
     const { action } = await request.json(); // 'suspend' or 'unsuspend'
 
     const adminClient = createAdminClient(
@@ -34,7 +16,7 @@ export async function POST(
       process.env.SUPABASE_SERVICE_ROLE_KEY!
     );
 
-    // Get current user status
+    // Get current user
     const { data: currentUser } = await adminClient
       .from('users')
       .select('account_status, username')
@@ -52,7 +34,6 @@ export async function POST(
 
     const newStatus = action === 'suspend' ? 'suspended' : 'active';
 
-    // Update user status
     const { error: updateError } = await adminClient
       .from('users')
       .update({
@@ -62,11 +43,8 @@ export async function POST(
       .eq('id', userId);
 
     if (updateError) {
-      console.error('Supabase update error:', updateError);
-      return NextResponse.json(
-        { error: 'Failed to update user status' },
-        { status: 500 }
-      );
+      console.error('[ADMIN SUSPEND] Update error:', updateError);
+      return NextResponse.json({ error: 'Failed to update user status' }, { status: 500 });
     }
 
     return NextResponse.json({
@@ -75,10 +53,7 @@ export async function POST(
       message: `User ${action === 'suspend' ? 'suspended' : 'unsuspended'} successfully`,
     });
   } catch (error: any) {
-    console.error('Error updating user status:', error);
-    return NextResponse.json(
-      { error: 'Failed to update user status' },
-      { status: 500 }
-    );
+    console.error('[ADMIN SUSPEND] Error:', error instanceof Error ? error.stack : error);
+    return NextResponse.json({ error: 'Failed to update user status' }, { status: 500 });
   }
-}
+});
