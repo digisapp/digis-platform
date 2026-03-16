@@ -128,8 +128,6 @@ export async function GET(request: NextRequest) {
                 username: users.username,
                 displayName: users.displayName,
                 avatarUrl: users.avatarUrl,
-                bannerUrl: users.bannerUrl,
-                creatorCardImageUrl: users.creatorCardImageUrl,
                 bio: users.bio,
                 primaryCategory: users.primaryCategory,
                 isCreatorVerified: users.isCreatorVerified,

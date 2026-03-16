@@ -12,8 +12,6 @@ interface Creator {
   username: string;
   displayName: string | null;
   avatarUrl: string | null;
-  bannerUrl: string | null;
-  creatorCardImageUrl: string | null;
   bio: string | null;
   primaryCategory: string | null;
   isCreatorVerified: boolean;
@@ -324,7 +322,6 @@ export default function ExplorePage() {
 
 // Live Creator Card — prominent with red border + pulse
 const LiveCreatorCard = memo(function LiveCreatorCard({ creator, onClick }: { creator: Creator; onClick: () => void }) {
-  const cardImage = creator.creatorCardImageUrl || creator.avatarUrl;
   const [imgError, setImgError] = useState(false);
 
   return (
@@ -338,9 +335,9 @@ const LiveCreatorCard = memo(function LiveCreatorCard({ creator, onClick }: { cr
       </div>
 
       <div className="relative aspect-[3/4] overflow-hidden">
-        {cardImage && !imgError ? (
+        {creator.avatarUrl && !imgError ? (
           <Image
-            src={cardImage}
+            src={creator.avatarUrl}
             alt={creator.username}
             fill
             sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, 25vw"
@@ -369,7 +366,6 @@ const LiveCreatorCard = memo(function LiveCreatorCard({ creator, onClick }: { cr
 
 // Regular Creator Card — portrait, clean design
 const CreatorCard = memo(function CreatorCard({ creator, onClick }: { creator: Creator; onClick: () => void }) {
-  const cardImage = creator.creatorCardImageUrl || creator.avatarUrl;
   const [imgError, setImgError] = useState(false);
 
   const isNew = creator.createdAt &&
@@ -382,9 +378,9 @@ const CreatorCard = memo(function CreatorCard({ creator, onClick }: { creator: C
     >
       {/* Portrait image */}
       <div className="relative aspect-[3/4] overflow-hidden">
-        {cardImage && !imgError ? (
+        {creator.avatarUrl && !imgError ? (
           <Image
-            src={cardImage}
+            src={creator.avatarUrl}
             alt={creator.username}
             fill
             sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, 20vw"
