@@ -324,7 +324,7 @@ export default function ExplorePage() {
 
 // Live Creator Card — prominent with red border + pulse
 const LiveCreatorCard = memo(function LiveCreatorCard({ creator, onClick }: { creator: Creator; onClick: () => void }) {
-  const cardImage = creator.creatorCardImageUrl || creator.bannerUrl || creator.avatarUrl;
+  const cardImage = creator.creatorCardImageUrl || creator.avatarUrl;
   const [imgError, setImgError] = useState(false);
 
   return (
@@ -372,7 +372,7 @@ const LiveCreatorCard = memo(function LiveCreatorCard({ creator, onClick }: { cr
 
 // Regular Creator Card — portrait, rich info
 const CreatorCard = memo(function CreatorCard({ creator, onClick }: { creator: Creator; onClick: () => void }) {
-  const cardImage = creator.creatorCardImageUrl || creator.bannerUrl || creator.avatarUrl;
+  const cardImage = creator.creatorCardImageUrl || creator.avatarUrl;
   const [imgError, setImgError] = useState(false);
 
   const isNew = creator.createdAt &&
