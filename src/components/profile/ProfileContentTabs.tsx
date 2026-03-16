@@ -218,7 +218,7 @@ function PhotosTab({ content, hasMoreContent, loadingMoreContent, onLoadMore, on
               </div>
               <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent opacity-60 group-hover:opacity-80 transition-opacity pointer-events-none" />
               {item.isLocked && (
-                <div className="absolute inset-0 flex flex-col items-center justify-center backdrop-blur-md bg-black/60 pointer-events-none">
+                <div className="absolute inset-0 flex flex-col items-center justify-center backdrop-blur-md bg-black/60 rounded-2xl pointer-events-none">
                   <div className="relative mb-3">
                     <div className="absolute -inset-2 bg-gradient-to-r from-yellow-500 to-orange-500 rounded-full blur opacity-75"></div>
                     <div className="relative p-4 rounded-full bg-gradient-to-br from-yellow-500/20 to-orange-500/20 border border-yellow-500/30">
@@ -336,7 +336,7 @@ function VideoTab({ content, hasMoreContent, loadingMoreContent, onLoadMore, onC
               </div>
             </div>
             {item.isLocked && (
-              <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/50 backdrop-blur-2xl z-20">
+              <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/50 backdrop-blur-2xl rounded-2xl z-20">
                 <div className="p-3 rounded-full bg-black/60 backdrop-blur-md mb-2">
                   <Lock className="w-6 h-6 text-white" />
                 </div>
