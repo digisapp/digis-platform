@@ -1,11 +1,11 @@
 'use client';
 
-import { useEffect, useState, memo, useRef } from 'react';
+import { useEffect, useState, memo, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 import { LoadingSpinner } from '@/components/ui';
 import { MobileHeader } from '@/components/layout/MobileHeader';
-import { NeonLoader } from '@/components/ui/NeonLoader';
-import { Search, UserCircle, Radio, Sparkles } from 'lucide-react';
+import { Search, UserCircle, Radio, Sparkles, BadgeCheck, X, Users } from 'lucide-react';
 
 interface Creator {
   id: string;
@@ -13,19 +13,18 @@ interface Creator {
   displayName: string | null;
   avatarUrl: string | null;
   bannerUrl: string | null;
+  creatorCardImageUrl: string | null;
   bio: string | null;
+  primaryCategory: string | null;
   isCreatorVerified: boolean;
-  isTrending: boolean;
   followerCount: number;
   isOnline: boolean;
   isFollowing: boolean;
   isLive?: boolean;
   liveStreamId?: string | null;
-  primaryCategory?: string | null;
   createdAt?: string;
 }
 
-// Simple filters - removed complexity
 const FILTERS = [
   { key: 'all', label: 'All' },
   { key: 'live', label: 'Live' },
@@ -37,7 +36,9 @@ export default function ExplorePage() {
   const router = useRouter();
   const [creators, setCreators] = useState<Creator[]>([]);
   const [liveCreators, setLiveCreators] = useState<Creator[]>([]);
+  const [categories, setCategories] = useState<string[]>([]);
   const [selectedFilter, setSelectedFilter] = useState('all');
+  const [selectedCategory, setSelectedCategory] = useState('All');
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [searching, setSearching] = useState(false);
@@ -52,7 +53,7 @@ export default function ExplorePage() {
     setHasMore(true);
     setCreators([]);
     fetchCreators(0, true);
-  }, [selectedFilter]);
+  }, [selectedFilter, selectedCategory]);
 
   useEffect(() => {
     const delaySearch = setTimeout(() => {
@@ -90,7 +91,6 @@ export default function ExplorePage() {
   };
 
   const fetchCreators = async (pageOffset: number = 0, isReset: boolean = false) => {
-    // Create abort controller with 8s timeout
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 8000);
 
@@ -112,19 +112,25 @@ export default function ExplorePage() {
       if (response.ok && result.data) {
         const allCreators = result.data.creators || [];
 
-        if (isReset) {
-          // Separate live creators for the top section
-          const live = allCreators.filter((c: Creator) => c.isLive);
-          // Filter out live creators from main grid to avoid duplicates
-          const notLive = selectedFilter === 'live' ? [] : allCreators.filter((c: Creator) => !c.isLive);
+        // Store categories from API
+        if (result.data.categories && isReset) {
+          setCategories(result.data.categories);
+        }
 
+        // Filter by category client-side
+        const filtered = selectedCategory && selectedCategory !== 'All'
+          ? allCreators.filter((c: Creator) => c.primaryCategory === selectedCategory)
+          : allCreators;
+
+        if (isReset) {
+          const live = filtered.filter((c: Creator) => c.isLive);
+          const notLive = selectedFilter === 'live' ? [] : filtered.filter((c: Creator) => !c.isLive);
           setLiveCreators(live);
           setCreators(notLive);
         } else {
-          // Deduplicate when loading more to avoid showing same creator twice
           setCreators(prev => {
             const existingIds = new Set(prev.map(c => c.id));
-            const newCreators = allCreators.filter((c: Creator) => !existingIds.has(c.id));
+            const newCreators = filtered.filter((c: Creator) => !existingIds.has(c.id));
             return [...prev, ...newCreators];
           });
         }
@@ -144,13 +150,18 @@ export default function ExplorePage() {
     }
   };
 
-  // Skeleton card component for loading state
+  const clearSearch = useCallback(() => {
+    setSearchTerm('');
+    setSearching(false);
+  }, []);
+
   const SkeletonCard = () => (
-    <div className="bg-white/5 rounded-2xl overflow-hidden animate-pulse">
+    <div className="rounded-2xl overflow-hidden animate-pulse bg-white/5">
       <div className="aspect-[3/4] bg-white/10" />
-      <div className="p-3">
-        <div className="h-4 bg-white/10 rounded w-3/4 mb-2" />
-        <div className="h-3 bg-white/10 rounded w-1/2" />
+      <div className="p-3 space-y-2">
+        <div className="h-4 bg-white/10 rounded w-3/4" />
+        <div className="h-3 bg-white/8 rounded w-full" />
+        <div className="h-3 bg-white/5 rounded w-1/2" />
       </div>
     </div>
   );
@@ -175,23 +186,30 @@ export default function ExplorePage() {
                   setSearching(true);
                 }}
                 placeholder="Search creators..."
-                className="w-full pl-12 pr-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-cyan-500/50 transition-colors"
+                className="w-full pl-12 pr-10 py-3 bg-white/5 border border-white/10 rounded-2xl text-white placeholder-gray-500 focus:outline-none focus:border-cyan-500/50 transition-colors"
               />
-              {searching && (
+              {searchTerm ? (
+                <button
+                  onClick={clearSearch}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 p-1 rounded-full hover:bg-white/10 transition-colors"
+                >
+                  <X className="w-4 h-4 text-gray-400" />
+                </button>
+              ) : searching ? (
                 <div className="absolute right-4 top-1/2 -translate-y-1/2">
                   <LoadingSpinner size="sm" />
                 </div>
-              )}
+              ) : null}
             </div>
           </div>
 
-          {/* Simple Filters */}
-          <div className="flex gap-2 mb-6 overflow-x-auto pb-1">
+          {/* Filters */}
+          <div className="flex gap-2 mb-4 overflow-x-auto pb-1 scrollbar-hide">
             {FILTERS.map((filter) => (
               <button
                 key={filter.key}
                 onClick={() => setSelectedFilter(filter.key)}
-                className={`px-4 py-2.5 min-h-[44px] rounded-full text-sm font-medium transition-all whitespace-nowrap ${
+                className={`px-4 py-2 min-h-[40px] rounded-full text-sm font-medium transition-all whitespace-nowrap ${
                   selectedFilter === filter.key
                     ? 'bg-white text-black'
                     : 'bg-white/5 text-gray-300 hover:bg-white/10'
@@ -202,7 +220,26 @@ export default function ExplorePage() {
             ))}
           </div>
 
-          {/* Live Now Section - Only show if there are live creators */}
+          {/* Category Pills */}
+          {categories.length > 1 && (
+            <div className="flex gap-2 mb-6 overflow-x-auto pb-1 scrollbar-hide">
+              {categories.map((cat) => (
+                <button
+                  key={cat}
+                  onClick={() => setSelectedCategory(cat)}
+                  className={`flex-shrink-0 px-3.5 py-1.5 rounded-full text-xs font-medium transition-all ${
+                    selectedCategory === cat
+                      ? 'bg-cyan-500/20 text-cyan-400 ring-1 ring-cyan-500/30'
+                      : 'bg-white/5 text-gray-400 hover:bg-white/10 hover:text-gray-300'
+                  }`}
+                >
+                  {cat}
+                </button>
+              ))}
+            </div>
+          )}
+
+          {/* Live Now Section */}
           {liveCreators.length > 0 && selectedFilter !== 'live' && (
             <div className="mb-8">
               <div className="flex items-center gap-2 mb-4">
@@ -212,11 +249,11 @@ export default function ExplorePage() {
                     <Radio className="w-5 h-5" />
                   </div>
                 </div>
-                <h2 className="text-lg md:text-xl lg:text-2xl font-bold text-white">Live Now</h2>
+                <h2 className="text-lg font-bold text-white">Live Now</h2>
                 <span className="text-sm text-gray-400">({liveCreators.length})</span>
               </div>
 
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 md:gap-4">
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
                 {liveCreators.map((creator) => (
                   <LiveCreatorCard
                     key={creator.id}
@@ -228,32 +265,38 @@ export default function ExplorePage() {
             </div>
           )}
 
-          {/* Main Creators Grid */}
+          {/* Main Grid */}
           {loading ? (
-            // Show skeleton grid while loading
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 md:gap-4">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
               {[...Array(10)].map((_, i) => (
                 <SkeletonCard key={i} />
               ))}
             </div>
           ) : creators.length === 0 && liveCreators.length === 0 ? (
-            <div className="py-16 text-center">
+            <div className="py-20 text-center">
               <UserCircle className="w-16 h-16 text-gray-600 mx-auto mb-4" />
               <h3 className="text-xl font-semibold text-white mb-2">
-                {searchTerm ? 'No results found' : 'Loading creators...'}
+                {searchTerm ? 'No results found' : 'No creators found'}
               </h3>
-              <p className="text-gray-400">
-                {searchTerm ? 'Try a different search term' : 'Please wait a moment'}
+              <p className="text-gray-400 text-sm">
+                {searchTerm ? 'Try a different search term' : 'Check back soon for new creators'}
               </p>
+              {searchTerm && (
+                <button
+                  onClick={clearSearch}
+                  className="mt-4 px-5 py-2 rounded-full bg-white/10 text-white text-sm font-medium hover:bg-white/15 transition-colors"
+                >
+                  Clear search
+                </button>
+              )}
             </div>
           ) : (
             <>
-              {/* Section header for non-live creators */}
               {liveCreators.length > 0 && selectedFilter !== 'live' && creators.length > 0 && (
                 <h2 className="text-lg font-bold text-white mb-4">Discover Creators</h2>
               )}
 
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 md:gap-4">
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
                 {(selectedFilter === 'live' ? liveCreators : creators).map((creator) => (
                   <CreatorCard
                     key={creator.id}
@@ -263,7 +306,6 @@ export default function ExplorePage() {
                 ))}
               </div>
 
-              {/* Load more trigger */}
               <div ref={loadMoreRef} className="py-8 flex justify-center">
                 {loadingMore && (
                   <div className="flex items-center gap-2">
@@ -280,66 +322,78 @@ export default function ExplorePage() {
   );
 }
 
-// Live Creator Card - Larger, more prominent (memoized for performance)
+// Live Creator Card — prominent with red border + pulse
 const LiveCreatorCard = memo(function LiveCreatorCard({ creator, onClick }: { creator: Creator; onClick: () => void }) {
-  const imageUrl = creator.avatarUrl;
+  const cardImage = creator.creatorCardImageUrl || creator.bannerUrl || creator.avatarUrl;
+  const [imgError, setImgError] = useState(false);
 
   return (
     <div
       onClick={onClick}
       className="relative rounded-2xl overflow-hidden cursor-pointer group border-2 border-red-500/50 hover:border-red-500 transition-all"
     >
-      {/* Live badge */}
-      <div className="absolute top-2 left-2 z-10 px-2.5 py-1 bg-red-500 rounded-full">
+      <div className="absolute top-2 left-2 z-10 flex items-center gap-1.5 px-2.5 py-1 bg-red-500 rounded-full">
+        <div className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
         <span className="text-xs font-bold text-white">LIVE</span>
       </div>
 
-      {/* Image */}
-      <div className="relative overflow-hidden" style={{ paddingBottom: '100%' }}>
-        {imageUrl ? (
-          <img
-            src={imageUrl}
+      <div className="relative aspect-[3/4] overflow-hidden">
+        {cardImage && !imgError ? (
+          <Image
+            src={cardImage}
             alt={creator.username}
-            className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+            fill
+            sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, 25vw"
+            className="object-cover group-hover:scale-105 transition-transform duration-300"
+            onError={() => setImgError(true)}
           />
         ) : (
           <div className="absolute inset-0 bg-gradient-to-br from-red-500/20 to-pink-500/20 flex items-center justify-center">
             <UserCircle className="w-16 h-16 text-gray-400" />
           </div>
         )}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent group-hover:scale-105 transition-transform duration-300" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
       </div>
 
-      {/* Info overlay */}
       <div className="absolute bottom-0 left-0 right-0 p-3">
-        <p className="font-bold text-white truncate">{creator.username}</p>
+        <div className="flex items-center gap-1.5">
+          <p className="font-bold text-white truncate">{creator.displayName || creator.username}</p>
+          {creator.isCreatorVerified && (
+            <BadgeCheck className="w-4 h-4 text-cyan-400 flex-shrink-0" />
+          )}
+        </div>
+        {creator.bio && (
+          <p className="text-white/60 text-xs mt-0.5 line-clamp-1">{creator.bio}</p>
+        )}
       </div>
     </div>
   );
 });
 
-// Regular Creator Card - Clean minimal design
-interface CreatorCardProps {
-  creator: Creator;
-  onClick: () => void;
-}
+// Regular Creator Card — portrait, rich info
+const CreatorCard = memo(function CreatorCard({ creator, onClick }: { creator: Creator; onClick: () => void }) {
+  const cardImage = creator.creatorCardImageUrl || creator.bannerUrl || creator.avatarUrl;
+  const [imgError, setImgError] = useState(false);
 
-const CreatorCard = memo(function CreatorCard({ creator, onClick }: CreatorCardProps) {
-  const imageUrl = creator.avatarUrl;
+  const isNew = creator.createdAt &&
+    Math.floor((Date.now() - new Date(creator.createdAt).getTime()) / (1000 * 60 * 60 * 24)) <= 30;
 
   return (
     <div
-      className="rounded-2xl overflow-hidden cursor-pointer group bg-white/5 border border-white/10 hover:border-cyan-500/50 transition-all"
+      className="rounded-2xl overflow-hidden cursor-pointer group bg-white/[0.03] border border-white/[0.06] hover:border-cyan-500/30 transition-all"
       onClick={onClick}
     >
-      {/* Image section */}
-      <div className="relative overflow-hidden" style={{ paddingBottom: '100%' }}>
-        {imageUrl ? (
-          <img
-            src={imageUrl}
+      {/* Portrait image */}
+      <div className="relative aspect-[3/4] overflow-hidden">
+        {cardImage && !imgError ? (
+          <Image
+            src={cardImage}
             alt={creator.username}
-            className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+            fill
+            sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, 20vw"
+            className="object-cover group-hover:scale-105 transition-transform duration-300"
             loading="lazy"
+            onError={() => setImgError(true)}
           />
         ) : (
           <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/10 to-purple-500/10 flex items-center justify-center">
@@ -347,10 +401,11 @@ const CreatorCard = memo(function CreatorCard({ creator, onClick }: CreatorCardP
           </div>
         )}
 
-        {/* Status badges */}
+        {/* Badges */}
         <div className="absolute top-2 left-2 flex flex-col gap-1 z-10">
           {creator.isLive && (
-            <span className="px-2.5 py-0.5 bg-red-500 rounded-full text-xs font-bold text-white">
+            <span className="flex items-center gap-1 px-2 py-0.5 bg-red-500 rounded-full text-xs font-bold text-white">
+              <div className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
               LIVE
             </span>
           )}
@@ -359,35 +414,46 @@ const CreatorCard = memo(function CreatorCard({ creator, onClick }: CreatorCardP
               Online
             </span>
           )}
-        </div>
-
-        {/* Gradient overlay - scales with image */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent group-hover:scale-105 transition-transform duration-300" />
-      </div>
-
-      {/* Info section */}
-      <div className="p-3">
-        {/* Username with verified badge */}
-        <div className="flex items-center gap-1">
-          <p className="font-semibold text-white truncate">
-            {creator.username}
-          </p>
-          {creator.isCreatorVerified && (
-            <svg className="w-4 h-4 text-cyan-400 flex-shrink-0" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
+          {isNew && (
+            <span className="flex items-center gap-1 px-2 py-0.5 bg-amber-500/80 rounded-full text-xs font-medium text-white">
+              <Sparkles className="w-3 h-3" />
+              New
+            </span>
           )}
         </div>
-        {/* New Creator badge - show if joined within 30 days */}
-        {creator.createdAt && (() => {
-          const daysSinceJoined = Math.floor((Date.now() - new Date(creator.createdAt).getTime()) / (1000 * 60 * 60 * 24));
-          return daysSinceJoined <= 30 ? (
-            <div className="flex items-center gap-1 text-xs text-amber-400 mt-1">
-              <Sparkles className="w-3 h-3" />
-              <span>New Creator</span>
-            </div>
-          ) : null;
-        })()}
+
+        {/* Category badge */}
+        {creator.primaryCategory && (
+          <div className="absolute top-2 right-2 z-10">
+            <span className="px-2 py-0.5 bg-black/50 backdrop-blur-sm rounded-full text-[10px] font-medium text-gray-300">
+              {creator.primaryCategory}
+            </span>
+          </div>
+        )}
+
+        {/* Bottom gradient */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
+      </div>
+
+      {/* Info */}
+      <div className="p-3">
+        <div className="flex items-center gap-1.5">
+          <p className="font-semibold text-white truncate text-sm">
+            {creator.displayName || creator.username}
+          </p>
+          {creator.isCreatorVerified && (
+            <BadgeCheck className="w-4 h-4 text-cyan-400 flex-shrink-0" />
+          )}
+        </div>
+
+        {creator.bio && (
+          <p className="text-gray-500 text-xs mt-1 line-clamp-2 leading-relaxed">{creator.bio}</p>
+        )}
+
+        <div className="flex items-center gap-1.5 mt-2 text-gray-500">
+          <Users className="w-3 h-3" />
+          <span className="text-xs">{creator.followerCount.toLocaleString()}</span>
+        </div>
       </div>
     </div>
   );

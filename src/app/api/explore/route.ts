@@ -128,6 +128,10 @@ export async function GET(request: NextRequest) {
                 username: users.username,
                 displayName: users.displayName,
                 avatarUrl: users.avatarUrl,
+                bannerUrl: users.bannerUrl,
+                creatorCardImageUrl: users.creatorCardImageUrl,
+                bio: users.bio,
+                primaryCategory: users.primaryCategory,
                 isCreatorVerified: users.isCreatorVerified,
                 followerCount: users.followerCount,
                 isOnline: users.isOnline,
@@ -252,7 +256,11 @@ export async function GET(request: NextRequest) {
     // Pagination in JS since we sorted in JS
     const hasMore = creators.length > offset + limit;
     // Remove internal fields from response
-    const paginatedCreators = creators.slice(offset, offset + limit).map(({ discoveryScore, lastSeenAt, ...c }) => c);
+    const paginatedCreators = creators.slice(offset, offset + limit).map(({ discoveryScore, lastSeenAt, ...c }) => ({
+      ...c,
+      // Truncate bio for card display
+      bio: c.bio ? (c.bio.length > 80 ? c.bio.slice(0, 80) + '…' : c.bio) : null,
+    }));
 
     return NextResponse.json(
       success({
