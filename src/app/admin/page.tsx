@@ -72,7 +72,7 @@ export default function AdminDashboard() {
                 <div><p className="text-xs text-gray-400">New (7d)</p><p className="text-xl font-bold">{d.stats.weekSignups || 0}</p></div>
               </div>
             </GlassCard>
-            <GlassCard className="p-4 cursor-pointer hover:scale-[1.03] transition-transform" onClick={() => d.router.push('/admin/creator-applications')}>
+            <GlassCard className="p-4 cursor-pointer hover:scale-[1.03] transition-transform" onClick={() => d.router.push('/admin/community?tab=applications')}>
               <div className="flex items-center gap-3">
                 <div className="p-2.5 bg-yellow-500/20 rounded-lg"><ClipboardList className="w-5 h-5 text-yellow-500" /></div>
                 <div><p className="text-xs text-gray-400">Applications</p><p className="text-xl font-bold">{d.stats.pendingApplications || 0}</p></div>
@@ -166,7 +166,6 @@ export default function AdminDashboard() {
 /* ── Admin Pages grid data ── */
 const ADMIN_PAGES = [
   { label: 'Community', path: '/admin/community', icon: Users, color: 'text-purple-400' },
-  { label: 'Applications', path: '/admin/creator-applications', icon: ClipboardList, color: 'text-green-400' },
   { label: 'Campaigns', path: '/admin/campaigns', icon: Mail, color: 'text-pink-400' },
   { label: 'Chats', path: '/admin/chats', icon: MessageCircle, color: 'text-blue-400' },
   { label: 'Referrals', path: '/admin/referrals', icon: Users, color: 'text-cyan-400' },
