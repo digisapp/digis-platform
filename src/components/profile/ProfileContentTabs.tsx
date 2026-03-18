@@ -324,6 +324,11 @@ function VideoTab({ content, hasMoreContent, loadingMoreContent, onLoadMore, onC
                 playsInline
                 preload="metadata"
                 className="absolute inset-0 w-full h-full object-cover pointer-events-none"
+                onError={(e) => {
+                  const target = e.target as HTMLVideoElement;
+                  target.style.display = 'none';
+                  target.parentElement?.querySelector('.video-placeholder')?.classList.remove('hidden');
+                }}
               />
             ) : null}
             <div className={`absolute inset-0 bg-gradient-to-br from-digis-cyan/30 via-digis-purple/30 to-digis-pink/30 flex items-center justify-center video-placeholder ${item.thumbnail || item.url ? 'hidden' : ''}`}>

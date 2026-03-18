@@ -141,13 +141,46 @@ export function ProfileModals({
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
               </svg>
             </button>
-            <video src={selectedVideo.url} controls autoPlay className="w-full aspect-video bg-black" />
-            <div className="p-6 bg-gray-900">
-              <h3 className="text-xl font-bold text-white mb-2">{selectedVideo.title}</h3>
-              {selectedVideo.description && (
-                <p className="text-gray-300 text-sm">{selectedVideo.description}</p>
-              )}
+            {selectedVideo.url ? (
+              <video
+                src={selectedVideo.url}
+                controls
+                autoPlay
+                className="w-full aspect-video bg-black"
+                onError={(e) => {
+                  const target = e.target as HTMLVideoElement;
+                  target.style.display = 'none';
+                  const fallback = target.parentElement?.querySelector('.video-error');
+                  if (fallback) fallback.classList.remove('hidden');
+                }}
+              />
+            ) : null}
+            <div className="hidden video-error w-full aspect-video bg-black flex items-center justify-center">
+              <div className="text-center">
+                <p className="text-gray-400 mb-2">Video unavailable</p>
+                <button
+                  onClick={() => {
+                    const video = document.querySelector('.video-error')?.parentElement?.querySelector('video');
+                    if (video) {
+                      video.style.display = '';
+                      video.load();
+                      document.querySelector('.video-error')?.classList.add('hidden');
+                    }
+                  }}
+                  className="px-4 py-2 bg-white/10 hover:bg-white/20 text-white text-sm rounded-lg transition-colors"
+                >
+                  Retry
+                </button>
+              </div>
             </div>
+            {selectedVideo.title && (
+              <div className="p-6 bg-gray-900">
+                <h3 className="text-xl font-bold text-white mb-2">{selectedVideo.title}</h3>
+                {selectedVideo.description && (
+                  <p className="text-gray-300 text-sm">{selectedVideo.description}</p>
+                )}
+              </div>
+            )}
           </div>
         </div>
       )}
