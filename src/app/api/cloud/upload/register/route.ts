@@ -84,18 +84,31 @@ export async function POST(request: NextRequest) {
       })
       .where(eq(users.id, user.id));
 
-    // Trigger background thumbnail processing (fire-and-forget)
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.VERCEL_URL
+    // Trigger background thumbnail processing (fire-and-forget with retry)
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || (process.env.VERCEL_URL
       ? `https://${process.env.VERCEL_URL}`
-      : 'http://localhost:3000';
+      : 'http://localhost:3000');
 
-    fetch(`${baseUrl}/api/cloud/upload/process-media`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ itemId: item.id, storagePath, type }),
-    }).catch(err => {
-      console.error('[CLOUD REGISTER] Failed to trigger processing:', err.message);
-    });
+    const triggerProcessing = async (attempt = 1) => {
+      try {
+        const res = await fetch(`${baseUrl}/api/cloud/upload/process-media`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ itemId: item.id, storagePath, type }),
+        });
+        if (!res.ok && attempt < 3) {
+          await new Promise(r => setTimeout(r, 2000 * attempt));
+          return triggerProcessing(attempt + 1);
+        }
+      } catch (err: any) {
+        if (attempt < 3) {
+          await new Promise(r => setTimeout(r, 2000 * attempt));
+          return triggerProcessing(attempt + 1);
+        }
+        console.error('[CLOUD REGISTER] Processing failed after 3 attempts:', err.message);
+      }
+    };
+    triggerProcessing();
 
     return NextResponse.json({
       item,
