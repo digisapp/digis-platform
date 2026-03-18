@@ -40,8 +40,16 @@ export default function WelcomePage() {
           return;
         }
 
-        // If user is already a creator, go to creator dashboard
+        // If user is a creator, check if they need to complete setup
         if (role === 'creator') {
+          const setupRes = await fetch('/api/creator/setup');
+          if (setupRes.ok) {
+            const setupData = await setupRes.json();
+            if (!setupData.onboardingCompletedAt && setupData.onboardingStep < 5) {
+              router.push('/creator/setup');
+              return;
+            }
+          }
           router.push('/creator/dashboard');
           return;
         }

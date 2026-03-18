@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase/server';
 import { createClient as createAdminClient } from '@supabase/supabase-js';
 import { db } from '@/lib/data/system';
 import { creatorInvites, users, profiles, creatorSettings, aiTwinSettings } from '@/db/schema';
@@ -189,16 +188,17 @@ export async function POST(
       }
     }
 
-    // Create Supabase auth user
-    const supabase = await createClient();
-    const { data: authData, error: authError } = await supabase.auth.signUp({
+    // Create Supabase auth user via admin (auto-confirms email for invited creators)
+    const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
       email: userEmail,
       password,
-      options: {
-        data: {
-          display_name: invite.displayName || username,
-          username: username,
-        },
+      email_confirm: true, // Auto-confirm since they were invited
+      user_metadata: {
+        display_name: invite.displayName || username,
+        username: username,
+      },
+      app_metadata: {
+        role: 'creator',
       },
     });
 
@@ -271,13 +271,11 @@ export async function POST(
       })
       .where(eq(creatorInvites.id, invite.id));
 
-    // 🔥 CRITICAL: Update Supabase auth metadata to persist role in JWT
-    // This prevents role from reverting during auth sync issues
+    // Update auth metadata with verification status (role already set during creation)
     try {
       const { error: authUpdateError } = await supabaseAdmin.auth.admin.updateUserById(
         authData.user.id,
         {
-          app_metadata: { role: 'creator' },
           user_metadata: { is_creator_verified: true },
         }
       );
@@ -334,8 +332,9 @@ export async function POST(
 
     return NextResponse.json({
       success: true,
-      message: 'Account created successfully! Please check your email to verify, then log in.',
+      message: 'Account created successfully!',
       username,
+      autoLogin: true, // Client should sign in automatically
     });
   } catch (error: any) {
     console.error('Error claiming invite:', error);

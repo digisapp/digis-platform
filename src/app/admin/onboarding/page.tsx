@@ -61,6 +61,18 @@ interface Stats {
   total: number;
 }
 
+interface OnboardingStats {
+  totalClaimed: number;
+  completedSetup: number;
+  stuckAtStep0: number;
+  stuckAtStep1: number;
+  stuckAtStep2: number;
+  stuckAtStep3: number;
+  stuckAtStep4: number;
+  hasAvatar: number;
+  hasBio: number;
+}
+
 type Tab = 'upload' | 'invites';
 
 export default function AdminOnboardingPage() {
@@ -88,6 +100,10 @@ export default function AdminOnboardingPage() {
   const [invites, setInvites] = useState<Invite[]>([]);
   const [invitesLoading, setInvitesLoading] = useState(false);
   const [stats, setStats] = useState<Stats>({ pending: 0, claimed: 0, expired: 0, revoked: 0, total: 0 });
+  const [onboardingStats, setOnboardingStats] = useState<OnboardingStats>({
+    totalClaimed: 0, completedSetup: 0, stuckAtStep0: 0, stuckAtStep1: 0,
+    stuckAtStep2: 0, stuckAtStep3: 0, stuckAtStep4: 0, hasAvatar: 0, hasBio: 0,
+  });
   const [batches, setBatches] = useState<string[]>([]);
   const [filterStatus, setFilterStatus] = useState<string>('');
   const [filterBatch, setFilterBatch] = useState<string>('');
@@ -140,6 +156,7 @@ export default function AdminOnboardingPage() {
         const data = await res.json();
         setInvites(data.invites);
         setStats(data.stats);
+        if (data.onboardingStats) setOnboardingStats(data.onboardingStats);
         setBatches(data.batches);
         setTotalInvites(data.total);
         setInvitesPage(page);
@@ -342,6 +359,40 @@ export default function AdminOnboardingPage() {
             <div className="text-sm text-gray-400">Total</div>
           </GlassCard>
         </div>
+
+        {/* Setup Completion Funnel */}
+        {onboardingStats.totalClaimed > 0 && (
+          <GlassCard className="p-4 mb-6">
+            <h3 className="text-sm font-semibold text-gray-300 mb-3">Setup Completion Funnel</h3>
+            <div className="space-y-2">
+              {[
+                { label: 'Claimed invite', count: onboardingStats.totalClaimed, color: 'bg-cyan-500' },
+                { label: 'Added photo', count: onboardingStats.hasAvatar, color: 'bg-blue-500' },
+                { label: 'Set rates', count: onboardingStats.totalClaimed - onboardingStats.stuckAtStep0 - onboardingStats.stuckAtStep1, color: 'bg-purple-500' },
+                { label: 'Uploaded content', count: onboardingStats.totalClaimed - onboardingStats.stuckAtStep0 - onboardingStats.stuckAtStep1 - onboardingStats.stuckAtStep2, color: 'bg-pink-500' },
+                { label: 'Completed setup', count: onboardingStats.completedSetup, color: 'bg-green-500' },
+              ].map(({ label, count, color }) => (
+                <div key={label} className="flex items-center gap-3">
+                  <div className="w-28 text-xs text-gray-400 text-right flex-shrink-0">{label}</div>
+                  <div className="flex-1 h-5 bg-white/5 rounded-full overflow-hidden">
+                    <div
+                      className={`h-full ${color} rounded-full transition-all duration-500`}
+                      style={{ width: `${Math.max(2, (count / onboardingStats.totalClaimed) * 100)}%` }}
+                    />
+                  </div>
+                  <div className="w-16 text-xs text-white font-medium">
+                    {count} <span className="text-gray-500">({onboardingStats.totalClaimed > 0 ? Math.round((count / onboardingStats.totalClaimed) * 100) : 0}%)</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+            {onboardingStats.stuckAtStep0 > 0 && (
+              <p className="text-xs text-yellow-400 mt-3">
+                {onboardingStats.stuckAtStep0} creator{onboardingStats.stuckAtStep0 !== 1 ? 's' : ''} claimed but never started setup
+              </p>
+            )}
+          </GlassCard>
+        )}
 
         {/* Tabs */}
         <div className="flex gap-2 mb-6">

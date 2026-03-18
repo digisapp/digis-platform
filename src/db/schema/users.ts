@@ -43,6 +43,10 @@ export const users = pgTable('users', {
   // Storage tracking (in bytes)
   storageUsed: integer('storage_used').default(0).notNull(), // Total storage used by creator
 
+  // Onboarding tracking (for creator setup wizard)
+  onboardingStep: integer('onboarding_step').default(0).notNull(), // 0=not started, 1=photo, 2=rates, 3=content, 4=share, 5=completed
+  onboardingCompletedAt: timestamp('onboarding_completed_at'),
+
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 }, (table) => ({

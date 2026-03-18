@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
+import { createClient } from '@/lib/supabase/client';
 import { LoadingSpinner } from '@/components/ui';
 import { CheckCircle, XCircle, Eye, EyeOff, Instagram, Mail, Lock, ArrowRight } from 'lucide-react';
 import Link from 'next/link';
@@ -94,8 +95,26 @@ export default function ClaimInvitePage() {
       const data = await res.json();
 
       if (res.ok && data.success) {
-        setSuccess(true);
         setCreatedUsername(data.username);
+
+        // Auto-login and redirect to setup wizard
+        if (data.autoLogin) {
+          const supabase = createClient();
+          const { error: signInError } = await supabase.auth.signInWithPassword({
+            email: invite?.hasEmail ? (invite.email || '') : email,
+            password,
+          });
+
+          if (!signInError) {
+            // Successfully logged in — go to setup wizard
+            router.push('/creator/setup');
+            return;
+          }
+          // If auto-login fails, fall back to success screen
+          console.warn('Auto-login failed:', signInError.message);
+        }
+
+        setSuccess(true);
       } else {
         setError(data.error || 'Failed to claim invite');
       }
@@ -156,15 +175,15 @@ export default function ClaimInvitePage() {
             <ol className="text-sm text-gray-400 space-y-2">
               <li className="flex items-start gap-2">
                 <span className="text-cyan-400 font-bold">1.</span>
-                Check your email to verify your account
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="text-cyan-400 font-bold">2.</span>
                 Log in with your email and password
               </li>
               <li className="flex items-start gap-2">
+                <span className="text-cyan-400 font-bold">2.</span>
+                Complete your profile setup wizard
+              </li>
+              <li className="flex items-start gap-2">
                 <span className="text-cyan-400 font-bold">3.</span>
-                Complete your profile and start creating!
+                Share your link and start earning!
               </li>
             </ol>
           </div>
@@ -173,7 +192,7 @@ export default function ClaimInvitePage() {
             href="/"
             className="inline-flex items-center gap-2 px-8 py-3 bg-gradient-to-r from-cyan-500 to-purple-500 hover:from-cyan-600 hover:to-purple-600 text-white rounded-xl font-bold transition-all shadow-lg shadow-cyan-500/25"
           >
-            Log In Now
+            Log In &amp; Set Up Profile
             <ArrowRight className="w-5 h-5" />
           </Link>
         </div>

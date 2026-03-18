@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/data/system';
-import { creatorInvites } from '@/db/schema';
-import { eq, sql, and, or, ilike } from 'drizzle-orm';
+import { creatorInvites, users } from '@/db/schema';
+import { eq, sql, and, or, ilike, isNotNull, isNull, lt } from 'drizzle-orm';
 import { nanoid } from 'nanoid';
 import { withAdmin } from '@/lib/auth/withAdmin';
 
@@ -80,6 +80,23 @@ export const GET = withAdmin(async ({ request }) => {
       .from(creatorInvites)
       .where(sql`${creatorInvites.batchId} IS NOT NULL`);
 
+    // Get onboarding completion stats for claimed creators
+    const onboardingStats = await db
+      .select({
+        totalClaimed: sql<number>`count(*)::int`,
+        completedSetup: sql<number>`count(*) filter (where ${users.onboardingCompletedAt} is not null)::int`,
+        stuckAtStep0: sql<number>`count(*) filter (where ${users.onboardingStep} = 0)::int`,
+        stuckAtStep1: sql<number>`count(*) filter (where ${users.onboardingStep} = 1)::int`,
+        stuckAtStep2: sql<number>`count(*) filter (where ${users.onboardingStep} = 2)::int`,
+        stuckAtStep3: sql<number>`count(*) filter (where ${users.onboardingStep} = 3)::int`,
+        stuckAtStep4: sql<number>`count(*) filter (where ${users.onboardingStep} = 4)::int`,
+        hasAvatar: sql<number>`count(*) filter (where ${users.avatarUrl} is not null)::int`,
+        hasBio: sql<number>`count(*) filter (where ${users.bio} is not null and ${users.bio} != '')::int`,
+      })
+      .from(creatorInvites)
+      .innerJoin(users, eq(creatorInvites.claimedBy, users.id))
+      .where(eq(creatorInvites.status, 'claimed'));
+
     return NextResponse.json({
       invites,
       total,
@@ -89,6 +106,17 @@ export const GET = withAdmin(async ({ request }) => {
         expired: statsMap.expired || 0,
         revoked: statsMap.revoked || 0,
         total: Object.values(statsMap).reduce((a, b) => a + b, 0),
+      },
+      onboardingStats: onboardingStats[0] || {
+        totalClaimed: 0,
+        completedSetup: 0,
+        stuckAtStep0: 0,
+        stuckAtStep1: 0,
+        stuckAtStep2: 0,
+        stuckAtStep3: 0,
+        stuckAtStep4: 0,
+        hasAvatar: 0,
+        hasBio: 0,
       },
       batches: batches.map(b => b.batchId).filter(Boolean),
     });
