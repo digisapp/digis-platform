@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { db } from '@/lib/data/system';
 import { clips, clipLikes, cloudItems, users, follows } from '@/db/schema';
-import { eq, desc, and, sql, isNotNull } from 'drizzle-orm';
+import { eq, desc, and, sql, isNotNull, gt } from 'drizzle-orm';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -160,6 +160,8 @@ export async function GET(request: NextRequest) {
             cursorCondition,
             eq(users.accountStatus, 'active'),
             eq(users.isHiddenFromDiscovery, false),
+            // When filtering by 'content' (Exclusive tab), only show paid items
+            type === 'content' ? gt(cloudItems.priceCoins, 0) : undefined,
           )
         )
         .orderBy(desc(cloudItems.publishedAt))
