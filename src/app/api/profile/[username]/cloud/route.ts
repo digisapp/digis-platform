@@ -83,17 +83,21 @@ export async function GET(
     const isOwner = currentUser?.id === creator.id;
 
     // Return items with purchase status (hide file URLs for non-purchasers)
-    const itemsWithStatus = itemsToReturn.map(item => ({
-      id: item.id,
-      type: item.type,
-      durationSeconds: item.durationSeconds,
-      priceCoins: item.priceCoins,
-      publishedAt: item.publishedAt,
-      hasPurchased: isOwner || purchasedItemIds.includes(item.id),
-      // Only show real URL if purchased, otherwise show preview/thumbnail
-      thumbnailUrl: item.thumbnailUrl || item.previewUrl || item.fileUrl,
-      fileUrl: (isOwner || purchasedItemIds.includes(item.id)) ? item.fileUrl : null,
-    }));
+    const itemsWithStatus = itemsToReturn.map(item => {
+      const hasPurchased = isOwner || purchasedItemIds.includes(item.id);
+      return {
+        id: item.id,
+        type: item.type,
+        durationSeconds: item.durationSeconds,
+        priceCoins: item.priceCoins,
+        publishedAt: item.publishedAt,
+        hasPurchased,
+        // Only show real URL if purchased, otherwise show preview/thumbnail
+        thumbnailUrl: item.thumbnailUrl || item.previewUrl || item.fileUrl,
+        // Prefer playbackUrl (browser-ready .mp4) over raw fileUrl (.mov)
+        fileUrl: hasPurchased ? (item.playbackUrl || item.fileUrl) : null,
+      };
+    });
 
     const packsWithStatus = packs.map(pack => ({
       ...pack,

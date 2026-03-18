@@ -34,7 +34,7 @@
     },
     {
       "path": "/api/cron/reprocess-media",
-      "schedule": "0 */2 * * *"
+      "schedule": "*/15 * * * *"
     }
   ]
 }

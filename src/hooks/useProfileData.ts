@@ -7,7 +7,8 @@ import type { ProfileData, ContentItem, StreamItem, ClipItem } from '@/component
 function transformContentItem(item: any): ContentItem {
   // Supports both cloudItems (new) and contentItems (legacy) field names
   const type = item.type || (item.contentType === 'video' ? 'video' : 'photo');
-  const url = item.fileUrl || item.mediaUrl;
+  // Prefer playbackUrl (browser-ready .mp4) over raw fileUrl (.mov)
+  const url = item.playbackUrl || item.fileUrl || item.mediaUrl;
   // For videos, don't use the video file URL as thumbnail (it causes broken images)
   const rawThumb = item.thumbnailUrl || item.previewUrl || item.fileUrl;
   const isVideoFile = rawThumb && /\.(mp4|mov|webm|avi)(\?|$)/i.test(rawThumb);

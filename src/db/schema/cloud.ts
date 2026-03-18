@@ -18,11 +18,18 @@ export const cloudItems = pgTable('cloud_items', {
 
   // Media
   fileUrl: text('file_url').notNull(),          // Original full-resolution file
+  playbackUrl: text('playback_url'),            // Browser-ready version (e.g. remuxed .mp4 for .mov files)
   previewUrl: text('preview_url'),              // Watermarked/blurred for buyer-facing display
   thumbnailUrl: text('thumbnail_url'),          // Compressed grid thumbnail
   type: cloudItemTypeEnum('type').notNull(),
   durationSeconds: integer('duration_seconds'), // Video only
   sizeBytes: bigint('size_bytes', { mode: 'number' }),
+
+  // Processing state
+  processingStatus: text('processing_status').default('pending').notNull(), // pending|processing|ready|failed
+  processingError: text('processing_error'),
+  processingAttempts: integer('processing_attempts').default(0).notNull(),
+  processedAt: timestamp('processed_at'),
 
   // Status & Pricing
   status: cloudItemStatusEnum('status').default('private').notNull(),
@@ -38,6 +45,7 @@ export const cloudItems = pgTable('cloud_items', {
   creatorIdx: index('cloud_items_creator_idx').on(table.creatorId),
   creatorStatusIdx: index('cloud_items_creator_status_idx').on(table.creatorId, table.status),
   publishedIdx: index('cloud_items_published_idx').on(table.creatorId, table.publishedAt),
+  processingIdx: index('cloud_items_processing_idx').on(table.processingStatus),
 }));
 
 // ─── Cloud Tags ────────────────────────────────────────────────────────────────
