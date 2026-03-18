@@ -410,8 +410,20 @@ describe('CallService', () => {
 
     it('throws when call is not active or accepted', async () => {
       (db.query.calls.findFirst as any).mockResolvedValue({
-        ...activeCall, status: 'completed',
+        ...activeCall, status: 'pending',
       });
+
+      const mockTx = {
+        execute: vi.fn(() => Promise.resolve([{
+          id: 'call-1', fan_id: 'fan-1', creator_id: 'creator-1',
+          status: 'pending', call_type: 'video',
+          rate_per_minute: 25, estimated_coins: 125,
+          hold_id: 'hold-1',
+          started_at: activeCall.startedAt,
+          accepted_at: activeCall.acceptedAt,
+        }])),
+      };
+      (db.transaction as any).mockImplementation(async (fn: any) => fn(mockTx));
 
       await expect(
         CallService.endCall('call-1', 'fan-1')
@@ -435,7 +447,14 @@ describe('CallService', () => {
         insert: vi.fn(() => ({
           values: vi.fn(() => Promise.resolve()),
         })),
-        execute: vi.fn(),
+        execute: vi.fn(() => Promise.resolve([{
+          id: 'call-1', fan_id: 'fan-1', creator_id: 'creator-1',
+          status: 'active', call_type: 'video',
+          rate_per_minute: 25, estimated_coins: 125,
+          hold_id: 'hold-1',
+          started_at: activeCall.startedAt,
+          accepted_at: activeCall.acceptedAt,
+        }])),
       };
       (db.transaction as any).mockImplementation(async (fn: any) => fn(mockTx));
 
@@ -452,10 +471,19 @@ describe('CallService', () => {
         query: {
           walletTransactions: { findFirst: vi.fn().mockResolvedValue(null) }, // not idempotent
         },
-        execute: vi.fn(() => Promise.resolve([
-          { user_id: 'fan-1', balance: 100, held_balance: 125 },
-          { user_id: 'creator-1', balance: 500, held_balance: 0 },
-        ])),
+        execute: vi.fn()
+          .mockResolvedValueOnce([{
+            id: 'call-1', fan_id: 'fan-1', creator_id: 'creator-1',
+            status: 'active', call_type: 'video',
+            rate_per_minute: 25, estimated_coins: 125,
+            hold_id: 'hold-1',
+            started_at: activeCall.startedAt,
+            accepted_at: activeCall.acceptedAt,
+          }])
+          .mockResolvedValueOnce([
+            { user_id: 'fan-1', balance: 100, held_balance: 125 },
+            { user_id: 'creator-1', balance: 500, held_balance: 0 },
+          ]),
         update: vi.fn(() => ({
           set: vi.fn(() => ({
             where: vi.fn(() => ({
@@ -486,10 +514,19 @@ describe('CallService', () => {
         query: {
           walletTransactions: { findFirst: vi.fn().mockResolvedValue(null) },
         },
-        execute: vi.fn(() => Promise.resolve([
-          { user_id: 'fan-1', balance: 500, held_balance: 125 },
-          { user_id: 'creator-1', balance: 100, held_balance: 0 },
-        ])),
+        execute: vi.fn()
+          .mockResolvedValueOnce([{
+            id: 'call-1', fan_id: 'fan-1', creator_id: 'creator-1',
+            status: 'active', call_type: 'video',
+            rate_per_minute: 25, estimated_coins: 125,
+            hold_id: 'hold-1',
+            started_at: activeCall.startedAt,
+            accepted_at: activeCall.acceptedAt,
+          }])
+          .mockResolvedValueOnce([
+            { user_id: 'fan-1', balance: 500, held_balance: 125 },
+            { user_id: 'creator-1', balance: 100, held_balance: 0 },
+          ]),
         update: vi.fn(() => ({
           set: vi.fn(() => ({
             where: vi.fn(() => ({
@@ -518,10 +555,19 @@ describe('CallService', () => {
         query: {
           walletTransactions: { findFirst: vi.fn().mockResolvedValue(null) },
         },
-        execute: vi.fn(() => Promise.resolve([
-          { user_id: 'fan-1', balance: 1000, held_balance: 125 },
-          { user_id: 'creator-1', balance: 100, held_balance: 0 },
-        ])),
+        execute: vi.fn()
+          .mockResolvedValueOnce([{
+            id: 'call-1', fan_id: 'fan-1', creator_id: 'creator-1',
+            status: 'active', call_type: 'video',
+            rate_per_minute: 25, estimated_coins: 125,
+            hold_id: 'hold-1',
+            started_at: activeCall.startedAt,
+            accepted_at: activeCall.acceptedAt,
+          }])
+          .mockResolvedValueOnce([
+            { user_id: 'fan-1', balance: 1000, held_balance: 125 },
+            { user_id: 'creator-1', balance: 100, held_balance: 0 },
+          ]),
         update: vi.fn(() => ({
           set: vi.fn(() => ({
             where: vi.fn(() => ({

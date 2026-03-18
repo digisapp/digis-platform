@@ -117,6 +117,7 @@ export function ClipCreatorModal({
           <button
             onClick={onClose}
             className="absolute top-6 right-6 p-2 text-gray-400 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
+            aria-label="Close"
           >
             <X className="w-5 h-5" />
           </button>

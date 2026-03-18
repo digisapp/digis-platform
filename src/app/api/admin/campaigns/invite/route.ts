@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase/server';
 import { db } from '@/db';
 import { creatorInvites, users, creatorSettings, aiTwinSettings, profiles } from '@/db/schema';
 import { eq, and, isNull, inArray } from 'drizzle-orm';
@@ -7,26 +6,11 @@ import { sendBatchInvites, sendCreatorInvite, testInviteEmail, sendExaModelsBatc
 import { testCreatorEarningsEmail } from '@/lib/email/creator-earnings';
 import { supabaseAdmin } from '@/lib/supabase/admin';
 import { nanoid } from 'nanoid';
-
-async function isAdmin(request: NextRequest): Promise<boolean> {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-
-  if (!user) return false;
-
-  // Check admin status from app_metadata (synced from DB isAdmin flag)
-  const appMeta = user.app_metadata || {};
-  return appMeta.isAdmin === true || appMeta.role === 'admin';
-}
+import { withAdmin } from '@/lib/auth/withAdmin';
 
 // POST: Send invite campaign
-export async function POST(request: NextRequest) {
+export const POST = withAdmin(async ({ user, request }) => {
   try {
-    // Check admin access
-    if (!await isAdmin(request)) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
     const body = await request.json();
     const { action, recipients, config, testEmail } = body;
 
@@ -327,15 +311,11 @@ export async function POST(request: NextRequest) {
       { status: 500 }
     );
   }
-}
+});
 
 // GET: Get campaign stats / pending invites
-export async function GET(request: NextRequest) {
+export const GET = withAdmin(async ({ user, request }) => {
   try {
-    if (!await isAdmin(request)) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
     // Get all invites
     const allInvites = await db.query.creatorInvites.findMany({
       columns: {
@@ -385,4 +365,4 @@ export async function GET(request: NextRequest) {
       { status: 500 }
     );
   }
-}
+});

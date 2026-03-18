@@ -91,6 +91,7 @@ export function GuestInvitePopup({ streamId, invite, onAccepted, onDeclined }: G
             onClick={handleDecline}
             disabled={isDeclining}
             className="absolute top-3 right-3 p-1.5 text-gray-400 hover:text-white transition-colors"
+            aria-label="Decline invitation"
           >
             <X className="w-5 h-5" />
           </button>

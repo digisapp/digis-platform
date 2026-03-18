@@ -238,12 +238,12 @@ function QueueItemRow({
           <Check className="w-4 h-4 text-green-400" />
         )}
         {item.status === 'failed' && item.file && (
-          <button onClick={onRetry} className="p-1 text-gray-400 hover:text-cyan-400 transition-colors">
+          <button onClick={onRetry} className="p-1 text-gray-400 hover:text-cyan-400 transition-colors" aria-label="Retry upload">
             <RotateCcw className="w-3.5 h-3.5" />
           </button>
         )}
         {item.status === 'failed' && !item.file && (
-          <button onClick={onRemove} className="p-1 text-gray-400 hover:text-red-400 transition-colors">
+          <button onClick={onRemove} className="p-1 text-gray-400 hover:text-red-400 transition-colors" aria-label="Remove item">
             <X className="w-3.5 h-3.5" />
           </button>
         )}

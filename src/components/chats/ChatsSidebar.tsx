@@ -369,7 +369,7 @@ export function ChatsSidebar() {
                   <div className="relative flex-shrink-0">
                     <div className="relative w-12 h-12 rounded-full bg-gradient-to-br from-pink-500 to-purple-500 flex items-center justify-center">
                       {creator.avatarUrl ? (
-                        <Image src={creator.avatarUrl} alt={creator.username} fill className="rounded-full object-cover" unoptimized />
+                        <Image src={creator.avatarUrl} alt={creator.username} fill className="rounded-full object-cover" />
                       ) : (
                         <span className="text-white font-bold">{creator.username?.[0]?.toUpperCase() || '?'}</span>
                       )}
@@ -411,7 +411,6 @@ export function ChatsSidebar() {
                         alt={conversation.otherUser.username || 'User'}
                         fill
                         className="rounded-full object-cover"
-                        unoptimized
                       />
                     ) : (
                       <span className="text-white">

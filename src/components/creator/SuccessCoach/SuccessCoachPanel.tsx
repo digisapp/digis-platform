@@ -115,6 +115,7 @@ export function SuccessCoachPanel({ creatorId, onClose }: SuccessCoachPanelProps
               onClick={clearHistory}
               className="p-2.5 rounded-xl hover:bg-white/10 transition-colors"
               title="Clear history"
+              aria-label="Clear history"
             >
               <Trash2 className="w-4 h-4 text-gray-500 hover:text-gray-300" />
             </button>
@@ -122,6 +123,7 @@ export function SuccessCoachPanel({ creatorId, onClose }: SuccessCoachPanelProps
           <button
             onClick={onClose}
             className="p-2.5 rounded-xl hover:bg-white/10 transition-colors"
+            aria-label="Close"
           >
             <X className="w-4 h-4 text-gray-400" />
           </button>
@@ -261,6 +263,7 @@ export function SuccessCoachPanel({ creatorId, onClose }: SuccessCoachPanelProps
                       : 'bg-white/5 text-gray-400 hover:bg-white/10 hover:text-white border border-white/10'
                   } disabled:opacity-50`}
                   title={isListening ? 'Stop listening' : 'Voice input'}
+                  aria-label={isListening ? 'Stop listening' : 'Voice input'}
                 >
                   <Mic className="w-4 h-4" />
                 </button>
@@ -269,6 +272,7 @@ export function SuccessCoachPanel({ creatorId, onClose }: SuccessCoachPanelProps
                 type="submit"
                 disabled={!input.trim() || isLoading || isListening}
                 className="p-3 bg-gradient-to-br from-purple-500 to-cyan-500 rounded-2xl text-white shadow-[0_0_15px_rgba(147,51,234,0.3)] hover:shadow-[0_0_25px_rgba(147,51,234,0.5)] transition-all disabled:opacity-30 disabled:shadow-none"
+                aria-label="Send message"
               >
                 <Send className="w-4 h-4" />
               </button>

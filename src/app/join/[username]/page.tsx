@@ -84,7 +84,6 @@ export default function ReferralJoinPage() {
                       alt={referrer.displayName || referrer.username}
                       fill
                       className="rounded-full object-cover border-2 border-white/20"
-                      unoptimized
                     />
                   </div>
                 ) : (

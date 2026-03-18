@@ -84,6 +84,7 @@ export function ScriptGeneratorFlow({
         <button
           onClick={onClose}
           className="p-1.5 rounded-lg hover:bg-white/10 transition-colors"
+          aria-label="Close"
         >
           <X className="w-4 h-4 text-gray-400" />
         </button>

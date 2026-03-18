@@ -86,7 +86,7 @@ export function AdminToolsTab({
             <div className="flex items-center gap-4">
               <div className="relative w-12 h-12 rounded-full bg-gradient-to-br from-green-500 to-emerald-500 flex items-center justify-center text-lg font-bold shrink-0">
                 {walletUser.avatarUrl ? (
-                  <Image src={walletUser.avatarUrl} alt="" fill className="rounded-full object-cover" unoptimized />
+                  <Image src={walletUser.avatarUrl} alt="" fill className="rounded-full object-cover" />
                 ) : (
                   walletUser.username?.[0]?.toUpperCase() || '?'
                 )}
@@ -185,7 +185,7 @@ export function AdminToolsTab({
               <div className="flex items-center gap-4 mb-4">
                 <div className="relative w-12 h-12 rounded-full bg-gradient-to-br from-digis-cyan to-digis-pink flex items-center justify-center text-lg font-bold shrink-0">
                   {foundUser.avatarUrl ? (
-                    <Image src={foundUser.avatarUrl} alt="" fill className="rounded-full object-cover" unoptimized />
+                    <Image src={foundUser.avatarUrl} alt="" fill className="rounded-full object-cover" />
                   ) : (
                     foundUser.username?.[0]?.toUpperCase() || foundUser.email[0].toUpperCase()
                   )}

@@ -117,9 +117,21 @@ export async function POST(request: NextRequest) {
   }
 }
 
-// GET endpoint to check what would be deleted (dry run)
+// GET endpoint to check what would be deleted (dry run) - requires CRON_SECRET
 export async function GET(request: NextRequest) {
   try {
+    // Require CRON_SECRET auth (same as POST)
+    const authHeader = request.headers.get('authorization');
+    const cronSecret = process.env.CRON_SECRET;
+
+    if (!cronSecret) {
+      return NextResponse.json({ error: 'Server misconfiguration' }, { status: 500 });
+    }
+
+    if (authHeader !== `Bearer ${cronSecret}`) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const now = new Date();
     const unpurchasedCutoff = new Date(now.getTime() - UNPURCHASED_DAYS * 24 * 60 * 60 * 1000);
     const draftCutoff = new Date(now.getTime() - DRAFT_DAYS * 24 * 60 * 60 * 1000);

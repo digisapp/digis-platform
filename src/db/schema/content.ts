@@ -1,4 +1,5 @@
-import { pgTable, uuid, text, integer, boolean, timestamp, index, pgEnum } from 'drizzle-orm/pg-core';
+import { pgTable, uuid, text, integer, boolean, timestamp, index, uniqueIndex, pgEnum, check } from 'drizzle-orm/pg-core';
+import { sql } from 'drizzle-orm';
 import { users } from './users';
 import { walletTransactions } from './wallet';
 
@@ -37,6 +38,7 @@ export const contentItems = pgTable('content_items', {
 }, (table) => ({
   creatorIdx: index('content_items_creator_idx').on(table.creatorId),
   publishedIdx: index('content_items_published_idx').on(table.isPublished, table.createdAt),
+  unlockPriceNonNegative: check('content_items_unlock_price_non_negative', sql`${table.unlockPrice} >= 0`),
 }));
 
 export const contentPurchases = pgTable('content_purchases', {
@@ -54,7 +56,7 @@ export const contentPurchases = pgTable('content_purchases', {
   userIdx: index('content_purchases_user_idx').on(table.userId),
   contentIdx: index('content_purchases_content_idx').on(table.contentId),
   // Unique constraint: user can only purchase content once
-  uniquePurchase: index('content_purchases_unique').on(table.contentId, table.userId),
+  uniquePurchase: uniqueIndex('content_purchases_unique').on(table.contentId, table.userId),
 }));
 
 export const contentTags = pgTable('content_tags', {
@@ -76,7 +78,7 @@ export const contentLikes = pgTable('content_likes', {
   contentIdx: index('content_likes_content_idx').on(table.contentId),
   userIdx: index('content_likes_user_idx').on(table.userId),
   // Unique constraint: user can only like content once
-  uniqueLike: index('content_likes_unique').on(table.contentId, table.userId),
+  uniqueLike: uniqueIndex('content_likes_unique').on(table.contentId, table.userId),
 }));
 
 export type ContentItem = typeof contentItems.$inferSelect;

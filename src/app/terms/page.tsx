@@ -1,23 +1,20 @@
-'use client';
-
-import { ArrowLeft } from 'lucide-react';
-import { useRouter } from 'next/navigation';
 import Image from 'next/image';
+import type { Metadata } from 'next';
+import BackButton from '@/components/ui/BackButton';
+
+export const metadata: Metadata = {
+  title: 'Terms of Service | Digis',
+  description:
+    'Read the Digis Terms of Service. Learn about your rights and responsibilities when using the Digis streaming platform, including creator terms, virtual currency, and user content policies.',
+};
 
 export default function TermsOfServicePage() {
-  const router = useRouter();
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900">
       {/* Header */}
       <div className="sticky top-0 z-50 backdrop-blur-xl bg-black/50 border-b border-white/10">
         <div className="container max-w-4xl mx-auto px-4 py-4 flex items-center gap-4">
-          <button
-            onClick={() => router.back()}
-            className="p-2 text-gray-400 hover:text-white hover:bg-white/10 rounded-lg transition-all"
-          >
-            <ArrowLeft className="w-5 h-5" />
-          </button>
+          <BackButton />
           <Image
             src="/images/digis-logo-white.png"
             alt="Digis"
@@ -39,13 +36,13 @@ export default function TermsOfServicePage() {
             <section>
               <h2 className="text-2xl font-bold text-white mb-4">Welcome to Digis!</h2>
               <p>
-                These Terms of Service (these "Terms") are an agreement between you and Digis ("Company," "we," or "us")
+                These Terms of Service (these &quot;Terms&quot;) are an agreement between you and Digis (&quot;Company,&quot; &quot;we,&quot; or &quot;us&quot;)
                 that describes your rights and responsibilities as a User of the Digis streaming platform where Users can
                 connect with creators and communicate with others through live streams, video calls, messages, and other
-                methods (collectively, the "Service").
+                methods (collectively, the &quot;Service&quot;).
               </p>
               <p className="mt-4">
-                By accessing or using the Service, or by clicking "Sign Up", you signify that you have read, understood,
+                By accessing or using the Service, or by clicking &quot;Sign Up&quot;, you signify that you have read, understood,
                 and agree to be bound by these Terms and to the collection and use of your information as set forth in
                 our Privacy Policy, whether or not you are a registered user of the Service.
               </p>
@@ -68,7 +65,7 @@ export default function TermsOfServicePage() {
               <h3 className="text-xl font-semibold text-white mt-6 mb-3">1.2 User Accounts</h3>
               <p>
                 Your account on the Service gives you access to the services and functionality that we may establish
-                and maintain from time to time at our sole discretion. You may never use another User's account without
+                and maintain from time to time at our sole discretion. You may never use another User&apos;s account without
                 permission. When creating your account, you must provide accurate and complete information. You are
                 solely responsible for the activity that occurs on your account, and you must keep your account password secure.
               </p>
@@ -83,7 +80,7 @@ export default function TermsOfServicePage() {
                 <li>Uploading viruses, malware, or other harmful software</li>
                 <li>Impersonating another person or misrepresenting your identity</li>
                 <li>Harassing, threatening, or abusing other users</li>
-                <li>Posting illegal content or content that violates others' rights</li>
+                <li>Posting illegal content or content that violates others&apos; rights</li>
                 <li>Using the Service for any illegal purpose</li>
               </ul>
             </section>
@@ -106,7 +103,7 @@ export default function TermsOfServicePage() {
               <p>As a Creator, you agree that all content you post:</p>
               <ul className="list-disc pl-6 mt-2 space-y-2">
                 <li>Is created by you or you have the rights to share it</li>
-                <li>Does not violate any third party's intellectual property rights</li>
+                <li>Does not violate any third party&apos;s intellectual property rights</li>
                 <li>Does not contain illegal content</li>
                 <li>Complies with our Community Guidelines</li>
               </ul>
@@ -122,7 +119,7 @@ export default function TermsOfServicePage() {
             <section>
               <h2 className="text-2xl font-bold text-white mb-4">3. Virtual Currency (Coins)</h2>
               <p>
-                Digis uses a virtual currency called "Coins" for transactions on the platform. By purchasing or
+                Digis uses a virtual currency called &quot;Coins&quot; for transactions on the platform. By purchasing or
                 using Coins, you agree to the following:
               </p>
               <ul className="list-disc pl-6 mt-2 space-y-2">
@@ -169,7 +166,7 @@ export default function TermsOfServicePage() {
             <section>
               <h2 className="text-2xl font-bold text-white mb-4">7. Disclaimers</h2>
               <p className="uppercase text-sm">
-                THE SERVICE IS PROVIDED "AS IS" AND "AS AVAILABLE" WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS
+                THE SERVICE IS PROVIDED &quot;AS IS&quot; AND &quot;AS AVAILABLE&quot; WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS
                 OR IMPLIED. WE DO NOT WARRANT THAT THE SERVICE WILL BE UNINTERRUPTED, SECURE, OR ERROR-FREE.
               </p>
             </section>

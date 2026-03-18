@@ -112,7 +112,6 @@ export function MobileHeader() {
             height={28}
             className="h-7 w-auto"
             priority
-            unoptimized
           />
         </button>
 

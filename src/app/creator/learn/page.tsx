@@ -145,17 +145,17 @@ function VideoPlayer({
 
         {/* Control buttons */}
         <div className="flex items-center gap-3">
-          <button onClick={togglePlay} className="text-white hover:text-cyan-400 transition-colors">
+          <button onClick={togglePlay} className="text-white hover:text-cyan-400 transition-colors" aria-label={isPlaying ? 'Pause' : 'Play'}>
             {isPlaying ? <PauseCircle className="w-6 h-6" /> : <PlayCircle className="w-6 h-6" />}
           </button>
-          <button onClick={restart} className="text-white hover:text-cyan-400 transition-colors">
+          <button onClick={restart} className="text-white hover:text-cyan-400 transition-colors" aria-label="Restart">
             <RotateCcw className="w-5 h-5" />
           </button>
-          <button onClick={toggleMute} className="text-white hover:text-cyan-400 transition-colors">
+          <button onClick={toggleMute} className="text-white hover:text-cyan-400 transition-colors" aria-label={isMuted ? 'Unmute' : 'Mute'}>
             {isMuted ? <VolumeX className="w-5 h-5" /> : <Volume2 className="w-5 h-5" />}
           </button>
           <div className="flex-1" />
-          <button onClick={toggleFullscreen} className="text-white hover:text-cyan-400 transition-colors">
+          <button onClick={toggleFullscreen} className="text-white hover:text-cyan-400 transition-colors" aria-label="Fullscreen">
             <Maximize className="w-5 h-5" />
           </button>
         </div>

@@ -41,7 +41,6 @@ function MessageAvatar({ msg, size, variant }: { msg: ChatMessage; size: 'sm' | 
         width={px}
         height={px}
         className={`${cls} rounded-full object-cover flex-shrink-0 ${variant === 'desktop' && size === 'md' ? 'ring-2 ring-cyan-400/30' : ''}`}
-        unoptimized
       />
     );
   }
@@ -59,7 +58,7 @@ function TipMessage({ msg, variant }: { msg: ChatMessage; variant: 'mobile' | 'd
     <div key={msg.id} className={cls}>
       <div className={variant === 'desktop' ? 'flex items-center gap-2' : 'contents'}>
         {msg.avatarUrl ? (
-          <Image src={msg.avatarUrl} alt={msg.username} width={px} height={px} className="w-6 h-6 rounded-full object-cover" unoptimized />
+          <Image src={msg.avatarUrl} alt={msg.username} width={px} height={px} className="w-6 h-6 rounded-full object-cover" />
         ) : (
           <div className={`w-6 h-6 rounded-full flex items-center justify-center font-bold ${variant === 'mobile' ? 'bg-green-400 text-[10px] text-green-900' : 'bg-gradient-to-br from-green-400 to-emerald-400 text-xs'}`}>
             {msg.username?.[0]?.toUpperCase() || '?'}
@@ -83,7 +82,7 @@ function GiftMessage({ msg, variant }: { msg: ChatMessage; variant: 'mobile' | '
     <div key={msg.id} className={cls}>
       <div className={variant === 'desktop' ? 'flex items-center gap-2' : 'contents'}>
         {msg.avatarUrl ? (
-          <Image src={msg.avatarUrl} alt={msg.username} width={px} height={px} className="w-6 h-6 rounded-full object-cover" unoptimized />
+          <Image src={msg.avatarUrl} alt={msg.username} width={px} height={px} className="w-6 h-6 rounded-full object-cover" />
         ) : (
           <div className={`w-6 h-6 rounded-full flex items-center justify-center font-bold ${variant === 'mobile' ? 'bg-pink-400 text-[10px] text-pink-900' : 'bg-gradient-to-br from-pink-400 to-purple-400 text-xs'}`}>
             {msg.username?.[0]?.toUpperCase() || '?'}
@@ -117,7 +116,7 @@ function TicketPurchaseMessage({ msg, variant }: { msg: ChatMessage; variant: 'm
     <div key={msg.id} className={cls}>
       <div className={variant === 'desktop' ? 'flex items-center gap-2' : 'contents'}>
         {msg.avatarUrl ? (
-          <Image src={msg.avatarUrl} alt={msg.username} width={px} height={px} className="w-6 h-6 rounded-full object-cover" unoptimized />
+          <Image src={msg.avatarUrl} alt={msg.username} width={px} height={px} className="w-6 h-6 rounded-full object-cover" />
         ) : (
           <div className={`w-6 h-6 rounded-full flex items-center justify-center font-bold ${variant === 'mobile' ? 'bg-amber-400 text-[10px] text-amber-900' : 'bg-gradient-to-br from-amber-400 to-yellow-400 text-xs text-black'}`}>
             {msg.username?.[0]?.toUpperCase() || '?'}
@@ -143,7 +142,7 @@ function MenuPurchaseMessage({ msg, variant }: { msg: ChatMessage; variant: 'mob
     return (
       <div key={msg.id} className="flex items-center gap-2 p-2 rounded-lg bg-gradient-to-r from-purple-500/20 to-pink-500/20 border border-purple-500/30">
         {msg.avatarUrl ? (
-          <Image src={msg.avatarUrl} alt={msg.username} width={24} height={24} className="w-6 h-6 rounded-full object-cover" unoptimized />
+          <Image src={msg.avatarUrl} alt={msg.username} width={24} height={24} className="w-6 h-6 rounded-full object-cover" />
         ) : (
           <div className="w-6 h-6 rounded-full bg-gradient-to-br from-purple-400 to-pink-400 flex items-center justify-center text-[10px] font-bold">
             {msg.username?.[0]?.toUpperCase() || '?'}
@@ -160,7 +159,7 @@ function MenuPurchaseMessage({ msg, variant }: { msg: ChatMessage; variant: 'mob
     <div key={msg.id} className="p-3 rounded-xl bg-gradient-to-r from-purple-500/20 to-pink-500/20 border border-purple-500/40 shadow-[0_0_15px_rgba(168,85,247,0.2)]">
       <div className="flex items-start gap-2">
         {msg.avatarUrl ? (
-          <Image src={msg.avatarUrl} alt={msg.username} width={24} height={24} className="w-6 h-6 rounded-full object-cover" unoptimized />
+          <Image src={msg.avatarUrl} alt={msg.username} width={24} height={24} className="w-6 h-6 rounded-full object-cover" />
         ) : (
           <div className="w-6 h-6 rounded-full bg-gradient-to-br from-purple-400 to-pink-400 flex items-center justify-center text-xs font-bold">
             {msg.username?.[0]?.toUpperCase() || '?'}
@@ -186,7 +185,7 @@ function RegularMessage({ msg, variant }: { msg: ChatMessage; variant: 'mobile' 
     return (
       <div key={msg.id} className="flex gap-2">
         {msg.avatarUrl ? (
-          <Image src={msg.avatarUrl} alt={msg.username} width={24} height={24} className="w-6 h-6 rounded-full object-cover flex-shrink-0" unoptimized />
+          <Image src={msg.avatarUrl} alt={msg.username} width={24} height={24} className="w-6 h-6 rounded-full object-cover flex-shrink-0" />
         ) : (
           <div className="w-6 h-6 rounded-full bg-gradient-to-br from-cyan-400 to-pink-400 flex items-center justify-center text-[10px] font-bold text-white flex-shrink-0">
             {msg.username?.[0]?.toUpperCase() || '?'}
@@ -215,7 +214,6 @@ function RegularMessage({ msg, variant }: { msg: ChatMessage; variant: 'mobile' 
           width={32}
           height={32}
           className="w-8 h-8 rounded-full object-cover flex-shrink-0 ring-2 ring-cyan-400/30"
-          unoptimized
         />
       ) : (
         <div className="w-8 h-8 rounded-full bg-gradient-to-br from-digis-cyan to-digis-pink flex items-center justify-center text-xs font-bold flex-shrink-0 shadow-lg shadow-cyan-500/30">

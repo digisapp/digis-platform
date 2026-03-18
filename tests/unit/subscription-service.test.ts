@@ -13,6 +13,8 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 // ─── Mocks ────────────────────────────────────────────────────────────────────
 
+const _selectResult = vi.fn();
+
 vi.mock('@/lib/data/system', () => ({
   db: {
     query: {
@@ -21,6 +23,11 @@ vi.mock('@/lib/data/system', () => ({
       users: { findFirst: vi.fn() },
       wallets: { findFirst: vi.fn() },
     },
+    select: vi.fn(() => ({
+      from: vi.fn(() => ({
+        where: vi.fn(() => _selectResult()),
+      })),
+    })),
     insert: vi.fn(() => ({
       values: vi.fn(() => ({
         returning: vi.fn(() => Promise.resolve([{ id: 'new-id' }])),
@@ -646,11 +653,7 @@ describe('SubscriptionService', () => {
 
   describe('getCreatorStats', () => {
     it('returns aggregate stats for a creator', async () => {
-      (db.query.subscriptions.findMany as any).mockResolvedValue([
-        { id: 'sub-1', totalPaid: 100 },
-        { id: 'sub-2', totalPaid: 200 },
-        { id: 'sub-3', totalPaid: 150 },
-      ]);
+      _selectResult.mockResolvedValue([{ count: 3, totalRevenue: 450 }]);
 
       const result = await SubscriptionService.getCreatorStats('creator-1');
 
@@ -660,7 +663,7 @@ describe('SubscriptionService', () => {
     });
 
     it('returns zero stats when no subscribers', async () => {
-      (db.query.subscriptions.findMany as any).mockResolvedValue([]);
+      _selectResult.mockResolvedValue([{ count: 0, totalRevenue: 0 }]);
 
       const result = await SubscriptionService.getCreatorStats('creator-1');
 

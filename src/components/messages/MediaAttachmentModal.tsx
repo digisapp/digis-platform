@@ -169,6 +169,7 @@ export function MediaAttachmentModal({ onClose, onSend, isCreator = false, recip
           <button
             onClick={onClose}
             className="text-gray-400 hover:text-white transition-colors p-2 rounded-lg hover:bg-white/10"
+            aria-label="Close"
           >
             <X className="w-5 h-5" />
           </button>

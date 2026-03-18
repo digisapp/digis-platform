@@ -156,16 +156,14 @@ describe('NotificationService', () => {
     });
 
     it('does not notify for subscribers-only streams', async () => {
-      // Service queries followers first, then checks privacy
-      followsFindMany.mockResolvedValueOnce([
-        { followerId: 'fan-1', follower: { id: 'fan-1', username: 'fan1' } },
-      ]);
+      // Service now checks privacy BEFORE querying followers, so no findMany mock needed
 
       await NotificationService.notifyFollowersOfStream(
         'creator-1', 'stream-1', 'Sub Stream', 'CoolCreator', null, 'subscribers'
       );
 
       // Should not send any notifications for subscribers-only
+      expect(followsFindMany).not.toHaveBeenCalled();
       expect(db.insert).not.toHaveBeenCalled();
     });
 

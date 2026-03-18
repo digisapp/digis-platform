@@ -137,7 +137,7 @@ export function AdminActivityTab({ loading, creatorActivity, activityFilter, set
               <div className="flex items-center gap-3 md:gap-4">
                 <div className="relative w-10 h-10 md:w-12 md:h-12 rounded-full bg-gradient-to-br from-digis-cyan to-digis-pink flex items-center justify-center text-base md:text-lg font-bold shrink-0">
                   {creator.avatarUrl ? (
-                    <Image src={creator.avatarUrl} alt="" fill className="rounded-full object-cover" unoptimized />
+                    <Image src={creator.avatarUrl} alt="" fill className="rounded-full object-cover" />
                   ) : (
                     creator.username?.[0]?.toUpperCase() || '?'
                   )}

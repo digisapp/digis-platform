@@ -36,6 +36,7 @@ export function QuickBuyTicketModal({
         <button
           onClick={onClose}
           className="absolute top-3 right-3 p-1 text-gray-400 hover:text-white"
+          aria-label="Close"
         >
           <X className="w-5 h-5" />
         </button>

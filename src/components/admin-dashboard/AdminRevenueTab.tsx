@@ -36,7 +36,7 @@ function CreatorAvatar({ avatarUrl, username, gradient = 'from-digis-cyan to-dig
   return (
     <div className={`relative w-8 h-8 rounded-full bg-gradient-to-br ${gradient} flex items-center justify-center text-xs font-bold shrink-0`}>
       {avatarUrl ? (
-        <Image src={avatarUrl} alt="" fill className="rounded-full object-cover" unoptimized />
+        <Image src={avatarUrl} alt="" fill className="rounded-full object-cover" />
       ) : (
         username?.[0]?.toUpperCase() || '?'
       )}

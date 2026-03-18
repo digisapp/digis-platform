@@ -141,6 +141,7 @@ export function BuyCoinsModal({ isOpen, onClose, onSuccess }: BuyCoinsModalProps
               <button
                 onClick={handleBack}
                 className="p-2 hover:bg-white/10 rounded-lg transition-colors"
+                aria-label="Go back"
               >
                 <ArrowLeft className="w-5 h-5 text-gray-400" />
               </button>

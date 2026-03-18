@@ -106,6 +106,7 @@ export function CreatePollModal({ isOpen, onClose, streamId, onPollCreated }: Cr
           <button
             onClick={handleClose}
             className="p-2 hover:bg-white/10 rounded-lg transition-colors"
+            aria-label="Close"
           >
             <X className="w-5 h-5 text-gray-400" />
           </button>

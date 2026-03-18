@@ -177,6 +177,7 @@ export function GuestVideoOverlay({
             <button
               onClick={onRemoveGuest}
               className="p-1.5 bg-red-500/60 backdrop-blur-sm text-white rounded-lg hover:bg-red-500/80 transition-colors"
+              aria-label="Remove guest"
             >
               <X className="w-4 h-4" />
             </button>

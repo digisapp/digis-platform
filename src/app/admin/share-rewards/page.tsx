@@ -237,7 +237,6 @@ export default function AdminShareRewardsPage() {
                         width={48}
                         height={48}
                         className="w-12 h-12 rounded-full object-cover"
-                        unoptimized
                       />
                     ) : (
                       <div className="w-12 h-12 rounded-full bg-white/10 flex items-center justify-center">
@@ -351,7 +350,6 @@ export default function AdminShareRewardsPage() {
                       width={40}
                       height={40}
                       className="w-10 h-10 rounded-full object-cover"
-                      unoptimized
                     />
                   ) : (
                     <div className="w-10 h-10 rounded-full bg-white/10" />

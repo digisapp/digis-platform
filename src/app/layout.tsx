@@ -42,8 +42,6 @@ export const metadata: Metadata = {
   viewport: {
     width: "device-width",
     initialScale: 1,
-    maximumScale: 1,
-    userScalable: false,
     viewportFit: "cover",
   },
   metadataBase: new URL("https://digis.cc"),

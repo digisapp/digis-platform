@@ -1,4 +1,4 @@
-import { pgTable, uuid, text, integer, timestamp, boolean, index } from 'drizzle-orm/pg-core';
+import { pgTable, uuid, text, integer, timestamp, boolean, index, uniqueIndex } from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
 import { users } from './users';
 import { vods } from './vods';
@@ -67,7 +67,7 @@ export const clipLikes = pgTable('clip_likes', {
   clipIdx: index('clip_likes_clip_id_idx').on(table.clipId),
   userIdx: index('clip_likes_user_id_idx').on(table.userId),
   // Unique constraint to prevent duplicate likes
-  uniqueLike: index('clip_likes_unique_idx').on(table.clipId, table.userId),
+  uniqueLike: uniqueIndex('clip_likes_unique_idx').on(table.clipId, table.userId),
 }));
 
 // Relations

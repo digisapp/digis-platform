@@ -287,6 +287,7 @@ export default function LivePlayer({ streamId, miniOnScroll = true, previewMode 
                 onClick={closeMiniPlayer}
                 className="p-1.5 rounded bg-black/60 hover:bg-black/80"
                 title="Close"
+                aria-label="Close mini player"
               >
                 <X className="w-4 h-4 text-white" />
               </button>

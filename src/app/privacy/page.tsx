@@ -1,23 +1,20 @@
-'use client';
-
-import { ArrowLeft } from 'lucide-react';
-import { useRouter } from 'next/navigation';
 import Image from 'next/image';
+import type { Metadata } from 'next';
+import BackButton from '@/components/ui/BackButton';
+
+export const metadata: Metadata = {
+  title: 'Privacy Policy | Digis',
+  description:
+    'Read the Digis Privacy Policy. Learn how we collect, use, and protect your personal information when you use the Digis streaming platform.',
+};
 
 export default function PrivacyPolicyPage() {
-  const router = useRouter();
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900">
       {/* Header */}
       <div className="sticky top-0 z-50 backdrop-blur-xl bg-black/50 border-b border-white/10">
         <div className="container max-w-4xl mx-auto px-4 py-4 flex items-center gap-4">
-          <button
-            onClick={() => router.back()}
-            className="p-2 text-gray-400 hover:text-white hover:bg-white/10 rounded-lg transition-all"
-          >
-            <ArrowLeft className="w-5 h-5" />
-          </button>
+          <BackButton />
           <Image
             src="/images/digis-logo-white.png"
             alt="Digis"
@@ -39,9 +36,9 @@ export default function PrivacyPolicyPage() {
             <section>
               <h2 className="text-2xl font-bold text-white mb-4">Introduction</h2>
               <p>
-                At Digis ("Company," "we," "us," or "our"), we respect your privacy and are committed to protecting
+                At Digis (&quot;Company,&quot; &quot;we,&quot; &quot;us,&quot; or &quot;our&quot;), we respect your privacy and are committed to protecting
                 your personal information. This Privacy Policy explains how we collect, use, disclose, and safeguard
-                your information when you use our streaming platform and services (the "Service").
+                your information when you use our streaming platform and services (the &quot;Service&quot;).
               </p>
               <p className="mt-4">
                 Please read this Privacy Policy carefully. By using the Service, you consent to the collection and
@@ -170,7 +167,7 @@ export default function PrivacyPolicyPage() {
             </section>
 
             <section>
-              <h2 className="text-2xl font-bold text-white mb-4">7. Children's Privacy</h2>
+              <h2 className="text-2xl font-bold text-white mb-4">7. Children&apos;s Privacy</h2>
               <p>
                 The Service is not intended for users under 18 years of age. We do not knowingly collect personal
                 information from children under 18. If we learn that we have collected personal information from a
@@ -191,7 +188,7 @@ export default function PrivacyPolicyPage() {
               <h2 className="text-2xl font-bold text-white mb-4">9. Changes to This Policy</h2>
               <p>
                 We may update this Privacy Policy from time to time. We will notify you of any changes by posting
-                the new Privacy Policy on this page and updating the "Last Modified" date. Your continued use of
+                the new Privacy Policy on this page and updating the &quot;Last Modified&quot; date. Your continued use of
                 the Service after any changes constitutes your acceptance of the updated Privacy Policy.
               </p>
             </section>

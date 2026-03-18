@@ -70,7 +70,7 @@ export const walletTransactions = pgTable('wallet_transactions', {
   status: transactionStatusEnum('status').default('pending').notNull(),
   description: text('description'),
   idempotencyKey: text('idempotency_key').unique(), // Prevents double-charges
-  relatedTransactionId: uuid('related_transaction_id'), // Links to other half of double-entry
+  relatedTransactionId: uuid('related_transaction_id').references((): any => walletTransactions.id, { onDelete: 'set null' }), // Links to other half of double-entry
   metadata: text('metadata'), // JSON string for additional data
   createdAt: timestamp('created_at').defaultNow().notNull(),
 }, (table) => ({
@@ -96,6 +96,7 @@ export const spendHolds = pgTable('spend_holds', {
 }, (table) => ({
   userIdIdx: index('spend_holds_user_id_idx').on(table.userId),
   statusIdx: index('spend_holds_status_idx').on(table.status),
+  amountPositive: check('spend_holds_amount_positive', sql`${table.amount} > 0`),
 }));
 
 // Wallet balances (cached for performance)
@@ -152,7 +153,7 @@ export const payoutRequests = pgTable('payout_requests', {
   processedAt: timestamp('processed_at'),
   completedAt: timestamp('completed_at'),
   failureReason: text('failure_reason'),
-  transactionId: uuid('transaction_id'), // Links to wallet_transactions
+  transactionId: uuid('transaction_id').references(() => walletTransactions.id, { onDelete: 'set null' }), // Links to wallet_transactions
   adminNotes: text('admin_notes'),
   metadata: text('metadata'), // JSON for additional data (e.g., transaction reference)
   createdAt: timestamp('created_at').defaultNow().notNull(),
@@ -162,6 +163,7 @@ export const payoutRequests = pgTable('payout_requests', {
   statusIdx: index('payout_requests_status_idx').on(table.status),
   requestedAtIdx: index('payout_requests_requested_at_idx').on(table.requestedAt),
   payoutMethodIdx: index('payout_requests_payout_method_idx').on(table.payoutMethod),
+  amountPositive: check('payout_requests_amount_positive', sql`${table.amount} > 0`),
 }));
 
 export type WalletTransaction = typeof walletTransactions.$inferSelect;

@@ -190,6 +190,7 @@ export function ProfileHeaderCard({
               disabled={isOwnProfile}
               className="p-2 rounded-full bg-gradient-to-r from-yellow-500 to-orange-500 text-white shadow-sm shadow-orange-500/30 hover:scale-105 transition-all"
               title="Send a gift"
+              aria-label="Send a gift"
             >
               <Gift className="w-4 h-4" />
             </button>

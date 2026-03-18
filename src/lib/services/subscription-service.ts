@@ -362,7 +362,7 @@ export class SubscriptionService {
   /**
    * Get all subscribers for a creator
    */
-  static async getCreatorSubscribers(creatorId: string) {
+  static async getCreatorSubscribers(creatorId: string, { limit = 50, offset = 0 }: { limit?: number; offset?: number } = {}) {
     const now = new Date();
     const subs = await db.query.subscriptions.findMany({
       where: and(
@@ -375,6 +375,8 @@ export class SubscriptionService {
         tier: true,
       },
       orderBy: [desc(subscriptions.startedAt)],
+      limit,
+      offset,
     });
 
     return subs;
@@ -383,7 +385,7 @@ export class SubscriptionService {
   /**
    * Get all user's subscriptions
    */
-  static async getUserSubscriptions(userId: string) {
+  static async getUserSubscriptions(userId: string, { limit = 50, offset = 0 }: { limit?: number; offset?: number } = {}) {
     const now = new Date();
     const subs = await db.query.subscriptions.findMany({
       where: and(
@@ -395,6 +397,8 @@ export class SubscriptionService {
         tier: true,
       },
       orderBy: [desc(subscriptions.startedAt)],
+      limit,
+      offset,
     });
 
     return subs;
@@ -405,21 +409,24 @@ export class SubscriptionService {
    */
   static async getCreatorStats(creatorId: string) {
     const now = new Date();
-    const activeSubscribers = await db.query.subscriptions.findMany({
-      where: and(
-        eq(subscriptions.creatorId, creatorId),
-        eq(subscriptions.status, 'active'),
-        gt(subscriptions.expiresAt, now)
-      ),
-    });
-
-    const totalRevenue = activeSubscribers.reduce((sum, sub) => sum + sub.totalPaid, 0);
-    const monthlyRecurring = activeSubscribers.length; // Will need tier prices for exact MRR
+    const [stats] = await db
+      .select({
+        count: sql<number>`count(*)::int`,
+        totalRevenue: sql<number>`coalesce(sum(${subscriptions.totalPaid}), 0)::int`,
+      })
+      .from(subscriptions)
+      .where(
+        and(
+          eq(subscriptions.creatorId, creatorId),
+          eq(subscriptions.status, 'active'),
+          gt(subscriptions.expiresAt, now)
+        )
+      );
 
     return {
-      totalSubscribers: activeSubscribers.length,
-      totalRevenue,
-      activeSubscriptions: activeSubscribers.length,
+      totalSubscribers: stats.count,
+      totalRevenue: stats.totalRevenue,
+      activeSubscriptions: stats.count,
     };
   }
 

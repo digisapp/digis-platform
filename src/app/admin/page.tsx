@@ -46,6 +46,7 @@ export default function AdminDashboard() {
             disabled={d.refreshing}
             className="p-2.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 transition-colors disabled:opacity-50"
             title="Refresh data"
+            aria-label="Refresh data"
           >
             <RefreshCw className={`w-4 h-4 text-gray-400 ${d.refreshing ? 'animate-spin' : ''}`} />
           </button>

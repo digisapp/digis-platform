@@ -1,4 +1,4 @@
-import { pgTable, uuid, text, integer, timestamp, pgEnum, index, boolean } from 'drizzle-orm/pg-core';
+import { pgTable, uuid, text, integer, timestamp, pgEnum, index, uniqueIndex, boolean } from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
 import { users } from './users';
 
@@ -156,7 +156,7 @@ export const streamViewers = pgTable('stream_viewers', {
   lastSeenAt: timestamp('last_seen_at').defaultNow().notNull(),
 }, (table) => ({
   streamIdIdx: index('stream_viewers_stream_id_idx').on(table.streamId, table.lastSeenAt),
-  uniqueViewer: index('stream_viewers_unique_idx').on(table.streamId, table.userId),
+  uniqueViewer: uniqueIndex('stream_viewers_unique_idx').on(table.streamId, table.userId),
 }));
 
 // Featured creators in a stream (for collabs, fashion shows, etc.)
@@ -191,7 +191,7 @@ export const streamFeaturedCreators = pgTable('stream_featured_creators', {
 }, (table) => ({
   streamIdIdx: index('stream_featured_creators_stream_id_idx').on(table.streamId),
   creatorIdIdx: index('stream_featured_creators_creator_id_idx').on(table.creatorId),
-  uniqueFeatured: index('stream_featured_creators_unique_idx').on(table.streamId, table.creatorId),
+  uniqueFeatured: uniqueIndex('stream_featured_creators_unique_idx').on(table.streamId, table.creatorId),
 }));
 
 // Stream goals (progress bars for viewers to unlock rewards)
@@ -232,7 +232,7 @@ export const streamBans = pgTable('stream_bans', {
 }, (table) => ({
   streamIdIdx: index('stream_bans_stream_id_idx').on(table.streamId),
   userIdIdx: index('stream_bans_user_id_idx').on(table.userId),
-  uniqueBan: index('stream_bans_unique_idx').on(table.streamId, table.userId),
+  uniqueBan: uniqueIndex('stream_bans_unique_idx').on(table.streamId, table.userId),
 }));
 
 // Stream tickets (for paid/ticketed streams)
@@ -255,7 +255,7 @@ export const streamTickets = pgTable('stream_tickets', {
 }, (table) => ({
   streamIdIdx: index('stream_tickets_stream_id_idx').on(table.streamId),
   userIdIdx: index('stream_tickets_user_id_idx').on(table.userId),
-  uniqueTicket: index('stream_tickets_unique_idx').on(table.streamId, table.userId),
+  uniqueTicket: uniqueIndex('stream_tickets_unique_idx').on(table.streamId, table.userId),
 }));
 
 // Relations
@@ -397,7 +397,7 @@ export const streamPollVotes = pgTable('stream_poll_votes', {
   createdAt: timestamp('created_at').defaultNow().notNull(),
 }, (table) => ({
   pollIdIdx: index('stream_poll_votes_poll_id_idx').on(table.pollId),
-  uniqueVote: index('stream_poll_votes_unique_idx').on(table.pollId, table.userId),
+  uniqueVote: uniqueIndex('stream_poll_votes_unique_idx').on(table.pollId, table.userId),
 }));
 
 // Stream countdown timers (hype builders)
@@ -487,7 +487,7 @@ export const streamGuestRequests = pgTable('stream_guest_requests', {
 }, (table) => ({
   streamIdIdx: index('stream_guest_requests_stream_id_idx').on(table.streamId, table.status),
   userIdIdx: index('stream_guest_requests_user_id_idx').on(table.userId),
-  uniqueRequest: index('stream_guest_requests_unique_idx').on(table.streamId, table.userId, table.status),
+  uniqueRequest: uniqueIndex('stream_guest_requests_unique_idx').on(table.streamId, table.userId, table.status),
 }));
 
 // Stream guest requests relations

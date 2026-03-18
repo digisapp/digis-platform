@@ -48,6 +48,7 @@ export function StreamHeaderBar({
         <button
           onClick={onBack}
           className="hidden lg:block p-1.5 sm:p-2 hover:bg-white/10 rounded-lg transition-colors flex-shrink-0"
+          aria-label="Leave stream"
         >
           <X className="w-5 h-5" />
         </button>

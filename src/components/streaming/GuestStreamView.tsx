@@ -63,6 +63,7 @@ function GuestControls({ requestType, onLeave }: { requestType: 'video' | 'voice
       <button
         onClick={onLeave}
         className="p-3 bg-red-500 text-white rounded-xl hover:bg-red-600 transition-colors"
+        aria-label="Leave stream"
       >
         <PhoneOff className="w-5 h-5" />
       </button>

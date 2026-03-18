@@ -122,47 +122,48 @@ export class NotificationService {
     creatorAvatarUrl: string | null,
     privacy: string
   ) {
-    // Get all followers of this creator
-    const followers = await db.query.follows.findMany({
-      where: eq(follows.followingId, creatorId),
-      with: {
-        follower: {
-          columns: {
-            id: true,
-            username: true,
-          },
-        },
-      },
-    });
-
-    if (followers.length === 0) return;
-
     // Only notify followers if stream is public or followers-only
     // Don't spam followers about subscribers-only streams
     if (privacy !== 'public' && privacy !== 'followers') {
       return;
     }
 
-    // Send notification to each follower
-    const notificationPromises = followers.map((follow) =>
-      this.sendNotification(
-        follow.followerId,
-        'stream',
-        `${creatorName} is live! 🔴`,
-        streamTitle,
-        `/stream/${streamId}`,
-        creatorAvatarUrl || undefined,
-        {
-          creatorId,
-          streamId,
-          privacy,
-        }
-      )
-    );
+    // Get followers with a safety cap to prevent unbounded queries
+    const followers = await db.query.follows.findMany({
+      where: eq(follows.followingId, creatorId),
+      columns: { followerId: true },
+      limit: 10000,
+    });
 
-    await Promise.all(notificationPromises);
+    if (followers.length === 0) return;
 
-    console.log(`Notified ${followers.length} followers about stream ${streamId}`);
+    // Process followers in batches of 100 using allSettled so one failure doesn't kill the batch
+    const BATCH_SIZE = 100;
+    let notified = 0;
+
+    for (let i = 0; i < followers.length; i += BATCH_SIZE) {
+      const batch = followers.slice(i, i + BATCH_SIZE);
+      const results = await Promise.allSettled(
+        batch.map((follow) =>
+          this.sendNotification(
+            follow.followerId,
+            'stream',
+            `${creatorName} is live! 🔴`,
+            streamTitle,
+            `/stream/${streamId}`,
+            creatorAvatarUrl || undefined,
+            {
+              creatorId,
+              streamId,
+              privacy,
+            }
+          )
+        )
+      );
+      notified += results.filter(r => r.status === 'fulfilled').length;
+    }
+
+    console.log(`Notified ${notified}/${followers.length} followers about stream ${streamId}`);
   }
 
   /**
@@ -302,26 +303,37 @@ export class NotificationService {
     const creatorName = creator.displayName || creator.username || 'A creator';
     const contentType = item.type === 'video' ? 'video' : 'photo';
 
+    // Get followers with a safety cap to prevent unbounded queries
     const followerList = await db.query.follows.findMany({
       where: eq(follows.followingId, creatorId),
       columns: { followerId: true },
+      limit: 10000,
     });
 
     if (followerList.length === 0) return;
 
-    const promises = followerList.map(f =>
-      this.sendNotification(
-        f.followerId,
-        'gift', // Reuse existing notification type
-        `${creatorName} dropped new content`,
-        `New ${contentType} available${item.priceCoins ? ` · ${item.priceCoins} coins` : ''}`,
-        `/profile/${creator.username}`,
-        creator.avatarUrl || undefined,
-        { creatorId, itemId: item.id, type: 'cloud_drop' }
-      )
-    );
+    // Process followers in batches of 100 using allSettled so one failure doesn't kill the batch
+    const BATCH_SIZE = 100;
+    let notified = 0;
 
-    await Promise.all(promises);
-    console.log(`[Cloud] Notified ${followerList.length} followers for creator ${creatorId}`);
+    for (let i = 0; i < followerList.length; i += BATCH_SIZE) {
+      const batch = followerList.slice(i, i + BATCH_SIZE);
+      const results = await Promise.allSettled(
+        batch.map(f =>
+          this.sendNotification(
+            f.followerId,
+            'gift', // Reuse existing notification type
+            `${creatorName} dropped new content`,
+            `New ${contentType} available${item.priceCoins ? ` · ${item.priceCoins} coins` : ''}`,
+            `/profile/${creator.username}`,
+            creator.avatarUrl || undefined,
+            { creatorId, itemId: item.id, type: 'cloud_drop' }
+          )
+        )
+      );
+      notified += results.filter(r => r.status === 'fulfilled').length;
+    }
+
+    console.log(`[Cloud] Notified ${notified}/${followerList.length} followers for creator ${creatorId}`);
   }
 }

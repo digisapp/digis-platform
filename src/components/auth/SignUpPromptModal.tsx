@@ -71,6 +71,7 @@ export function SignUpPromptModal({ isOpen, onClose, action, creatorName, onSign
         <button
           onClick={handleClose}
           className="absolute top-4 right-4 p-2 hover:bg-cyan-500/20 rounded-full transition-colors border border-transparent hover:border-cyan-500/50"
+          aria-label="Close"
         >
           <X className="w-5 h-5 text-cyan-400" />
         </button>

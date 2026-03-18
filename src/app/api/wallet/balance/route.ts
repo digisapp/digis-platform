@@ -58,10 +58,9 @@ export async function GET(req: NextRequest) {
     });
   } catch (error) {
     console.error('Error fetching wallet balance:', error);
-    return NextResponse.json({
-      balance: 0,
-      availableBalance: 0,
-      heldBalance: 0,
-    });
+    return NextResponse.json(
+      { error: 'Failed to fetch wallet balance' },
+      { status: 500 }
+    );
   }
 }

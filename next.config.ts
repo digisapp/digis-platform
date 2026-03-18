@@ -2,6 +2,7 @@ import type { NextConfig } from "next";
 import { withSentryConfig } from "@sentry/nextjs";
 
 const nextConfig: NextConfig = {
+  poweredByHeader: false,
   images: {
     remotePatterns: [
       {
@@ -23,7 +24,7 @@ const nextConfig: NextConfig = {
   serverExternalPackages: ['@ffmpeg-installer/ffmpeg'],
   experimental: {
     serverActions: {
-      bodySizeLimit: '100mb',
+      bodySizeLimit: '10mb',
     },
   },
   // Redirects

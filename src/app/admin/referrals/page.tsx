@@ -290,7 +290,6 @@ export default function AdminReferralsPage() {
                           width={40}
                           height={40}
                           className="w-10 h-10 rounded-full object-cover"
-                          unoptimized
                         />
                       ) : (
                         <div className="w-10 h-10 rounded-full bg-purple-500/30 flex items-center justify-center">
@@ -319,7 +318,6 @@ export default function AdminReferralsPage() {
                               width={32}
                               height={32}
                               className="w-8 h-8 rounded-full object-cover"
-                              unoptimized
                             />
                           ) : (
                             <div className="w-8 h-8 rounded-full bg-cyan-500/30 flex items-center justify-center">

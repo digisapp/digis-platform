@@ -4,6 +4,7 @@ import { streams } from '@/lib/data/system';
 import { eq, and, lt } from 'drizzle-orm';
 import { StreamService } from '@/lib/streams/stream-service';
 import { publishToChannel } from '@/lib/ably/server';
+import { createClient } from '@/lib/supabase/server';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -15,7 +16,7 @@ const AUTO_END_TICKETED_MS = 10 * 60 * 1000; // 10 minutes
 /**
  * POST /api/streams/[streamId]/auto-end
  * Auto-end a stream that has exceeded the grace period
- * Can be called by viewers when they detect shouldAutoEnd=true
+ * Requires authentication to prevent abuse
  * Idempotent - safe to call multiple times
  */
 export async function POST(
@@ -23,6 +24,14 @@ export async function POST(
   { params }: { params: Promise<{ streamId: string }> }
 ) {
   try {
+    // Require authentication
+    const supabase = await createClient();
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+
+    if (authError || !user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const { streamId } = await params;
 
     // Get stream

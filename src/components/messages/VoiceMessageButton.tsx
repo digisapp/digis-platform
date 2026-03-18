@@ -186,6 +186,7 @@ export function VoiceMessageButton({ onSend, isCreator = false, autoStart = fals
             <button
               onClick={cancelSend}
               className="text-gray-400 hover:text-white transition-colors p-2 rounded-lg hover:bg-white/10"
+              aria-label="Cancel"
             >
               <X className="w-5 h-5" />
             </button>
@@ -293,6 +294,7 @@ export function VoiceMessageButton({ onSend, isCreator = false, autoStart = fals
           onClick={cancelRecording}
           className="p-2 hover:bg-red-500/20 rounded-full transition-colors"
           title="Cancel"
+          aria-label="Cancel recording"
         >
           <X className="w-5 h-5 text-red-400" />
         </button>
@@ -317,6 +319,7 @@ export function VoiceMessageButton({ onSend, isCreator = false, autoStart = fals
       disabled={isSending}
       className="p-3 bg-white/10 border border-white/20 rounded-full hover:bg-white/20 hover:border-cyan-500/50 transition-all flex items-center justify-center disabled:opacity-50"
       title="Record voice message"
+      aria-label="Record voice message"
     >
       <Mic className="w-6 h-6 text-white" />
     </button>

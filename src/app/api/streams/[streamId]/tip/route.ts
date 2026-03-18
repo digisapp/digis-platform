@@ -10,6 +10,7 @@ import { AiStreamChatService } from '@/lib/services/ai-stream-chat-service';
 import { notifyGiftReceived } from '@/lib/email/creator-earnings';
 import { getRequestMetadata } from '@/lib/request-id';
 import { validateBody, streamTipSchema } from '@/lib/validation/schemas';
+import { assertValidOrigin } from '@/lib/security/origin-check';
 
 // Force Node.js runtime for Drizzle ORM
 export const runtime = 'nodejs';
@@ -25,6 +26,12 @@ export async function POST(
 
     if (authError || !user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    // CSRF: Validate origin for financial operations
+    const originCheck = assertValidOrigin(req, { requireHeader: true });
+    if (!originCheck.ok) {
+      return NextResponse.json({ error: 'Invalid origin' }, { status: 403 });
     }
 
     // Rate limit financial operations

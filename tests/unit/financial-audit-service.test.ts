@@ -42,7 +42,8 @@ import { FinancialAuditService } from '@/lib/services/financial-audit-service';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-const insertValues = vi.fn(() => Promise.resolve());
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const insertValues: ReturnType<typeof vi.fn<(...args: any[]) => Promise<void>>> = vi.fn(() => Promise.resolve());
 
 function resetInsertMock() {
   insertValues.mockClear();
@@ -100,7 +101,7 @@ describe('FinancialAuditService', () => {
         ipAddress: '10.0.0.1',
       });
 
-      const insertedValues = insertValues.mock.calls[0][0];
+      const insertedValues = insertValues.mock.calls[0]![0];
       // IP should be hashed (16-char hex), not the raw IP
       expect(insertedValues.ipHash).not.toBe('10.0.0.1');
       expect(insertedValues.ipHash).toMatch(/^[a-f0-9]{16}$/);
@@ -113,7 +114,7 @@ describe('FinancialAuditService', () => {
         amount: 10,
       });
 
-      const insertedValues = insertValues.mock.calls[0][0];
+      const insertedValues = insertValues.mock.calls[0]![0];
       expect(insertedValues.ipHash).toBeNull();
     });
 
@@ -124,7 +125,7 @@ describe('FinancialAuditService', () => {
         amount: 10,
       });
 
-      const insertedValues = insertValues.mock.calls[0][0];
+      const insertedValues = insertValues.mock.calls[0]![0];
       expect(insertedValues.currency).toBe('coins');
     });
 
@@ -136,7 +137,7 @@ describe('FinancialAuditService', () => {
         metadata: { giftId: 'g-1', streamId: 's-1' },
       });
 
-      const insertedValues = insertValues.mock.calls[0][0];
+      const insertedValues = insertValues.mock.calls[0]![0];
       expect(insertedValues.metadata).toBe('{"giftId":"g-1","streamId":"s-1"}');
     });
 
@@ -163,7 +164,7 @@ describe('FinancialAuditService', () => {
         amount: 10,
       });
 
-      const insertedValues = insertValues.mock.calls[0][0];
+      const insertedValues = insertValues.mock.calls[0]![0];
       expect(insertedValues.actorId).toBeNull();
       expect(insertedValues.targetId).toBeNull();
       expect(insertedValues.adminId).toBeNull();
@@ -193,14 +194,14 @@ describe('FinancialAuditService', () => {
       // Two insert calls: one for tip_sent, one for tip_received
       expect(db.insert).toHaveBeenCalledTimes(2);
 
-      const firstCall = insertValues.mock.calls[0][0];
+      const firstCall = insertValues.mock.calls[0]![0];
       expect(firstCall.eventType).toBe('tip_sent');
       expect(firstCall.actorId).toBe('sender-1');
       expect(firstCall.actorBalanceBefore).toBe(200);
       expect(firstCall.actorBalanceAfter).toBe(150);
       expect(firstCall.transactionId).toBe('tx-debit');
 
-      const secondCall = insertValues.mock.calls[1][0];
+      const secondCall = insertValues.mock.calls[1]![0];
       expect(secondCall.eventType).toBe('tip_received');
       expect(secondCall.targetId).toBe('creator-1');
       expect(secondCall.targetBalanceBefore).toBe(1000);
@@ -217,7 +218,7 @@ describe('FinancialAuditService', () => {
         context: 'dm',
       });
 
-      const sentLog = insertValues.mock.calls[0][0];
+      const sentLog = insertValues.mock.calls[0]![0];
       expect(sentLog.description).toContain('via dm');
     });
   });
@@ -239,11 +240,11 @@ describe('FinancialAuditService', () => {
 
       expect(db.insert).toHaveBeenCalledTimes(2);
 
-      const sentLog = insertValues.mock.calls[0][0];
+      const sentLog = insertValues.mock.calls[0]![0];
       expect(sentLog.eventType).toBe('gift_sent');
       expect(sentLog.description).toBe('Gift: Diamond');
 
-      const receivedLog = insertValues.mock.calls[1][0];
+      const receivedLog = insertValues.mock.calls[1]![0];
       expect(receivedLog.eventType).toBe('gift_received');
       expect(receivedLog.description).toBe('Gift received: Diamond');
     });
@@ -269,7 +270,7 @@ describe('FinancialAuditService', () => {
         newStatus,
       });
 
-      const insertedValues = insertValues.mock.calls[0][0];
+      const insertedValues = insertValues.mock.calls[0]![0];
       expect(insertedValues.eventType).toBe(expectedEventType);
     });
 
@@ -279,7 +280,7 @@ describe('FinancialAuditService', () => {
         newStatus: 'unknown_status',
       });
 
-      const insertedValues = insertValues.mock.calls[0][0];
+      const insertedValues = insertValues.mock.calls[0]![0];
       expect(insertedValues.eventType).toBe('payout_requested');
     });
 
@@ -290,7 +291,7 @@ describe('FinancialAuditService', () => {
         failureReason: 'Payment provider declined',
       });
 
-      const insertedValues = insertValues.mock.calls[0][0];
+      const insertedValues = insertValues.mock.calls[0]![0];
       expect(insertedValues.failureReason).toBe('Payment provider declined');
     });
   });
@@ -305,7 +306,7 @@ describe('FinancialAuditService', () => {
         action: 'approved',
       });
 
-      const insertedValues = insertValues.mock.calls[0][0];
+      const insertedValues = insertValues.mock.calls[0]![0];
       expect(insertedValues.eventType).toBe('admin_payout_approved');
       expect(insertedValues.adminId).toBe('admin-1');
     });
@@ -320,7 +321,7 @@ describe('FinancialAuditService', () => {
         reason: 'Suspicious activity',
       });
 
-      const insertedValues = insertValues.mock.calls[0][0];
+      const insertedValues = insertValues.mock.calls[0]![0];
       expect(insertedValues.eventType).toBe('admin_payout_rejected');
       expect(insertedValues.failureReason).toBe('Suspicious activity');
       expect(insertedValues.description).toContain('Suspicious activity');
@@ -338,7 +339,7 @@ describe('FinancialAuditService', () => {
         stripePaymentId: 'pi_abc123',
       });
 
-      const insertedValues = insertValues.mock.calls[0][0];
+      const insertedValues = insertValues.mock.calls[0]![0];
       expect(insertedValues.eventType).toBe('coin_purchase');
       expect(insertedValues.actorId).toBe('user-1');
       expect(insertedValues.actorBalanceBefore).toBe(0);
@@ -358,7 +359,7 @@ describe('FinancialAuditService', () => {
         balanceAfter: 300,
       });
 
-      const insertedValues = insertValues.mock.calls[0][0];
+      const insertedValues = insertValues.mock.calls[0]![0];
       expect(insertedValues.eventType).toBe('admin_refund');
       expect(insertedValues.adminId).toBe('admin-1');
       expect(insertedValues.description).toContain('Double charge');
@@ -379,7 +380,7 @@ describe('FinancialAuditService', () => {
         purpose: 'call_reserve',
       });
 
-      const insertedValues = insertValues.mock.calls[0][0];
+      const insertedValues = insertValues.mock.calls[0]![0];
       expect(insertedValues.eventType).toBe(expectedEventType);
       expect(insertedValues.description).toContain(action);
       expect(insertedValues.description).toContain('call_reserve');
@@ -396,7 +397,7 @@ describe('FinancialAuditService', () => {
         heldBalanceAfter: 500,
       });
 
-      const insertedValues = insertValues.mock.calls[0][0];
+      const insertedValues = insertValues.mock.calls[0]![0];
       const metadata = JSON.parse(insertedValues.metadata);
       expect(metadata.holdId).toBe('hold-1');
       expect(metadata.heldBalanceBefore).toBe(0);

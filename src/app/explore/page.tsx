@@ -190,6 +190,7 @@ export default function ExplorePage() {
                 <button
                   onClick={clearSearch}
                   className="absolute right-3 top-1/2 -translate-y-1/2 p-1 rounded-full hover:bg-white/10 transition-colors"
+                  aria-label="Clear search"
                 >
                   <X className="w-4 h-4 text-gray-400" />
                 </button>

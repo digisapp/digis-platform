@@ -355,6 +355,7 @@ const ChatMessage = memo(function ChatMessage({
           disabled={isDeleting}
           className="opacity-0 group-hover:opacity-100 group-active:opacity-100 transition-opacity flex-shrink-0 p-2 min-w-[44px] min-h-[44px] rounded-lg hover:bg-white/10 active:bg-white/20 text-gray-500 hover:text-red-400 active:text-red-400 disabled:opacity-50 touch-manipulation flex items-center justify-center"
           title="Delete message"
+          aria-label="Delete message"
         >
           <Trash2 className="w-5 h-5" />
         </button>

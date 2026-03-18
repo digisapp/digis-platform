@@ -106,7 +106,7 @@ export default function OverlayChat({
               // Tip message - highlighted
               <div className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-gradient-to-r from-green-500/80 to-emerald-500/80 backdrop-blur-sm shadow-lg shadow-green-500/30 max-w-[85%]">
                 {msg.avatarUrl ? (
-                  <Image src={msg.avatarUrl} alt="" width={20} height={20} className="w-5 h-5 rounded-full object-cover" unoptimized />
+                  <Image src={msg.avatarUrl} alt="" width={20} height={20} className="w-5 h-5 rounded-full object-cover" />
                 ) : (
                   <div className="w-5 h-5 rounded-full bg-green-300 flex items-center justify-center text-[10px] font-bold text-green-800">
                     {msg.username?.[0]?.toUpperCase() || '?'}
@@ -120,7 +120,7 @@ export default function OverlayChat({
               // Gift message - highlighted with emoji
               <div className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-gradient-to-r from-pink-500/80 to-purple-500/80 backdrop-blur-sm shadow-lg shadow-pink-500/30 max-w-[85%]">
                 {msg.avatarUrl ? (
-                  <Image src={msg.avatarUrl} alt="" width={20} height={20} className="w-5 h-5 rounded-full object-cover" unoptimized />
+                  <Image src={msg.avatarUrl} alt="" width={20} height={20} className="w-5 h-5 rounded-full object-cover" />
                 ) : (
                   <div className="w-5 h-5 rounded-full bg-pink-300 flex items-center justify-center text-[10px] font-bold text-pink-800">
                     {msg.username?.[0]?.toUpperCase() || '?'}
@@ -137,7 +137,7 @@ export default function OverlayChat({
               // Regular chat message
               <div className="inline-flex items-start gap-1.5 px-2.5 py-1.5 rounded-xl bg-black/50 backdrop-blur-sm max-w-[85%]">
                 {msg.avatarUrl ? (
-                  <Image src={msg.avatarUrl} alt="" width={20} height={20} className="w-5 h-5 rounded-full object-cover flex-shrink-0 mt-0.5" unoptimized />
+                  <Image src={msg.avatarUrl} alt="" width={20} height={20} className="w-5 h-5 rounded-full object-cover flex-shrink-0 mt-0.5" />
                 ) : (
                   <div className="w-5 h-5 rounded-full bg-gradient-to-br from-cyan-400 to-pink-400 flex items-center justify-center text-[10px] font-bold text-white flex-shrink-0 mt-0.5">
                     {msg.username?.[0]?.toUpperCase() || '?'}

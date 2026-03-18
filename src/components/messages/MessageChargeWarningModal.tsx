@@ -71,6 +71,7 @@ export function MessageChargeWarningModal({
           <button
             onClick={onClose}
             className="absolute -top-2 -right-2 text-gray-400 hover:text-white transition-colors z-10"
+            aria-label="Close"
           >
             <X className="w-6 h-6" />
           </button>

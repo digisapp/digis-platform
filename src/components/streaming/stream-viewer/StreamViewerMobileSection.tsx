@@ -40,7 +40,7 @@ export function StreamViewerMobileSection({
           <div className="flex items-center gap-2 flex-1 min-w-0">
             <button onClick={() => router.push(`/${stream.creator?.username}`)} className="flex-shrink-0">
               {stream.creator?.avatarUrl ? (
-                <Image src={stream.creator.avatarUrl} alt="" width={32} height={32} className="w-8 h-8 rounded-full object-cover ring-2 ring-red-500" unoptimized />
+                <Image src={stream.creator.avatarUrl} alt="" width={32} height={32} className="w-8 h-8 rounded-full object-cover ring-2 ring-red-500" />
               ) : (
                 <div className="w-8 h-8 rounded-full bg-gradient-to-br from-digis-cyan to-digis-pink flex items-center justify-center text-xs font-bold ring-2 ring-red-500">
                   {stream.creator?.username?.[0] || '?'}

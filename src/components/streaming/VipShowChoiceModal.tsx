@@ -34,6 +34,7 @@ export function VipShowChoiceModal({
         <button
           onClick={onClose}
           className="absolute top-4 right-4 text-white/60 hover:text-white transition-colors"
+          aria-label="Close"
         >
           <X className="w-6 h-6" />
         </button>

@@ -103,6 +103,7 @@ export function ControlChat({
             type="submit"
             disabled={!chatMessage.trim() || isSending}
             className="px-4 py-3 bg-digis-cyan text-black font-medium rounded-xl disabled:opacity-50 disabled:cursor-not-allowed"
+            aria-label="Send message"
           >
             <Send className="w-5 h-5" />
           </button>

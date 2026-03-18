@@ -123,7 +123,7 @@ export function AdminModerationTab({ loading, moderation, moderationTab, setMode
                       <div className="flex items-center gap-3">
                         <div className="relative w-12 h-12 rounded-full bg-gradient-to-br from-red-500 to-orange-500 flex items-center justify-center text-lg font-bold shrink-0">
                           {user.avatarUrl ? (
-                            <Image src={user.avatarUrl} alt={user.username || ''} fill className="rounded-full object-cover" unoptimized />
+                            <Image src={user.avatarUrl} alt={user.username || ''} fill className="rounded-full object-cover" />
                           ) : (
                             user.username?.[0]?.toUpperCase() || '?'
                           )}
@@ -160,7 +160,7 @@ export function AdminModerationTab({ loading, moderation, moderationTab, setMode
                       <div className="flex items-center gap-2">
                         <div className="relative w-8 h-8 rounded-full bg-gradient-to-br from-digis-cyan to-digis-pink flex items-center justify-center text-xs font-bold">
                           {block.blocker?.avatarUrl ? (
-                            <Image src={block.blocker.avatarUrl} alt="" fill className="rounded-full object-cover" unoptimized />
+                            <Image src={block.blocker.avatarUrl} alt="" fill className="rounded-full object-cover" />
                           ) : (
                             block.blocker?.username?.[0]?.toUpperCase() || '?'
                           )}
@@ -171,7 +171,7 @@ export function AdminModerationTab({ loading, moderation, moderationTab, setMode
                       <div className="flex items-center gap-2">
                         <div className="relative w-8 h-8 rounded-full bg-gradient-to-br from-gray-500 to-gray-600 flex items-center justify-center text-xs font-bold">
                           {block.blocked?.avatarUrl ? (
-                            <Image src={block.blocked.avatarUrl} alt="" fill className="rounded-full object-cover" unoptimized />
+                            <Image src={block.blocked.avatarUrl} alt="" fill className="rounded-full object-cover" />
                           ) : (
                             block.blocked?.username?.[0]?.toUpperCase() || '?'
                           )}
@@ -205,7 +205,7 @@ export function AdminModerationTab({ loading, moderation, moderationTab, setMode
                     <div className="flex items-center gap-2">
                       <div className="relative w-8 h-8 rounded-full bg-gradient-to-br from-gray-500 to-gray-600 flex items-center justify-center text-xs font-bold">
                         {ban.bannedUser?.avatarUrl ? (
-                          <Image src={ban.bannedUser.avatarUrl} alt="" fill className="rounded-full object-cover" unoptimized />
+                          <Image src={ban.bannedUser.avatarUrl} alt="" fill className="rounded-full object-cover" />
                         ) : (
                           ban.bannedUser?.username?.[0]?.toUpperCase() || '?'
                         )}

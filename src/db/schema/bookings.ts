@@ -65,7 +65,7 @@ export const bookings = pgTable('bookings', {
   callId: uuid('call_id').references(() => calls.id, { onDelete: 'set null' }),
 
   // Cancellation
-  cancelledBy: uuid('cancelled_by'),
+  cancelledBy: uuid('cancelled_by').references(() => users.id, { onDelete: 'set null' }),
   cancelledAt: timestamp('cancelled_at'),
   cancellationReason: text('cancellation_reason'),
   refundAmount: integer('refund_amount'),

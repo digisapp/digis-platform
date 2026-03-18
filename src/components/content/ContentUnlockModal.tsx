@@ -68,6 +68,7 @@ export function ContentUnlockModal({ content, onClose, onSuccess }: ContentUnloc
         <button
           onClick={onClose}
           className="absolute top-3 right-3 text-gray-500 hover:text-white transition-colors z-10"
+          aria-label="Close"
         >
           <X className="w-5 h-5" />
         </button>

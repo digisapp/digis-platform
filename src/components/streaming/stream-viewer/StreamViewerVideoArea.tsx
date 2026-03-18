@@ -170,7 +170,7 @@ export function StreamViewerVideoArea({
           </button>
           <button onClick={() => router.push(`/${stream.creator?.username}`)} className="relative group">
             {stream.creator?.avatarUrl ? (
-              <Image src={stream.creator.avatarUrl} alt="" width={48} height={48} className="w-12 h-12 rounded-full object-cover ring-2 ring-red-500 ring-offset-2 ring-offset-black" unoptimized />
+              <Image src={stream.creator.avatarUrl} alt="" width={48} height={48} className="w-12 h-12 rounded-full object-cover ring-2 ring-red-500 ring-offset-2 ring-offset-black" />
             ) : (
               <div className="w-12 h-12 rounded-full bg-gradient-to-br from-digis-cyan to-digis-pink flex items-center justify-center text-lg font-bold ring-2 ring-red-500 ring-offset-2 ring-offset-black">
                 {stream.creator?.username?.[0] || '?'}

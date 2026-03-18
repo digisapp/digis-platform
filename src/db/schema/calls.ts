@@ -51,7 +51,7 @@ export const calls = pgTable('calls', {
   chatLog: jsonb('chat_log'),
 
   // Cancellation/rejection
-  cancelledBy: uuid('cancelled_by'), // user_id who cancelled
+  cancelledBy: uuid('cancelled_by').references(() => users.id, { onDelete: 'set null' }), // user_id who cancelled
   cancellationReason: text('cancellation_reason'),
 
   createdAt: timestamp('created_at').defaultNow().notNull(),

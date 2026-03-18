@@ -67,6 +67,7 @@ export function ViewerChatInput({
                   onClick={onSend}
                   disabled={!messageInput.trim() || sendingMessage}
                   className="min-w-[48px] min-h-[48px] p-3 bg-gradient-to-r from-digis-cyan to-digis-pink rounded-full disabled:opacity-50 flex items-center justify-center shadow-lg shadow-cyan-500/30"
+                  aria-label="Send message"
                 >
                   <Send className="w-5 h-5" />
                 </button>
@@ -142,6 +143,7 @@ export function ViewerChatInput({
                 onClick={onSend}
                 disabled={!messageInput.trim() || sendingMessage}
                 className="px-4 py-3 bg-gradient-to-r from-digis-cyan to-digis-pink rounded-lg font-semibold hover:scale-105 transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 shadow-lg shadow-cyan-500/30 hover:shadow-cyan-500/50"
+                aria-label="Send message"
               >
                 <Send className="w-5 h-5" />
               </button>

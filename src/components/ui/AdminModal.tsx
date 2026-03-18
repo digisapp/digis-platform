@@ -128,6 +128,7 @@ export function AdminModal({
           <button
             onClick={onClose}
             className="absolute top-4 right-4 p-1 text-gray-400 hover:text-white transition-colors"
+            aria-label="Close"
           >
             <X className="w-5 h-5" />
           </button>
@@ -257,6 +258,7 @@ export function AdminToast({
           <button
             onClick={onClose}
             className="ml-2 p-1 text-gray-400 hover:text-white transition-colors"
+            aria-label="Dismiss"
           >
             <X className="w-4 h-4" />
           </button>

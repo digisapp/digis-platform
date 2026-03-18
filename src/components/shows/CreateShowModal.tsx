@@ -237,6 +237,7 @@ export function CreateShowModal({ onClose, onSuccess }: CreateShowModalProps) {
                     type="button"
                     onClick={removeCoverImage}
                     className="absolute top-2 right-2 p-2 bg-red-500 hover:bg-red-600 text-white rounded-full transition-colors shadow-[0_0_10px_rgba(255,0,0,0.5)]"
+                    aria-label="Remove cover image"
                   >
                     <X className="w-4 h-4" />
                   </button>

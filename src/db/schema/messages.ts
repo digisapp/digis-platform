@@ -1,4 +1,4 @@
-import { pgTable, uuid, text, timestamp, boolean, pgEnum, index, integer } from 'drizzle-orm/pg-core';
+import { pgTable, uuid, text, timestamp, boolean, pgEnum, index, uniqueIndex, integer } from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
 import { users } from './users';
 import { walletTransactions } from './wallet';
@@ -39,7 +39,7 @@ export const conversations = pgTable('conversations', {
   user2Idx: index('conversations_user2_id_idx').on(table.user2Id),
   lastMessageIdx: index('conversations_last_message_at_idx').on(table.lastMessageAt),
   // Ensure unique conversation between two users
-  uniqueConversation: index('conversations_unique_idx').on(table.user1Id, table.user2Id),
+  uniqueConversation: uniqueIndex('conversations_unique_idx').on(table.user1Id, table.user2Id),
 }));
 
 // Messages table
@@ -125,7 +125,7 @@ export const blockedUsers = pgTable('blocked_users', {
 }, (table) => ({
   blockerIdx: index('blocked_users_blocker_id_idx').on(table.blockerId),
   blockedIdx: index('blocked_users_blocked_id_idx').on(table.blockedId),
-  uniqueBlock: index('blocked_users_unique_idx').on(table.blockerId, table.blockedId),
+  uniqueBlock: uniqueIndex('blocked_users_unique_idx').on(table.blockerId, table.blockedId),
 }));
 
 // Message settings table
@@ -242,7 +242,7 @@ export const messageReactions = pgTable('message_reactions', {
   messageIdIdx: index('message_reactions_message_id_idx').on(table.messageId),
   userIdIdx: index('message_reactions_user_id_idx').on(table.userId),
   // Unique constraint: one reaction type per user per message
-  uniqueReaction: index('message_reactions_unique_idx').on(table.messageId, table.userId, table.emoji),
+  uniqueReaction: uniqueIndex('message_reactions_unique_idx').on(table.messageId, table.userId, table.emoji),
 }));
 
 export const messageReactionsRelations = relations(messageReactions, ({ one }) => ({

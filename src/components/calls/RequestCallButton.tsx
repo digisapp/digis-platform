@@ -328,6 +328,7 @@ export function RequestCallButton({
                 <button
                   onClick={handleCancelRequest}
                   className="absolute top-4 right-4 text-gray-400 hover:text-white transition-colors z-10"
+                  aria-label="Cancel request"
                 >
                   <X className="w-6 h-6" />
                 </button>

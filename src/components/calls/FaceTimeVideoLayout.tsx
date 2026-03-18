@@ -348,7 +348,7 @@ export const FaceTimeVideoLayout = memo(function FaceTimeVideoLayout({
                 <>
                   <div className="relative w-32 h-32 mx-auto mb-4 rounded-full bg-gradient-to-br from-cyan-500 to-purple-500 flex items-center justify-center">
                     {otherParticipant?.avatarUrl ? (
-                      <Image src={otherParticipant.avatarUrl} alt="" fill className="rounded-full object-cover" unoptimized />
+                      <Image src={otherParticipant.avatarUrl} alt="" fill className="rounded-full object-cover" />
                     ) : (
                       <span className="text-4xl font-bold text-white">
                         {(otherParticipant?.displayName || otherParticipant?.username)?.[0]?.toUpperCase() || '?'}

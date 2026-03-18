@@ -52,7 +52,7 @@ export function ViewerListPanel({ viewers, leaderboard }: ViewerListPanelProps) 
                   {index + 1}
                 </span>
                 {supporter.avatarUrl ? (
-                  <Image src={supporter.avatarUrl} alt={supporter.username} width={28} height={28} className="w-7 h-7 rounded-full object-cover" unoptimized />
+                  <Image src={supporter.avatarUrl} alt={supporter.username} width={28} height={28} className="w-7 h-7 rounded-full object-cover" />
                 ) : (
                   <div className="w-7 h-7 rounded-full bg-gradient-to-br from-digis-cyan to-digis-pink flex items-center justify-center text-xs font-bold">
                     {supporter.username?.[0]?.toUpperCase()}

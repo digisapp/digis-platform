@@ -266,7 +266,6 @@ export default function FanDashboard() {
                         alt={stream.title}
                         fill
                         className="object-cover group-hover:scale-105 transition-transform duration-300"
-                        unoptimized
                       />
                     ) : (
                       <div className="w-full h-full bg-gradient-to-br from-red-500/20 to-pink-500/20 flex items-center justify-center">
@@ -294,7 +293,7 @@ export default function FanDashboard() {
                   <div className="flex items-start gap-3">
                     <div className="relative w-10 h-10 rounded-full bg-gradient-to-br from-cyan-500 to-purple-500 flex items-center justify-center flex-shrink-0 ring-2 ring-red-500">
                       {stream.creator.avatarUrl ? (
-                        <Image src={stream.creator.avatarUrl} alt={stream.creator.username} fill className="rounded-full object-cover" unoptimized />
+                        <Image src={stream.creator.avatarUrl} alt={stream.creator.username} fill className="rounded-full object-cover" />
                       ) : (
                         <span className="text-white font-bold text-sm">{stream.creator.username?.[0]?.toUpperCase() || '?'}</span>
                       )}
@@ -336,7 +335,6 @@ export default function FanDashboard() {
                         alt={content.title}
                         fill
                         className="object-cover group-hover:scale-105 transition-transform duration-300"
-                        unoptimized
                       />
                     ) : (
                       <div className="w-full h-full bg-gradient-to-br from-cyan-500/20 to-purple-500/20 flex items-center justify-center">
@@ -368,7 +366,7 @@ export default function FanDashboard() {
                     <div className="absolute bottom-2 left-2 flex items-center gap-2">
                       <div className="relative w-6 h-6 rounded-full bg-gradient-to-br from-cyan-500 to-purple-500 flex items-center justify-center">
                         {content.creator.avatarUrl ? (
-                          <Image src={content.creator.avatarUrl} alt={content.creator.username} fill className="rounded-full object-cover" unoptimized />
+                          <Image src={content.creator.avatarUrl} alt={content.creator.username} fill className="rounded-full object-cover" />
                         ) : (
                           <span className="text-white text-xs font-bold">{content.creator.username?.[0]?.toUpperCase() || '?'}</span>
                         )}
@@ -413,7 +411,7 @@ export default function FanDashboard() {
                     {/* Cover Image */}
                     <div className="relative aspect-video bg-slate-900">
                       {show.coverImageUrl ? (
-                        <Image src={show.coverImageUrl} alt={show.title} fill className="object-cover" unoptimized />
+                        <Image src={show.coverImageUrl} alt={show.title} fill className="object-cover" />
                       ) : (
                         <div className="w-full h-full bg-gradient-to-br from-yellow-500/20 to-orange-500/20 flex items-center justify-center">
                           <span className="text-4xl">🎟️</span>
@@ -435,7 +433,7 @@ export default function FanDashboard() {
                       <div className="flex items-center gap-2 mb-3">
                         <div className="relative w-6 h-6 rounded-full bg-gradient-to-br from-cyan-500 to-purple-500 flex items-center justify-center">
                           {show.creator.avatarUrl ? (
-                            <Image src={show.creator.avatarUrl} alt={show.creator.username} fill className="rounded-full object-cover" unoptimized />
+                            <Image src={show.creator.avatarUrl} alt={show.creator.username} fill className="rounded-full object-cover" />
                           ) : (
                             <span className="text-white text-xs font-bold">{show.creator.username?.[0]?.toUpperCase() || '?'}</span>
                           )}
@@ -489,7 +487,6 @@ export default function FanDashboard() {
                           alt={creator.username}
                           fill
                           className="object-cover transition-transform duration-700 group-hover:scale-110"
-                          unoptimized
                         />
                         <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/70" />
                       </>

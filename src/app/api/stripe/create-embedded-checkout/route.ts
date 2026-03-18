@@ -112,7 +112,7 @@ export async function POST(request: NextRequest) {
   } catch (error: any) {
     console.error('Stripe embedded checkout error:', error);
     return NextResponse.json(
-      { error: error?.message || 'Failed to create checkout session' },
+      { error: 'Failed to create checkout session' },
       { status: 500 }
     );
   }

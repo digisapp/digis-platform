@@ -118,6 +118,7 @@ export function ImageCropper({
         <button
           onClick={onCancel}
           className="p-2 -ml-2 text-white hover:bg-white/10 rounded-full transition-colors"
+          aria-label="Cancel cropping"
         >
           <X className="w-6 h-6" />
         </button>
@@ -196,6 +197,7 @@ export function ImageCropper({
           <button
             onClick={() => setZoom(Math.min(3, zoom + 0.2))}
             className="p-2 text-white/60 hover:text-white hover:bg-white/10 rounded-full transition-colors"
+            aria-label="Zoom in"
           >
             <ZoomIn className="w-5 h-5" />
           </button>
@@ -203,6 +205,7 @@ export function ImageCropper({
           <button
             onClick={handleReset}
             className="p-2 text-white/60 hover:text-white hover:bg-white/10 rounded-full transition-colors"
+            aria-label="Reset crop"
           >
             <RotateCcw className="w-5 h-5" />
           </button>

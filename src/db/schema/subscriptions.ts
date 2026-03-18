@@ -1,5 +1,5 @@
-import { pgTable, uuid, text, timestamp, integer, boolean, pgEnum, index } from 'drizzle-orm/pg-core';
-import { relations } from 'drizzle-orm';
+import { pgTable, uuid, text, timestamp, integer, boolean, pgEnum, index, check } from 'drizzle-orm/pg-core';
+import { relations, sql } from 'drizzle-orm';
 import { users } from './users';
 
 export const subscriptionStatusEnum = pgEnum('subscription_status', [
@@ -34,6 +34,7 @@ export const subscriptionTiers = pgTable('subscription_tiers', {
 }, (table) => ({
   creatorIdIdx: index('subscription_tiers_creator_id_idx').on(table.creatorId),
   tierIdx: index('subscription_tiers_tier_idx').on(table.tier),
+  pricePositive: check('subscription_tiers_price_positive', sql`${table.pricePerMonth} > 0`),
 }));
 
 // Active subscriptions

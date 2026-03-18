@@ -6,8 +6,17 @@ import { db } from '@/lib/data/system';
 import { users, wallets, streams } from '@/lib/data/system';
 import { eq } from 'drizzle-orm';
 import { rateLimitFinancial } from '@/lib/rate-limit';
+import { assertValidOrigin } from '@/lib/security/origin-check';
 import { BlockService } from '@/lib/services/block-service';
 import { AiStreamChatService } from '@/lib/services/ai-stream-chat-service';
+import { z } from 'zod';
+
+const streamGiftSchema = z.object({
+  giftId: z.string().uuid('Invalid gift ID'),
+  quantity: z.number().int().min(1, 'Minimum quantity is 1').max(100, 'Maximum quantity is 100').default(1),
+  recipientCreatorId: z.string().uuid().optional(),
+  recipientUsername: z.string().max(50).optional(),
+});
 
 // Force Node.js runtime for Drizzle ORM
 export const runtime = 'nodejs';
@@ -25,6 +34,12 @@ export async function POST(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    // CSRF: Validate origin for financial operations
+    const originCheck = assertValidOrigin(req, { requireHeader: true });
+    if (!originCheck.ok) {
+      return NextResponse.json({ error: 'Invalid origin' }, { status: 403 });
+    }
+
     // Rate limit financial operations
     const rateCheck = await rateLimitFinancial(user.id, 'gift');
     if (!rateCheck.ok) {
@@ -38,7 +53,19 @@ export async function POST(
     }
 
     const { streamId } = await params;
-    const { giftId, quantity = 1, recipientCreatorId, recipientUsername } = await req.json();
+
+    // Validate request body with Zod
+    let body;
+    try {
+      body = streamGiftSchema.parse(await req.json());
+    } catch (err) {
+      if (err instanceof z.ZodError) {
+        return NextResponse.json({ error: err.issues[0]?.message || 'Invalid input' }, { status: 400 });
+      }
+      return NextResponse.json({ error: 'Invalid request body' }, { status: 400 });
+    }
+
+    const { giftId, quantity, recipientCreatorId, recipientUsername } = body;
 
     // Check if user is blocked by the stream creator
     const stream = await db.query.streams.findFirst({
@@ -51,17 +78,6 @@ export async function POST(
       if (isBlocked) {
         return NextResponse.json({ error: 'You cannot send gifts in this stream' }, { status: 403 });
       }
-    }
-
-    if (!giftId) {
-      return NextResponse.json({ error: 'Gift ID is required' }, { status: 400 });
-    }
-
-    if (quantity < 1 || quantity > 100) {
-      return NextResponse.json(
-        { error: 'Quantity must be between 1 and 100' },
-        { status: 400 }
-      );
     }
 
     // Get user details for username

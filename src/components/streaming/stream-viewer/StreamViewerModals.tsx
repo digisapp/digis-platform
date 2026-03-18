@@ -58,7 +58,7 @@ export function StreamViewerModals({
                   <h3 className="text-xl font-bold">Send a Gift</h3>
                   <p className="text-sm text-gray-400">Support {stream.creator?.username}</p>
                 </div>
-                <button onClick={onCloseGiftPanel} className="p-2 hover:bg-white/10 rounded-full transition-colors">
+                <button onClick={onCloseGiftPanel} className="p-2 hover:bg-white/10 rounded-full transition-colors" aria-label="Close gift panel">
                   <X className="w-6 h-6" />
                 </button>
               </div>
@@ -99,7 +99,7 @@ export function StreamViewerModals({
                   <h3 className="text-xl font-bold">Request Private Call</h3>
                   <p className="text-sm text-gray-400">with {stream.creator?.username}</p>
                 </div>
-                <button onClick={onCloseCallModal} className="p-2 hover:bg-white/10 rounded-full transition-colors">
+                <button onClick={onCloseCallModal} className="p-2 hover:bg-white/10 rounded-full transition-colors" aria-label="Close">
                   <X className="w-6 h-6" />
                 </button>
               </div>

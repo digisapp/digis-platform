@@ -40,7 +40,7 @@ export async function GET(request: NextRequest) {
   } catch (error: any) {
     console.error('Error retrieving session status:', error);
     return NextResponse.json(
-      { error: error?.message || 'Failed to retrieve session status' },
+      { error: 'Failed to retrieve session status' },
       { status: 500 }
     );
   }

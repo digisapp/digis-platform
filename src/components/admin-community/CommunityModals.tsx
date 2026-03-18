@@ -94,7 +94,7 @@ function AiSettingsModalContent({ modal, onClose, onSave }: {
               <p className="text-sm text-gray-400">@{modal.creatorUsername}</p>
             </div>
           </div>
-          <button onClick={onClose} className="p-2 rounded-lg hover:bg-white/10 transition-colors"><X className="w-5 h-5 text-gray-400" /></button>
+          <button onClick={onClose} className="p-2 rounded-lg hover:bg-white/10 transition-colors" aria-label="Close"><X className="w-5 h-5 text-gray-400" /></button>
         </div>
 
         {modal.loading ? (
@@ -266,7 +266,7 @@ export function CommunityModals({ confirmModal, onCloseConfirm, toast, onCloseTo
           >
             {toast.type === 'success' ? <CheckCircle className="w-5 h-5" /> : <AlertTriangle className="w-5 h-5" />}
             <span className="font-medium">{toast.message}</span>
-            <button onClick={onCloseToast} className="ml-2 hover:opacity-70">
+            <button onClick={onCloseToast} className="ml-2 hover:opacity-70" aria-label="Dismiss">
               <X className="w-4 h-4" />
             </button>
           </div>

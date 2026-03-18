@@ -297,8 +297,7 @@ export async function POST(request: NextRequest) {
     console.error('Signup error:', error);
     return NextResponse.json(
       {
-        error: 'An error occurred during signup',
-        details: error instanceof Error ? error.message : 'Unknown error'
+        error: 'An error occurred during signup'
       },
       { status: 500 }
     );

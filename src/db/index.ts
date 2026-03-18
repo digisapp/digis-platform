@@ -38,7 +38,7 @@ export function getDb(): DbInstance {
     global.__dbClient = postgres(connectionString, {
       prepare: false,        // REQUIRED for PgBouncer/transaction pooler
       ssl: 'require',        // Required for Supabase
-      max: 100,              // Allow 100 connections per serverless instance (for 200k users)
+      max: 10,               // Keep low for serverless — PgBouncer handles multiplexing
       idle_timeout: 20,     // Close idle connections after 20s (faster recycling)
       connect_timeout: 10,  // 10s connection timeout (fail fast)
       max_lifetime: 60 * 15, // 15 minutes max connection lifetime (faster recycling)

@@ -170,7 +170,7 @@ export function StreamSummaryModal({ summary, streamId, streamTitle, streamDescr
                     {summary.ticketStats.ticketBuyers.map((buyer, index) => (
                       <div key={index} className="flex items-center gap-1.5 px-2 py-1 bg-white/10 rounded-full">
                         {buyer.avatarUrl ? (
-                          <Image src={buyer.avatarUrl} alt={buyer.username} width={20} height={20} className="w-5 h-5 rounded-full object-cover" unoptimized />
+                          <Image src={buyer.avatarUrl} alt={buyer.username} width={20} height={20} className="w-5 h-5 rounded-full object-cover" />
                         ) : (
                           <div className="w-5 h-5 rounded-full bg-gradient-to-br from-amber-400 to-yellow-500 flex items-center justify-center text-[10px] font-bold text-black">
                             {buyer.username?.[0]?.toUpperCase() || '?'}

@@ -44,6 +44,7 @@ export function PrivateTipsPanel({ isOpen, onClose, tips }: PrivateTipsPanelProp
           <button
             onClick={onClose}
             className="p-1.5 hover:bg-white/10 rounded-lg transition-colors"
+            aria-label="Close"
           >
             <X className="w-5 h-5 text-white/60" />
           </button>

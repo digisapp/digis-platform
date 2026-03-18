@@ -30,6 +30,7 @@ export function DashboardChecklist({ userProfile, dismissedChecklist, onDismiss,
       <button
         onClick={onDismiss}
         className="absolute top-4 right-4 p-2 rounded-full hover:bg-white/10 transition-colors text-gray-400 hover:text-white"
+        aria-label="Dismiss checklist"
       >
         <X className="w-5 h-5" />
       </button>
