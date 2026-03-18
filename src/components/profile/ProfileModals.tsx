@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useRouter } from 'next/navigation';
 import { MessageCircle, Star, Coins } from 'lucide-react';
@@ -125,64 +126,10 @@ export function ProfileModals({
 
       {/* Video Player Modal */}
       {selectedVideo && (
-        <div
-          className="fixed inset-0 bg-black/90 backdrop-blur-sm flex items-center justify-center z-50 p-4"
-          onClick={onCloseVideo}
-        >
-          <div
-            className="relative max-w-5xl w-full bg-gray-900 rounded-2xl overflow-hidden"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <button
-              onClick={onCloseVideo}
-              className="absolute top-4 right-4 z-10 p-2 bg-black/50 hover:bg-black/70 rounded-full transition-colors"
-            >
-              <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-            {selectedVideo.url ? (
-              <video
-                src={selectedVideo.url}
-                controls
-                autoPlay
-                className="w-full aspect-video bg-black"
-                onError={(e) => {
-                  const target = e.target as HTMLVideoElement;
-                  target.style.display = 'none';
-                  const fallback = target.parentElement?.querySelector('.video-error');
-                  if (fallback) fallback.classList.remove('hidden');
-                }}
-              />
-            ) : null}
-            <div className="hidden video-error w-full aspect-video bg-black flex items-center justify-center">
-              <div className="text-center">
-                <p className="text-gray-400 mb-2">Video unavailable</p>
-                <button
-                  onClick={() => {
-                    const video = document.querySelector('.video-error')?.parentElement?.querySelector('video');
-                    if (video) {
-                      video.style.display = '';
-                      video.load();
-                      document.querySelector('.video-error')?.classList.add('hidden');
-                    }
-                  }}
-                  className="px-4 py-2 bg-white/10 hover:bg-white/20 text-white text-sm rounded-lg transition-colors"
-                >
-                  Retry
-                </button>
-              </div>
-            </div>
-            {selectedVideo.title && (
-              <div className="p-6 bg-gray-900">
-                <h3 className="text-xl font-bold text-white mb-2">{selectedVideo.title}</h3>
-                {selectedVideo.description && (
-                  <p className="text-gray-300 text-sm">{selectedVideo.description}</p>
-                )}
-              </div>
-            )}
-          </div>
-        </div>
+        <VideoPlayerModal
+          video={selectedVideo}
+          onClose={onCloseVideo}
+        />
       )}
 
       {/* Photo Viewer Modal */}
@@ -521,5 +468,80 @@ export function ProfileModals({
         </div>
       )}
     </>
+  );
+}
+
+function VideoPlayerModal({ video, onClose }: { video: { url: string; title: string; description: string }; onClose: () => void }) {
+  const [hasError, setHasError] = useState(false);
+  const [retryKey, setRetryKey] = useState(0);
+
+  return (
+    <div
+      className="fixed inset-0 bg-black/90 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+      onClick={onClose}
+    >
+      <div
+        className="relative max-w-5xl w-full bg-gray-900 rounded-2xl overflow-hidden"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <button
+          onClick={onClose}
+          className="absolute top-4 right-4 z-10 p-2 bg-black/50 hover:bg-black/70 rounded-full transition-colors"
+        >
+          <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+
+        {!hasError && video.url ? (
+          <video
+            key={retryKey}
+            src={video.url}
+            controls
+            autoPlay
+            playsInline
+            className="w-full aspect-video bg-black"
+            onError={() => setHasError(true)}
+            onStalled={() => {
+              // If video stalls for too long, it might be a broken file
+              setTimeout(() => {
+                const vid = document.querySelector<HTMLVideoElement>('.video-player-active');
+                if (vid && vid.readyState < 2 && vid.networkState === 2) {
+                  setHasError(true);
+                }
+              }, 8000);
+            }}
+          />
+        ) : (
+          <div className="w-full aspect-video bg-black flex items-center justify-center">
+            <div className="text-center">
+              <div className="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center mx-auto mb-3">
+                <svg className="w-8 h-8 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15.75 10.5l4.72-4.72a.75.75 0 011.28.53v11.38a.75.75 0 01-1.28.53l-4.72-4.72M4.5 18.75h9a2.25 2.25 0 002.25-2.25v-9a2.25 2.25 0 00-2.25-2.25h-9A2.25 2.25 0 002.25 7.5v9a2.25 2.25 0 002.25 2.25z" />
+                </svg>
+              </div>
+              <p className="text-gray-400 mb-3">{video.url ? 'Video failed to load' : 'Video unavailable'}</p>
+              {video.url && (
+                <button
+                  onClick={() => { setHasError(false); setRetryKey(k => k + 1); }}
+                  className="px-5 py-2 bg-white/10 hover:bg-white/20 text-white text-sm rounded-full transition-colors"
+                >
+                  Try Again
+                </button>
+              )}
+            </div>
+          </div>
+        )}
+
+        {video.title && (
+          <div className="p-6 bg-gray-900">
+            <h3 className="text-xl font-bold text-white mb-2">{video.title}</h3>
+            {video.description && (
+              <p className="text-gray-300 text-sm">{video.description}</p>
+            )}
+          </div>
+        )}
+      </div>
+    </div>
   );
 }
