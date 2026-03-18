@@ -359,9 +359,9 @@ export function Navigation() {
       path: userRole === 'admin' ? '/admin' : '/explore',
       active: isActive('/') || isActive('/explore') || isActive('/dashboard') || isActive('/admin'),
     },
-    // Discover: Short-form clip/content feed
+    // For You: Short-form clip/content feed
     {
-      label: 'Discover',
+      label: 'For You',
       icon: Compass,
       path: '/discover',
       active: isActive('/discover'),
