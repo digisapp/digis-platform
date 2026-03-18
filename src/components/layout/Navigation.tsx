@@ -19,6 +19,7 @@ import {
   Camera,
   User,
   LayoutGrid,
+  Compass,
 } from 'lucide-react';
 import { BuyCoinsModal } from '@/components/wallet/BuyCoinsModal';
 import { useRef } from 'react';
@@ -353,6 +354,13 @@ export function Navigation() {
       icon: Home,
       path: userRole === 'admin' ? '/admin' : '/explore',
       active: isActive('/') || isActive('/explore') || isActive('/dashboard') || isActive('/admin'),
+    },
+    // Discover: Short-form clip/content feed
+    {
+      label: 'Discover',
+      icon: Compass,
+      path: '/discover',
+      active: isActive('/discover'),
     },
     // Watch: All live streams, schedule, and replays
     ...(showStreams ? [{
