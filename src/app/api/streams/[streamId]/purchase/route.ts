@@ -94,7 +94,7 @@ export async function POST(req: NextRequest, context: RouteContext) {
             { status: 400 }
           );
         }
-      } catch (e) {
+      } catch  {
         // If metadata parsing fails, continue with purchase
       }
     }

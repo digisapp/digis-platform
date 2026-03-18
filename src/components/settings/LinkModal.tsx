@@ -9,7 +9,7 @@ interface LinkModalProps {
   onClose: () => void;
   editingLink: CreatorLink | null;
   linkFormData: { title: string; url: string; emoji: string };
-  setLinkFormData: (data: { title: string; url: string; emoji: string }) => void;
+  setLinkFormData: (_data: { title: string; url: string; emoji: string }) => void;
   onSave: () => void;
   saving: boolean;
 }

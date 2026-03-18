@@ -49,7 +49,7 @@ export default function ClaimInvitePage() {
         } else {
           setError(data.error || 'Invalid invite');
         }
-      } catch (err) {
+      } catch  {
         setError('Failed to validate invite');
       } finally {
         setLoading(false);
@@ -118,7 +118,7 @@ export default function ClaimInvitePage() {
       } else {
         setError(data.error || 'Failed to claim invite');
       }
-    } catch (err) {
+    } catch  {
       setError('Failed to claim invite');
     } finally {
       setSubmitting(false);

@@ -23,7 +23,7 @@ interface CelebratingGoal {
 interface BroadcasterFloatingElementsProps {
   // Floating gifts
   floatingGifts: FloatingGift[];
-  removeFloatingGift: (id: string) => void;
+  removeFloatingGift: (_id: string) => void;
   // Goal celebration
   celebratingGoal: CelebratingGoal | null;
   completedGoalsQueue: CelebratingGoal[];
@@ -35,7 +35,7 @@ interface BroadcasterFloatingElementsProps {
   setShowPrivateTips: React.Dispatch<React.SetStateAction<boolean>>;
   privateTips: PrivateTip[];
   hasNewPrivateTips: boolean;
-  setHasNewPrivateTips: (v: boolean) => void;
+  setHasNewPrivateTips: (_v: boolean) => void;
   // Mobile floating goal bar
   streamId: string;
   goals: StreamGoal[];

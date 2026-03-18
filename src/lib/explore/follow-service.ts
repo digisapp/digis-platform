@@ -1,6 +1,6 @@
 import { db } from '@/lib/data/system';
 import { follows, users } from '@/lib/data/system';
-import { and, eq, or, desc, sql } from 'drizzle-orm';
+import { and, eq, desc, sql } from 'drizzle-orm';
 
 export class FollowService {
   // Follow a user

@@ -1,6 +1,6 @@
 'use client';
 
-import { MessageCircle, Plus } from 'lucide-react';
+import { MessageCircle } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { ChatsSidebar } from '@/components/chats/ChatsSidebar';
 

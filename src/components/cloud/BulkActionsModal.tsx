@@ -9,8 +9,8 @@ interface BulkActionsModalProps {
   onClose: () => void;
   selectedCount: number;
   selectedItemIds: string[];
-  onBulkSetStatus: (itemIds: string[], status: string) => Promise<{ success: boolean; error?: string }>;
-  onBulkSetPrice: (itemIds: string[], price: number) => Promise<{ success: boolean; error?: string }>;
+  onBulkSetStatus: (_itemIds: string[], _status: string) => Promise<{ success: boolean; error?: string }>;
+  onBulkSetPrice: (_itemIds: string[], _price: number) => Promise<{ success: boolean; error?: string }>;
 }
 
 type Tab = 'publish' | 'price';

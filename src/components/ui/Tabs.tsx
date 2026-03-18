@@ -12,7 +12,7 @@ interface Tab {
 interface TabsProps {
   tabs: Tab[];
   activeTab: string;
-  onChange: (tabId: string) => void;
+  onChange: (_tabId: string) => void;
   className?: string;
   /** Optional label for the tab list (for accessibility) */
   ariaLabel?: string;

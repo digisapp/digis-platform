@@ -16,10 +16,7 @@ import {
 import { eq, and, or, desc, sql, inArray } from 'drizzle-orm';
 import { v4 as uuidv4 } from 'uuid';
 import {
-  getCachedConversations,
-  setCachedConversations,
   invalidateConversationsCacheForBoth,
-  CachedConversation,
 } from '@/lib/cache';
 import { BlockService } from '@/lib/services/block-service';
 import { NotificationService } from '@/lib/services/notification-service';

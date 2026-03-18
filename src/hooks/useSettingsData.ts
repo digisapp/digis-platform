@@ -9,8 +9,8 @@ import type { UsernameStatus } from '@/components/settings/types';
 
 interface UseSettingsDataParams {
   form: SettingsFormState;
-  setField: <K extends keyof SettingsFormState>(key: K, value: SettingsFormState[K]) => void;
-  populateFromApi: (data: any) => void;
+  setField: <K extends keyof SettingsFormState>(_key: K, _value: SettingsFormState[K]) => void;
+  populateFromApi: (_data: any) => void;
   markAsSaved: () => void;
 }
 

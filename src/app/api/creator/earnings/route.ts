@@ -10,7 +10,7 @@ export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
 // GET /api/creator/earnings - Get creator's earnings data
-export async function GET(request: NextRequest) {
+export async function GET(_request: NextRequest) {
   const requestId = nanoid(10);
 
   try {

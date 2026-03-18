@@ -10,7 +10,6 @@ import {
   virtualGifts,
   users,
   wallets,
-  walletTransactions,
   follows,
   subscriptions,
   shows,

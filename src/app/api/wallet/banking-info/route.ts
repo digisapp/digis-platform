@@ -11,7 +11,7 @@ export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
 // GET /api/wallet/banking-info - Get creator's banking info
-export async function GET(request: NextRequest) {
+export async function GET(_request: NextRequest) {
   try {
     const supabase = await createClient();
     const { data: { user }, error: authError } = await supabase.auth.getUser();

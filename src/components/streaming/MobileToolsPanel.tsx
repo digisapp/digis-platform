@@ -4,7 +4,7 @@ import { Target, BarChart2, Clock, Ticket, X, Plus } from 'lucide-react';
 
 interface MobileToolsPanelProps {
   showMobileTools: boolean;
-  onToggle: (show: boolean) => void;
+  onToggle: (_show: boolean) => void;
   goals: Array<{ isActive: boolean; isCompleted: boolean }>;
   activePoll: { isActive: boolean } | null;
   activeCountdown: { isActive: boolean } | null;

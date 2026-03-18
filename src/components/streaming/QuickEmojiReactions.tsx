@@ -4,7 +4,7 @@ import { useState, useCallback } from 'react';
 
 type QuickEmojiReactionsProps = {
   streamId: string;
-  onReaction: (emoji: string) => void;
+  onReaction: (_emoji: string) => void;
   disabled?: boolean;
   variant?: 'default' | 'compact';
 };
@@ -18,7 +18,7 @@ const REACTION_EMOJIS = [
   { emoji: '💀', label: 'Dead' },
 ];
 
-export function QuickEmojiReactions({ streamId, onReaction, disabled, variant = 'default' }: QuickEmojiReactionsProps) {
+export function QuickEmojiReactions({ streamId: _streamId, onReaction, disabled, variant = 'default' }: QuickEmojiReactionsProps) {
   const [cooldowns, setCooldowns] = useState<Record<string, boolean>>({});
   const [animating, setAnimating] = useState<Record<string, boolean>>({});
 

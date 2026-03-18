@@ -27,7 +27,7 @@ interface SearchResult {
 
 interface FeaturedCreatorsPanelProps {
   streamId: string;
-  onSpotlightChange?: (creator: FeaturedCreator | null) => void;
+  onSpotlightChange?: (_creator: FeaturedCreator | null) => void;
   isHost?: boolean; // Whether the current user is the stream host
   defaultExpanded?: boolean; // Initial expanded state (default: false for hosts)
 }

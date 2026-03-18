@@ -9,8 +9,8 @@ interface ItemDetailModalProps {
   isOpen: boolean;
   onClose: () => void;
   item: CloudItem | null;
-  onUpdate: (id: string, updates: { priceCoins?: number | null; status?: string }) => Promise<{ success: boolean; error?: string }>;
-  onDelete: (id: string) => Promise<{ success: boolean; error?: string }>;
+  onUpdate: (_id: string, _updates: { priceCoins?: number | null; status?: string }) => Promise<{ success: boolean; error?: string }>;
+  onDelete: (_id: string) => Promise<{ success: boolean; error?: string }>;
 }
 
 const statusOptions = [

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
-import { db, users, cloudItems, cloudLockedMessages, cloudLockedMessageItems, cloudLockedMessageRecipients, follows, walletTransactions } from '@/lib/data/system';
+import { db, users, cloudItems, cloudLockedMessages, cloudLockedMessageItems, cloudLockedMessageRecipients, follows } from '@/lib/data/system';
 import { eq, and, inArray, desc, sql } from 'drizzle-orm';
 import { NotificationService } from '@/lib/services/notification-service';
 

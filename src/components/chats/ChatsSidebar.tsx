@@ -5,7 +5,7 @@ import Image from 'next/image';
 import { useRouter, usePathname } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
-import { Search, X, Pin, Archive, MoreVertical, Users, MessageCircle, Inbox, Plus, Sparkles } from 'lucide-react';
+import { Search, X, Pin, Archive, MoreVertical, Users, MessageCircle, Inbox, Plus } from 'lucide-react';
 
 type SuggestedCreator = {
   id: string;

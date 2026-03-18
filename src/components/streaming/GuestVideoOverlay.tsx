@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { Mic, MicOff, Video, VideoOff, X, Maximize2, Minimize2 } from 'lucide-react';
-import { useParticipants, useTrackToggle, VideoTrack, AudioTrack } from '@livekit/components-react';
+import { useParticipants, VideoTrack, AudioTrack } from '@livekit/components-react';
 import { Track } from 'livekit-client';
 
 interface GuestVideoOverlayProps {

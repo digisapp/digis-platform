@@ -5,7 +5,7 @@ import { GiftSelector } from '@/components/streaming/GiftSelector';
 import { GuestInvitePopup } from '@/components/streaming/GuestInvitePopup';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { X, Coins, Video, Phone, Heart, Eye } from 'lucide-react';
-import type { StreamWithCreator, FeaturedCreator, CreatorCallSettings, ActiveGuest, GuestInviteData } from './types';
+import type { StreamWithCreator, FeaturedCreator, CreatorCallSettings, GuestInviteData } from './types';
 
 interface StreamViewerModalsProps {
   stream: StreamWithCreator;
@@ -15,19 +15,19 @@ interface StreamViewerModalsProps {
   // Gift panel
   showGiftPanel: boolean;
   onCloseGiftPanel: () => void;
-  onSendGift: (giftId: string, qty: number, recipientCreatorId?: string, recipientUsername?: string) => Promise<void>;
-  onSendTip: (amount: number, recipientCreatorId?: string, recipientUsername?: string, message?: string) => Promise<void>;
+  onSendGift: (_giftId: string, _qty: number, _recipientCreatorId?: string, _recipientUsername?: string) => Promise<void>;
+  onSendTip: (_amount: number, _recipientCreatorId?: string, _recipientUsername?: string, _message?: string) => Promise<void>;
   // Call request
   showCallRequestModal: boolean;
   onCloseCallModal: () => void;
   creatorCallSettings: CreatorCallSettings | null;
   isRequestingCall: boolean;
   callRequestError: string | null;
-  onRequestCall: (callType: 'video' | 'voice') => void;
+  onRequestCall: (_callType: 'video' | 'voice') => void;
   // Guest invite
   guestInvite: GuestInviteData | null;
   currentUserId: string | null;
-  onGuestAccepted: (inviteType: 'video' | 'voice') => void;
+  onGuestAccepted: (_inviteType: 'video' | 'voice') => void;
   onGuestDeclined: () => void;
   // Stream ended
   streamEnded: boolean;
@@ -40,7 +40,7 @@ export function StreamViewerModals({
   showGiftPanel, onCloseGiftPanel, onSendGift, onSendTip,
   showCallRequestModal, onCloseCallModal, creatorCallSettings,
   isRequestingCall, callRequestError, onRequestCall,
-  guestInvite, currentUserId, onGuestAccepted, onGuestDeclined,
+  guestInvite, currentUserId: _currentUserId, onGuestAccepted, onGuestDeclined,
   streamEnded, viewerCount, peakViewers,
 }: StreamViewerModalsProps) {
   const router = useRouter();

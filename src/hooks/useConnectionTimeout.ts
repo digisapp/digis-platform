@@ -6,7 +6,7 @@ type ConnectionStatus = 'connecting' | 'connected' | 'reconnecting' | 'disconnec
 
 interface UseConnectionTimeoutOptions {
   status: ConnectionStatus;
-  setStatus: (updater: (prev: ConnectionStatus) => ConnectionStatus) => void;
+  setStatus: (_updater: (_prev: ConnectionStatus) => ConnectionStatus) => void;
   timeoutMs?: number;
 }
 

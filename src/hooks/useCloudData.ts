@@ -118,7 +118,7 @@ export function useCloudData() {
 
     try {
       const formData = new FormData();
-      files.forEach((file, i) => {
+      files.forEach((file, _i) => {
         formData.append('files', file);
         // If video, client can provide duration (handled by caller)
       });

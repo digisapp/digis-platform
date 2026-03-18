@@ -7,7 +7,7 @@ import { EditVODModal } from '@/components/vods/EditVODModal';
 import { ClipCreatorModal } from '@/components/clips/ClipCreatorModal';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { GlassButton } from '@/components/ui/GlassButton';
-import { Play, Users, Eye, Clock, TrendingUp, Edit3, Scissors } from 'lucide-react';
+import { Play, Eye, Clock, TrendingUp, Edit3, Scissors } from 'lucide-react';
 import { useToastContext } from '@/context/ToastContext';
 
 interface VODData {
@@ -79,7 +79,7 @@ export default function VODPlayerPageClient() {
       } else {
         setError(data.error || 'VOD not found');
       }
-    } catch (err) {
+    } catch  {
       setError('Failed to load VOD');
     } finally {
       setLoading(false);
@@ -351,7 +351,7 @@ export default function VODPlayerPageClient() {
           vodDuration={vod.duration}
           thumbnailUrl={vod.thumbnailUrl}
           onClose={() => setShowClipModal(false)}
-          onSuccess={(clip) => {
+          onSuccess={(_clip) => {
             setShowClipModal(false);
             showSuccess('Clip created successfully! It will appear on your profile.');
           }}

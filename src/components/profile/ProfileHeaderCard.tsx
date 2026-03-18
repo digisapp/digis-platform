@@ -20,7 +20,7 @@ interface ProfileHeaderCardProps {
   onMessageClick: () => void;
   onTipClick: () => void;
   onAiTwinClick: () => void;
-  onRequireAuth: (action: string) => void;
+  onRequireAuth: (_action: string) => void;
 }
 
 export function ProfileHeaderCard({
@@ -30,14 +30,14 @@ export function ProfileHeaderCard({
   isSubscribed,
   subscriptionTier,
   currentUserId,
-  isAuthenticated,
+  isAuthenticated: _isAuthenticated,
   aiTwinEnabled,
   onFollowToggle,
   onSubscribeClick,
   onMessageClick,
   onTipClick,
   onAiTwinClick,
-  onRequireAuth,
+  onRequireAuth: _onRequireAuth,
 }: ProfileHeaderCardProps) {
   const { user } = profile;
   const isOwnProfile = currentUserId === user.id;

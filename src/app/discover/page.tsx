@@ -7,7 +7,7 @@ import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
 import { LoadingSpinner } from '@/components/ui';
 import {
-  Heart, MessageSquare, Share2, Eye, Play, Pause,
+  Heart, Share2, Eye, Play,
   Volume2, VolumeX, ChevronUp, ChevronDown, Lock,
   CheckCircle, ArrowLeft, Compass,
 } from 'lucide-react';
@@ -243,7 +243,7 @@ interface FeedCardProps {
   item: FeedItem;
   isActive: boolean;
   isAuthenticated: boolean;
-  onLikeToggle: (liked: boolean) => void;
+  onLikeToggle: (_liked: boolean) => void;
 }
 
 function FeedCard({ item, isActive, isAuthenticated, onLikeToggle }: FeedCardProps) {

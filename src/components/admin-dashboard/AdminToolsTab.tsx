@@ -7,19 +7,19 @@ import { UserCheck, Search, CheckCircle, XCircle, Wallet, Coins } from 'lucide-r
 interface AdminToolsTabProps {
   // Wallet tool
   walletSearch: string;
-  setWalletSearch: (v: string) => void;
+  setWalletSearch: (_v: string) => void;
   walletUser: { id: string; username: string | null; displayName: string | null; avatarUrl: string | null; balance: number; heldBalance: number } | null;
   walletNewBalance: string;
-  setWalletNewBalance: (v: string) => void;
+  setWalletNewBalance: (_v: string) => void;
   walletReason: string;
-  setWalletReason: (v: string) => void;
+  setWalletReason: (_v: string) => void;
   searchingWallet: boolean;
   settingWallet: boolean;
   onSearchWalletUser: () => void;
   onSetWalletBalance: () => void;
   // Username tool
   userSearch: string;
-  setUserSearch: (v: string) => void;
+  setUserSearch: (_v: string) => void;
   foundUser: {
     id: string;
     email: string;
@@ -29,7 +29,7 @@ interface AdminToolsTabProps {
     role: string;
   } | null;
   newUsername: string;
-  setNewUsername: (v: string) => void;
+  setNewUsername: (_v: string) => void;
   usernameCheck: { available: boolean; reserved: boolean; reason: string | null } | null;
   searchingUser: boolean;
   checkingUsername: boolean;

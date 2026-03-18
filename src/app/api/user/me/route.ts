@@ -82,7 +82,7 @@ export async function GET() {
         }),
         3000
       );
-    } catch (relationError) {
+    } catch  {
       // If profile relation fails, try without it
       console.warn('[USER_ME] Profile relation failed, retrying without profile');
 
@@ -93,7 +93,7 @@ export async function GET() {
           }),
           2000
         );
-      } catch (dbError) {
+      } catch  {
         console.error('[USER_ME] Database query failed');
         // Fall through to fallback below
       }

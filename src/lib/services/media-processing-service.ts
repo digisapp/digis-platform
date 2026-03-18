@@ -69,7 +69,7 @@ export async function processVideo(fileBuffer: Buffer, extension: string): Promi
           posterPath,
         ],
         { timeout: 30000 },
-        (error, _stdout, stderr) => {
+        (error, _stdout, _stderr) => {
           if (error) {
             // If 1s fails (video too short), try 0s
             execFile(

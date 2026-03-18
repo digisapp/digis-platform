@@ -14,21 +14,21 @@ interface UseChatActionsParams {
   recipientIsCreator: boolean;
   costPerMessage: number | null;
   hasAcknowledgedCharge: boolean;
-  setHasAcknowledgedCharge: (v: boolean) => void;
+  setHasAcknowledgedCharge: (_v: boolean) => void;
   userBalance: number | null;
   setMessages: React.Dispatch<React.SetStateAction<any[]>>;
   setPendingMessages: React.Dispatch<React.SetStateAction<Map<string, { content: string; timestamp: Date }>>>;
   fetchMessages: () => Promise<void>;
   fetchUserBalance: () => Promise<void>;
-  scrollToBottom: (force?: boolean) => void;
-  sendTypingIndicator: (isTyping: boolean) => Promise<void>;
+  scrollToBottom: (_force?: boolean) => void;
+  sendTypingIndicator: (_isTyping: boolean) => Promise<void>;
 }
 
 export function useChatActions({
   conversationId,
   conversation,
   currentUserId,
-  currentUserRole,
+  currentUserRole: _currentUserRole,
   currentUserIsAdmin,
   recipientIsCreator,
   costPerMessage,

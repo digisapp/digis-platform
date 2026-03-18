@@ -3,7 +3,7 @@ import { StreamService } from '@/lib/streams/stream-service';
 import { createClient } from '@/lib/supabase/server';
 import { db } from '@/lib/data/system';
 import { streamGoals, creatorSettings, shows, subscriptionTiers } from '@/lib/data/system';
-import { eq, and, gt } from 'drizzle-orm';
+import { eq, and } from 'drizzle-orm';
 
 // Force Node.js runtime for Drizzle ORM
 export const runtime = 'nodejs';

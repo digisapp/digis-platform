@@ -14,8 +14,8 @@ interface VoiceCallUIProps {
   onEndCall: () => void;
   isFan: boolean;
   userBalance: number;
-  onSendTip: (amount: number) => void;
-  onSendGift: (gift: VirtualGift) => void;
+  onSendTip: (_amount: number) => void;
+  onSendGift: (_gift: VirtualGift) => void;
   gifts: VirtualGift[];
   tipSending: boolean;
   onBuyCoins: () => void;

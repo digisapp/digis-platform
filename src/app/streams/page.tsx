@@ -6,7 +6,7 @@ import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { MobileHeader } from '@/components/layout/MobileHeader';
 import { Search, Coins, Lock, Unlock, Clock, Play, Calendar, Film, Eye } from 'lucide-react';
 import Image from 'next/image';
-import { STREAM_CATEGORIES, getCategoryById, getCategoryIcon } from '@/lib/constants/stream-categories';
+import { getCategoryById, getCategoryIcon } from '@/lib/constants/stream-categories';
 
 type TabType = 'live' | 'schedule' | 'replays';
 

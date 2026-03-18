@@ -8,9 +8,9 @@ type ModerationToolsProps = {
   message: StreamMessage;
   streamId: string;
   onMessageDeleted?: () => void;
-  onPinMessage?: (message: StreamMessage) => void;
+  onPinMessage?: (_message: StreamMessage) => void;
   isPinned?: boolean;
-  onShoutout?: (username: string) => void;
+  onShoutout?: (_username: string) => void;
 };
 
 export function ModerationTools({ message, streamId, onMessageDeleted, onPinMessage, isPinned, onShoutout }: ModerationToolsProps) {
@@ -33,7 +33,7 @@ export function ModerationTools({ message, streamId, onMessageDeleted, onPinMess
       } else {
         showError('Failed to delete message');
       }
-    } catch (error) {
+    } catch  {
       showError('Failed to delete message');
     } finally {
       setIsProcessing(false);
@@ -60,7 +60,7 @@ export function ModerationTools({ message, streamId, onMessageDeleted, onPinMess
       } else {
         showError('Failed to timeout user');
       }
-    } catch (error) {
+    } catch  {
       showError('Failed to timeout user');
     } finally {
       setIsProcessing(false);
@@ -86,7 +86,7 @@ export function ModerationTools({ message, streamId, onMessageDeleted, onPinMess
       } else {
         showError('Failed to ban user');
       }
-    } catch (error) {
+    } catch  {
       showError('Failed to ban user');
     } finally {
       setIsProcessing(false);
@@ -114,7 +114,7 @@ export function ModerationTools({ message, streamId, onMessageDeleted, onPinMess
         const data = await response.json();
         showError(data.error || 'Failed to block user');
       }
-    } catch (error) {
+    } catch  {
       showError('Failed to block user');
     } finally {
       setIsProcessing(false);
@@ -139,7 +139,7 @@ export function ModerationTools({ message, streamId, onMessageDeleted, onPinMess
       } else {
         showError('Failed to send shoutout');
       }
-    } catch (error) {
+    } catch  {
       showError('Failed to send shoutout');
     } finally {
       setIsProcessing(false);

@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { StreamService } from '@/lib/streams/stream-service';
 import { AblyRealtimeService } from '@/lib/streams/ably-realtime-service';
 import { createClient } from '@/lib/supabase/server';
-import { addStreamViewer, getStreamViewerCount } from '@/lib/cache/hot-data-cache';
+import { addStreamViewer } from '@/lib/cache/hot-data-cache';
 
 // Force Node.js runtime for Drizzle ORM
 export const runtime = 'nodejs';

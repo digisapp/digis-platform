@@ -7,7 +7,7 @@ import { nanoid } from 'nanoid';
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
-export async function GET(request: NextRequest) {
+export async function GET(_request: NextRequest) {
   const requestId = nanoid(10);
 
   try {

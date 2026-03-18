@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
-import { GlassCard, GlassButton, WalletWidget, LoadingSpinner } from '@/components/ui';
+import { GlassCard, GlassButton, LoadingSpinner } from '@/components/ui';
 import { MobileHeader } from '@/components/layout/MobileHeader';
 import { BuyCoinsModal } from '@/components/wallet/BuyCoinsModal';
 import { BankingInfoModal } from '@/components/wallet/BankingInfoModal';
@@ -613,7 +613,7 @@ export default function WalletPage() {
                             const error = await response.json();
                             showError(`Error: ${error.error}`);
                           }
-                        } catch (err) {
+                        } catch  {
                           showError('Failed to request payout');
                         }
                       }

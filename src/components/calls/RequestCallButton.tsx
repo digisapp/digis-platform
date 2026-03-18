@@ -3,8 +3,8 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { createPortal } from 'react-dom';
-import { GlassButton, LoadingSpinner } from '@/components/ui';
-import { Phone, Clock, DollarSign, Video, X, Calendar } from 'lucide-react';
+import { LoadingSpinner } from '@/components/ui';
+import { Phone, Clock, Video, X, Calendar } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 import { SignUpPromptModal } from '@/components/auth/SignUpPromptModal';
 import { getAblyClient } from '@/lib/ably/client';
@@ -256,7 +256,7 @@ export function RequestCallButton({
       } else {
         setError(data.error || 'Failed to request call');
       }
-    } catch (err) {
+    } catch  {
       setError('Failed to request call');
     } finally {
       setRequesting(false);

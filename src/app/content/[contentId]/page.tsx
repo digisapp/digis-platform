@@ -54,7 +54,7 @@ export default function ContentDetailPage() {
       } else {
         setError(data.error || 'Failed to load content');
       }
-    } catch (err) {
+    } catch  {
       setError('Failed to load content');
     } finally {
       setLoading(false);
@@ -81,7 +81,7 @@ export default function ContentDetailPage() {
       } else {
         setError(data.error || 'Failed to purchase content');
       }
-    } catch (err) {
+    } catch  {
       setError('Failed to purchase content');
     } finally {
       setPurchasing(false);

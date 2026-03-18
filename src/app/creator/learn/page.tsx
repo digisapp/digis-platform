@@ -5,7 +5,7 @@ import {
   GraduationCap, Video, Target, BarChart2, Clock, Mic, DollarSign,
   MessageSquare, Sparkles, Gift, Ticket, Radio, Camera,
   ChevronDown, ChevronUp, Play, CheckCircle, Star, Phone,
-  Upload, Image, Coins, PlayCircle, PauseCircle, Volume2, VolumeX,
+  Image, Coins, PlayCircle, PauseCircle, Volume2, VolumeX,
   Maximize, RotateCcw, CheckCircle2
 } from 'lucide-react';
 

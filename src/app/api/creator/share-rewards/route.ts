@@ -2,14 +2,13 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { db } from '@/lib/data/system';
 import { socialShareSubmissions, rewardConfig } from '@/db/schema/rewards';
-import { users } from '@/db/schema/users';
 import { eq, and, desc } from 'drizzle-orm';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
 // GET /api/creator/share-rewards - Get creator's submissions and available rewards
-export async function GET(request: NextRequest) {
+export async function GET(_request: NextRequest) {
   try {
     const supabase = await createClient();
     const { data: { user }, error: authError } = await supabase.auth.getUser();

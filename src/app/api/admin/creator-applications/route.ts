@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/data/system';
-import { users, creatorApplications, profiles } from '@/db/schema';
 import { sql } from 'drizzle-orm';
 import { withAdmin } from '@/lib/auth/withAdmin';
 

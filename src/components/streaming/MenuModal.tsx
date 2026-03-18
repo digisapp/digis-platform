@@ -17,7 +17,7 @@ interface MenuModalProps {
   creatorUsername: string;
   userBalance: number;
   menuItems: MenuItem[];
-  onPurchase: (price: number, note: string | undefined, item: { id: string; label: string; price: number; fulfillmentType?: string }) => Promise<void>;
+  onPurchase: (_price: number, _note: string | undefined, _item: { id: string; label: string; price: number; fulfillmentType?: string }) => Promise<void>;
   onClose: () => void;
   onBuyCoins: () => void;
 }

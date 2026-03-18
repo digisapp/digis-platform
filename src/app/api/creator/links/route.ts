@@ -2,13 +2,13 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { db } from '@/db';
 import { creatorLinks, users } from '@/db/schema';
-import { eq, and, asc, desc } from 'drizzle-orm';
+import { eq, asc } from 'drizzle-orm';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
 // GET /api/creator/links - Get creator's links
-export async function GET(request: NextRequest) {
+export async function GET(_request: NextRequest) {
   try {
     const supabase = await createClient();
     const { data: { user }, error: authError } = await supabase.auth.getUser();

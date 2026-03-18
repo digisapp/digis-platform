@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { GlassCard, GlassButton, LoadingSpinner } from '@/components/ui';
 import { useToastContext } from '@/context/ToastContext';
 import { MobileHeader } from '@/components/layout/MobileHeader';
-import { Save, Plus, Trash2 } from 'lucide-react';
+import { Save, Plus } from 'lucide-react';
 
 const DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
@@ -179,7 +179,7 @@ function DayRow({
   dayIndex: number;
   initial?: Availability;
   saving: boolean;
-  onSave: (day: number, start: string, end: string, slot: number, active: boolean) => void;
+  onSave: (_day: number, _start: string, _end: string, _slot: number, _active: boolean) => void;
 }) {
   const [isActive, setIsActive] = useState(initial?.isActive ?? false);
   const [startTime, setStartTime] = useState(initial?.startTime ?? '09:00');

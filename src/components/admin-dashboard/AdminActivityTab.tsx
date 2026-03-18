@@ -10,7 +10,7 @@ interface AdminActivityTabProps {
   loading: boolean;
   creatorActivity: CreatorActivityData | null;
   activityFilter: ActivityFilter;
-  setActivityFilter: (filter: ActivityFilter) => void;
+  setActivityFilter: (_filter: ActivityFilter) => void;
   onRetry: () => void;
 }
 

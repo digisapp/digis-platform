@@ -23,7 +23,7 @@ interface ChatMessage {
 
 interface OverlayChatProps {
   messages: ChatMessage[];
-  onSendMessage: (content: string) => void;
+  onSendMessage: (_content: string) => void;
   currentUserId?: string;
   isAuthenticated: boolean;
   disabled?: boolean;
@@ -33,10 +33,10 @@ interface OverlayChatProps {
 export default function OverlayChat({
   messages,
   onSendMessage,
-  currentUserId,
+  currentUserId: _currentUserId,
   isAuthenticated,
   disabled,
-  streamId,
+  streamId: _streamId,
 }: OverlayChatProps) {
   const [visibleMessages, setVisibleMessages] = useState<(ChatMessage & { fadeOut: boolean })[]>([]);
   const [messageInput, setMessageInput] = useState('');

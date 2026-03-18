@@ -7,7 +7,7 @@ interface UseViewerHeartbeatOptions {
   isLive: boolean;
   streamEnded: boolean;
   isAuthenticated: boolean;
-  onViewerCount?: (currentViewers: number, peakViewers: number) => void;
+  onViewerCount?: (_currentViewers: number, _peakViewers: number) => void;
   intervalMs?: number;
 }
 

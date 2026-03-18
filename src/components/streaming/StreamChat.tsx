@@ -2,9 +2,9 @@
 
 import { useState, useEffect, useRef, memo, useCallback } from 'react';
 import type { StreamMessage } from '@/db/schema';
-import { Send, Smile, Gift, Pin, X, Ticket, Coins, List, Trash2 } from 'lucide-react';
+import { Send, Smile, Pin, X, Ticket, Coins, List, Trash2 } from 'lucide-react';
 import { ModerationTools } from './ModerationTools';
-import { getTierColor, getTierConfig, type SpendTier } from '@/lib/tiers/spend-tiers';
+import { getTierConfig, type SpendTier } from '@/lib/tiers/spend-tiers';
 
 type MenuItem = {
   id: string;
@@ -17,12 +17,12 @@ type MenuItem = {
 type StreamChatProps = {
   streamId: string;
   messages: StreamMessage[];
-  onSendMessage?: (message: string) => void;
+  onSendMessage?: (_message: string) => void;
   isCreator?: boolean;
   currentUserId?: string;
   onMessageDeleted?: () => void;
   pinnedMessage?: StreamMessage | null;
-  onPinMessage?: (message: StreamMessage | null) => void;
+  onPinMessage?: (_message: StreamMessage | null) => void;
   menuEnabled?: boolean;
   menuItems?: MenuItem[];
   onMenuClick?: () => void;
@@ -72,7 +72,7 @@ type ChatMessageProps = {
   isCreator: boolean;
   currentUserId?: string;
   onMessageDeleted?: () => void;
-  onPinMessage?: (message: StreamMessage | null) => void;
+  onPinMessage?: (_message: StreamMessage | null) => void;
   isPinned: boolean;
 };
 

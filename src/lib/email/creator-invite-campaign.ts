@@ -598,7 +598,7 @@ export async function sendExaModelsInvite(recipient: InviteRecipient): Promise<{
 export async function sendExaModelsBatchInvites(
   recipients: InviteRecipient[],
   config: Partial<BatchConfig> = {},
-  onProgress?: (sent: number, total: number, failed: number) => void
+  onProgress?: (_sent: number, _total: number, _failed: number) => void
 ): Promise<{
   sent: number;
   failed: number;
@@ -704,7 +704,7 @@ export async function sendCreatorInvite(recipient: InviteRecipient): Promise<{
 export async function sendBatchInvites(
   recipients: InviteRecipient[],
   config: Partial<BatchConfig> = {},
-  onProgress?: (sent: number, total: number, failed: number) => void
+  onProgress?: (_sent: number, _total: number, _failed: number) => void
 ): Promise<{
   sent: number;
   failed: number;

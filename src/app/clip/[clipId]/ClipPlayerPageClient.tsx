@@ -73,7 +73,7 @@ export default function ClipPlayerPageClient() {
       } else {
         setError(data.error || 'Clip not found');
       }
-    } catch (err) {
+    } catch  {
       setError('Failed to load clip');
     } finally {
       setLoading(false);
@@ -116,7 +116,7 @@ export default function ClipPlayerPageClient() {
         setLikeCount(prev => wasLiked ? prev + 1 : prev - 1);
         showError('Failed to update like');
       }
-    } catch (err) {
+    } catch  {
       // Revert to original state
       setIsLiked(wasLiked);
       setLikeCount(prev => wasLiked ? prev + 1 : prev - 1);
@@ -133,7 +133,7 @@ export default function ClipPlayerPageClient() {
           title: clip?.title || 'Check out this clip',
           url: clipUrl,
         });
-      } catch (err) {
+      } catch  {
         // User cancelled or error
         return;
       }
@@ -172,7 +172,7 @@ export default function ClipPlayerPageClient() {
       URL.revokeObjectURL(url);
 
       showSuccess('Download started!');
-    } catch (err) {
+    } catch  {
       showError('Failed to download clip');
     } finally {
       setIsDownloading(false);

@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useToastContext } from '@/context/ToastContext';
-import { ArrowLeft, Users, DollarSign, Send, Image, Video, Lock, Eye, TrendingUp } from 'lucide-react';
+import { DollarSign, Send, Image, Video, Lock, Eye, TrendingUp } from 'lucide-react';
 
 interface SubscriberStats {
   totalSubscribers: number;

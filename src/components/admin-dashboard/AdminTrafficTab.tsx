@@ -8,7 +8,7 @@ interface AdminTrafficTabProps {
   loading: boolean;
   traffic: TrafficData | null;
   trafficRange: TrafficRange;
-  setTrafficRange: (range: TrafficRange) => void;
+  setTrafficRange: (_range: TrafficRange) => void;
   onRetry: () => void;
 }
 

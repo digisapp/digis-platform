@@ -180,7 +180,7 @@ export function useGoLiveData() {
         router.push('/dashboard');
         return;
       }
-    } catch (err) {
+    } catch  {
       setError('Failed to verify creator status');
     } finally {
       setLoading(false);
@@ -319,7 +319,7 @@ export function useGoLiveData() {
         setError(result.error || 'Failed to start stream');
         setShowParticles(false);
       }
-    } catch (err) {
+    } catch  {
       setError('Failed to start stream. Please try again.');
       setShowParticles(false);
     } finally {

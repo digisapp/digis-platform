@@ -1,10 +1,10 @@
 import { db } from '@/lib/data/system';
-import { wallets, walletTransactions, spendHolds, users, fanCreatorSpend } from '@/lib/data/system';
+import { wallets, walletTransactions, spendHolds, users } from '@/lib/data/system';
 import { eq, and, sql } from 'drizzle-orm';
 import { v4 as uuidv4 } from 'uuid';
 import * as Sentry from '@sentry/nextjs';
 import { calculateTier } from '@/lib/tiers/spend-tiers';
-import { getCachedBalance, setCachedBalance, invalidateBalanceCache, withMiniLock } from '@/lib/cache';
+import { invalidateBalanceCache, withMiniLock } from '@/lib/cache';
 import { FinancialAuditService, type FinancialEventType } from '@/lib/services/financial-audit-service';
 
 /**

@@ -7,17 +7,17 @@ import type { ChatMessage } from './types';
 interface ControlChatProps {
   messages: ChatMessage[];
   chatMessage: string;
-  setChatMessage: (msg: string) => void;
+  setChatMessage: (_msg: string) => void;
   isSending: boolean;
   isAutoScroll: boolean;
-  setIsAutoScroll: (v: boolean) => void;
+  setIsAutoScroll: (_v: boolean) => void;
   currentUserId?: string;
   messagesContainerRef: RefObject<HTMLDivElement | null>;
   messagesEndRef: RefObject<HTMLDivElement | null>;
   chatInputRef: RefObject<HTMLInputElement | null>;
   onScroll: () => void;
-  onSendMessage: (e: React.FormEvent) => void;
-  onSelectUser: (user: { id: string; username: string }) => void;
+  onSendMessage: (_e: React.FormEvent) => void;
+  onSelectUser: (_user: { id: string; username: string }) => void;
 }
 
 export function ControlChat({

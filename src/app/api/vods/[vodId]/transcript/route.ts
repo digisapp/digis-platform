@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { db } from '@/lib/data/system';
 import { vods, vodTranscripts } from '@/db/schema';
-import { eq, and } from 'drizzle-orm';
+import { eq } from 'drizzle-orm';
 import { hasVODAccess } from '@/lib/vods/vod-access';
 
 export const runtime = 'nodejs';

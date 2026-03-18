@@ -5,7 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { LiveKitRoom, RoomAudioRenderer, useConnectionState, useRemoteParticipants } from '@livekit/components-react';
 import '@livekit/components-styles/themes/default';
 import { ConnectionState, VideoPresets } from 'livekit-client';
-import { PhoneOff, Loader2, Video } from 'lucide-react';
+import { PhoneOff, Video } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { BuyCoinsModal } from '@/components/wallet/BuyCoinsModal';
 import { CallErrorBoundary } from '@/components/error-boundaries';

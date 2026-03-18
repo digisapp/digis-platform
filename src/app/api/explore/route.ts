@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/data/system';
 import { users, creatorCategories, streams, cloudItems } from '@/lib/data/system';
-import { eq, ilike, or, desc, sql, and, gte } from 'drizzle-orm';
+import { eq, ilike, or, sql, and, gte } from 'drizzle-orm';
 import { success, degraded } from '@/types/api';
 import { nanoid } from 'nanoid';
 import { createClient } from '@/lib/supabase/server';
@@ -254,7 +254,7 @@ export async function GET(request: NextRequest) {
     // Pagination in JS since we sorted in JS
     const hasMore = creators.length > offset + limit;
     // Remove internal fields from response
-    const paginatedCreators = creators.slice(offset, offset + limit).map(({ discoveryScore, lastSeenAt, ...c }) => ({
+    const paginatedCreators = creators.slice(offset, offset + limit).map(({ discoveryScore: _discoveryScore, lastSeenAt: _lastSeenAt, ...c }) => ({
       ...c,
       // Truncate bio for card display
       bio: c.bio ? (c.bio.length > 80 ? c.bio.slice(0, 80) + '…' : c.bio) : null,

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useRef, memo } from 'react';
+import { useEffect, useState, memo } from 'react';
 import type { VirtualGift, StreamGift } from '@/db/schema';
 
 type GiftFeedItemProps = {
@@ -12,7 +12,7 @@ type GiftFeedItemProps = {
 };
 
 // Individual gift item in the feed - memoized to prevent re-renders when sibling gifts change
-const GiftFeedItem = memo(function GiftFeedItem({ gift, streamGift, index, style, onComplete }: GiftFeedItemProps) {
+const GiftFeedItem = memo(function GiftFeedItem({ gift, streamGift, index: _index, style, onComplete }: GiftFeedItemProps) {
   const [state, setState] = useState<'entering' | 'visible' | 'exiting'>('entering');
   const totalValue = gift.coinCost * (streamGift.quantity || 1);
 
@@ -130,7 +130,7 @@ const GiftFeedItem = memo(function GiftFeedItem({ gift, streamGift, index, style
 // Container to manage multiple gift animations as a feed
 type GiftAnimationManagerProps = {
   gifts: Array<{ gift: VirtualGift; streamGift: StreamGift }>;
-  onRemove: (index: number) => void;
+  onRemove: (_index: number) => void;
 };
 
 const MAX_VISIBLE_GIFTS = 4;
@@ -185,7 +185,7 @@ type GiftAnimationProps = {
   onComplete: () => void;
 };
 
-export function GiftAnimation({ gift, streamGift, onComplete }: GiftAnimationProps) {
+export function GiftAnimation({ gift: _gift, streamGift: _streamGift, onComplete }: GiftAnimationProps) {
   useEffect(() => {
     const timer = setTimeout(onComplete, 3000);
     return () => clearTimeout(timer);

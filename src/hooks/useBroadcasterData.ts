@@ -9,7 +9,7 @@ export const MAX_CHAT_MESSAGES = 200;
 
 export interface UseBroadcasterDataParams {
   streamId: string;
-  showError: (msg: string) => void;
+  showError: (_msg: string) => void;
 }
 
 export function useBroadcasterData({ streamId, showError }: UseBroadcasterDataParams) {
@@ -100,7 +100,7 @@ export function useBroadcasterData({ streamId, showError }: UseBroadcasterDataPa
       } else {
         setError(data.error || 'Stream not found');
       }
-    } catch (err) {
+    } catch  {
       setError('Failed to load stream');
     } finally {
       setLoading(false);

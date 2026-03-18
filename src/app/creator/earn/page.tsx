@@ -12,7 +12,6 @@ import {
   Copy,
   Check,
   Share2,
-  Calendar,
 } from 'lucide-react';
 
 interface ReferralStats {
@@ -108,7 +107,7 @@ export default function EarnPage() {
           text: 'Sign up as a creator on Digis and start earning!',
           url: referralLink,
         });
-      } catch (err) {
+      } catch  {
         copyReferralLink();
       }
     } else {

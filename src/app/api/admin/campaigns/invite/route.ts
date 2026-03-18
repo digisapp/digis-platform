@@ -1,15 +1,15 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { db } from '@/db';
 import { creatorInvites, users, creatorSettings, aiTwinSettings, profiles } from '@/db/schema';
 import { eq, and, isNull, inArray } from 'drizzle-orm';
-import { sendBatchInvites, sendCreatorInvite, testInviteEmail, sendExaModelsBatchInvites, sendExaModelsInvite, testExaModelsInviteEmail } from '@/lib/email/creator-invite-campaign';
+import { sendBatchInvites, sendCreatorInvite, testInviteEmail, sendExaModelsBatchInvites, testExaModelsInviteEmail } from '@/lib/email/creator-invite-campaign';
 import { testCreatorEarningsEmail } from '@/lib/email/creator-earnings';
 import { supabaseAdmin } from '@/lib/supabase/admin';
 import { nanoid } from 'nanoid';
 import { withAdmin } from '@/lib/auth/withAdmin';
 
 // POST: Send invite campaign
-export const POST = withAdmin(async ({ user, request }) => {
+export const POST = withAdmin(async ({ user: _user, request }) => {
   try {
     const body = await request.json();
     const { action, recipients, config, testEmail } = body;
@@ -314,7 +314,7 @@ export const POST = withAdmin(async ({ user, request }) => {
 });
 
 // GET: Get campaign stats / pending invites
-export const GET = withAdmin(async ({ user, request }) => {
+export const GET = withAdmin(async ({ user: _user, request: _request }) => {
   try {
     // Get all invites
     const allInvites = await db.query.creatorInvites.findMany({

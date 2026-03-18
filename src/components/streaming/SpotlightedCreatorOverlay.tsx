@@ -17,7 +17,7 @@ interface SpotlightedCreator {
 interface SpotlightedCreatorOverlayProps {
   streamId: string;
   isHost?: boolean;
-  onTipSent?: (amount: number) => void;
+  onTipSent?: (_amount: number) => void;
 }
 
 const TIP_AMOUNTS = [10, 25, 50, 100, 500];

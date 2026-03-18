@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { GlassCard, GlassButton, LoadingSpinner } from '@/components/ui';
 import { useToastContext } from '@/context/ToastContext';
-import { Plus, Edit, Trash2, Eye, ShoppingCart, Coins, GripVertical } from 'lucide-react';
+import { Plus, Edit, Trash2, Eye, ShoppingCart, Coins } from 'lucide-react';
 import { MobileHeader } from '@/components/layout/MobileHeader';
 
 interface CollectionItem {

@@ -10,7 +10,7 @@
  * - Follow blocker
  */
 
-import { db, userBlocks, users } from '@/lib/data/system';
+import { db, userBlocks } from '@/lib/data/system';
 import { eq, and, or } from 'drizzle-orm';
 
 export class BlockService {

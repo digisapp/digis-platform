@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useCallback, useRef } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { getAblyClient } from '@/lib/ably/client';
 import type Ably from 'ably';
 
@@ -169,30 +169,30 @@ interface SlowModeChangeEvent {
 interface UseStreamChatOptions {
   streamId: string;
   isHost?: boolean; // If true, don't count this user in viewer count
-  onMessage?: (message: ChatMessage) => void;
-  onTip?: (tip: TipEvent) => void;
-  onGift?: (gift: GiftEvent) => void;
-  onReaction?: (reaction: ReactionEvent) => void;
-  onViewerCount?: (count: { currentViewers: number; peakViewers: number }) => void;
+  onMessage?: (_message: ChatMessage) => void;
+  onTip?: (_tip: TipEvent) => void;
+  onGift?: (_gift: GiftEvent) => void;
+  onReaction?: (_reaction: ReactionEvent) => void;
+  onViewerCount?: (_count: { currentViewers: number; peakViewers: number }) => void;
   onViewerJoined?: () => void;
   onStreamEnded?: () => void;
-  onGoalUpdate?: (update: GoalUpdate) => void;
-  onSpotlightChanged?: (event: SpotlightChangedEvent) => void;
-  onTicketedAnnouncement?: (event: TicketedAnnouncementEvent) => void;
-  onVipModeChange?: (event: VipModeChangeEvent) => void;
-  onMenuToggle?: (event: MenuToggleEvent) => void;
-  onPollUpdate?: (event: PollUpdateEvent) => void;
-  onCountdownUpdate?: (event: CountdownUpdateEvent) => void;
+  onGoalUpdate?: (_update: GoalUpdate) => void;
+  onSpotlightChanged?: (_event: SpotlightChangedEvent) => void;
+  onTicketedAnnouncement?: (_event: TicketedAnnouncementEvent) => void;
+  onVipModeChange?: (_event: VipModeChangeEvent) => void;
+  onMenuToggle?: (_event: MenuToggleEvent) => void;
+  onPollUpdate?: (_event: PollUpdateEvent) => void;
+  onCountdownUpdate?: (_event: CountdownUpdateEvent) => void;
   // Guest call-in events
-  onGuestRequest?: (event: GuestRequestEvent) => void;
-  onGuestAccepted?: (event: GuestAcceptedEvent) => void;
-  onGuestRejected?: (event: GuestRejectedEvent) => void;
-  onGuestJoined?: (event: GuestJoinedEvent) => void;
-  onGuestRemoved?: (event: GuestRemovedEvent) => void;
-  onGuestRequestsToggle?: (event: GuestRequestsToggleEvent) => void;
-  onGuestInvite?: (event: GuestInviteEvent) => void;
-  onGuestRequestExpired?: (event: GuestRequestExpiredEvent) => void;
-  onSlowModeChange?: (event: SlowModeChangeEvent) => void;
+  onGuestRequest?: (_event: GuestRequestEvent) => void;
+  onGuestAccepted?: (_event: GuestAcceptedEvent) => void;
+  onGuestRejected?: (_event: GuestRejectedEvent) => void;
+  onGuestJoined?: (_event: GuestJoinedEvent) => void;
+  onGuestRemoved?: (_event: GuestRemovedEvent) => void;
+  onGuestRequestsToggle?: (_event: GuestRequestsToggleEvent) => void;
+  onGuestInvite?: (_event: GuestInviteEvent) => void;
+  onGuestRequestExpired?: (_event: GuestRequestExpiredEvent) => void;
+  onSlowModeChange?: (_event: SlowModeChangeEvent) => void;
 }
 
 export type ConnectionState = 'connecting' | 'connected' | 'disconnected' | 'reconnecting' | 'failed';
@@ -303,7 +303,7 @@ export function useStreamChat({
     let tipsChannel: Ably.RealtimeChannel | null = null;
     let presenceChannel: Ably.RealtimeChannel | null = null;
     // Store reference to the connection state handler for proper cleanup
-    let connectionStateHandler: ((stateChange: Ably.ConnectionStateChange) => void) | null = null;
+    let connectionStateHandler: ((_stateChange: Ably.ConnectionStateChange) => void) | null = null;
 
     const setupChannels = async () => {
       // Helper to attach a channel with a timeout

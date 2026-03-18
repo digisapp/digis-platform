@@ -13,7 +13,7 @@ export type Alert =
 
 interface AlertManagerProps {
   alerts: Alert[];
-  onAlertComplete: (id: string) => void;
+  onAlertComplete: (_id: string) => void;
 }
 
 // Get the coin value of an alert for prioritization

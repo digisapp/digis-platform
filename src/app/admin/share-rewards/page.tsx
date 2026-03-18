@@ -12,7 +12,6 @@ import {
   XCircle,
   Clock,
   ExternalLink,
-  Instagram,
   Coins,
   ArrowLeft,
   Eye,
@@ -100,7 +99,7 @@ export default function AdminShareRewardsPage() {
       } else {
         showToast(data.error || 'Failed to approve', 'error');
       }
-    } catch (error) {
+    } catch  {
       showToast('Failed to approve', 'error');
     } finally {
       setProcessing(false);
@@ -130,7 +129,7 @@ export default function AdminShareRewardsPage() {
       } else {
         showToast(data.error || 'Failed to reject', 'error');
       }
-    } catch (error) {
+    } catch  {
       showToast('Failed to reject', 'error');
     } finally {
       setProcessing(false);

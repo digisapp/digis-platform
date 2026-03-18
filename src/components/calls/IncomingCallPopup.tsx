@@ -1,9 +1,9 @@
 'use client';
 
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
-import { Phone, PhoneOff, Video, Mic, X, ChevronDown } from 'lucide-react';
+import { Phone, PhoneOff, Video, Mic } from 'lucide-react';
 import { getAblyClient } from '@/lib/ably/client';
 import type Ably from 'ably';
 import { useToastContext } from '@/context/ToastContext';
@@ -179,7 +179,7 @@ export function IncomingCallPopup() {
         const data = await response.json();
         showError(data.error || 'Failed to accept call');
       }
-    } catch (err) {
+    } catch  {
       showError('Failed to accept call');
     } finally {
       setProcessingId(null);
@@ -208,7 +208,7 @@ export function IncomingCallPopup() {
         const data = await response.json();
         showError(data.error || 'Failed to reject call');
       }
-    } catch (err) {
+    } catch  {
       showError('Failed to reject call');
     } finally {
       setProcessingId(null);

@@ -4,9 +4,9 @@
 declare global {
   interface Window {
     analytics?: {
-      track: (event: string, properties?: Record<string, any>) => void;
-      identify: (userId: string, traits?: Record<string, any>) => void;
-      page: (name?: string, properties?: Record<string, any>) => void;
+      track: (_event: string, _properties?: Record<string, any>) => void;
+      identify: (_userId: string, _traits?: Record<string, any>) => void;
+      page: (_name?: string, _properties?: Record<string, any>) => void;
     };
   }
 }

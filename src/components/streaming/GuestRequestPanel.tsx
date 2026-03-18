@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { Video, Mic, UserPlus, X, Check, Users, ChevronDown, ChevronUp } from 'lucide-react';
-import { GlassButton } from '@/components/ui/GlassButton';
 
 interface GuestRequest {
   id: string;
@@ -17,7 +16,7 @@ interface GuestRequest {
 
 interface GuestRequestPanelProps {
   streamId: string;
-  onGuestAccepted?: (guest: GuestRequest) => void;
+  onGuestAccepted?: (_guest: GuestRequest) => void;
   onGuestRemoved?: () => void;
 }
 

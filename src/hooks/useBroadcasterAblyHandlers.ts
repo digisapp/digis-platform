@@ -3,7 +3,7 @@
 import { useEffect } from 'react';
 import { useStreamChat } from '@/hooks/useStreamChat';
 import { MAX_CHAT_MESSAGES } from '@/hooks/useBroadcasterData';
-import type { StreamMessage, StreamGoal } from '@/db/schema';
+import type { StreamMessage } from '@/db/schema';
 
 interface FloatingGift {
   id: string;
@@ -36,7 +36,7 @@ interface UseBroadcasterAblyHandlersParams {
     isActive: boolean;
   } | null>>;
   setVipModeActive: React.Dispatch<React.SetStateAction<boolean>>;
-  setAnnouncedTicketedStream: (s: {
+  setAnnouncedTicketedStream: (_s: {
     id: string;
     title: string;
     ticketPrice: number;
@@ -53,8 +53,8 @@ interface UseBroadcasterAblyHandlersParams {
   fetchLeaderboard: () => Promise<void>;
   fetchPoll: () => Promise<void>;
   fetchCountdown: () => Promise<void>;
-  addCompletedGoal: (goal: { id: string; title: string; rewardText: string }) => void;
-  showSuccess: (msg: string) => void;
+  addCompletedGoal: (_goal: { id: string; title: string; rewardText: string }) => void;
+  showSuccess: (_msg: string) => void;
 }
 
 export function useBroadcasterAblyHandlers({

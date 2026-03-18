@@ -38,23 +38,23 @@ interface UseViewerAblyHandlersParams {
   setMessages: React.Dispatch<React.SetStateAction<ChatMessage[]>>;
   setFloatingGifts: React.Dispatch<React.SetStateAction<FloatingGift[]>>;
   loadStream: () => void;
-  addCompletedGoal: (goal: { id: string; title: string; rewardText: string }) => void;
-  setStreamEnded: (v: boolean) => void;
-  setTicketedAnnouncement: (v: any) => void;
+  addCompletedGoal: (_goal: { id: string; title: string; rewardText: string }) => void;
+  setStreamEnded: (_v: boolean) => void;
+  setTicketedAnnouncement: (_v: any) => void;
   checkTicketAccess: () => void;
   abortPendingTicketCheck: () => void;
-  setTicketedModeActive: (v: boolean) => void;
-  setTicketedShowInfo: (v: any) => void;
-  setHasTicket: (v: boolean) => void;
-  setHasPurchasedUpcomingTicket: (v: boolean) => void;
-  setDismissedTicketedStream: (v: any) => void;
-  setUpcomingTicketedShow: (v: any) => void;
-  setMenuEnabled: (v: boolean) => void;
-  setMenuItems: (items: any[]) => void;
+  setTicketedModeActive: (_v: boolean) => void;
+  setTicketedShowInfo: (_v: any) => void;
+  setHasTicket: (_v: boolean) => void;
+  setHasPurchasedUpcomingTicket: (_v: boolean) => void;
+  setDismissedTicketedStream: (_v: any) => void;
+  setUpcomingTicketedShow: (_v: any) => void;
+  setMenuEnabled: (_v: boolean) => void;
+  setMenuItems: (_items: any[]) => void;
   menuItems: any[];
-  setActivePoll: (v: any) => void;
-  setActiveCountdown: (v: any) => void;
-  setActiveGuest: (v: any) => void;
+  setActivePoll: (_v: any) => void;
+  setActiveCountdown: (_v: any) => void;
+  setActiveGuest: (_v: any) => void;
   fetchPoll: () => void;
   fetchCountdown: () => void;
   MAX_CHAT_MESSAGES: number;
@@ -63,7 +63,7 @@ interface UseViewerAblyHandlersParams {
 export function useViewerAblyHandlers({
   streamId,
   stream,
-  currentUser,
+  currentUser: _currentUser,
   setStream,
   setMessages,
   setFloatingGifts,

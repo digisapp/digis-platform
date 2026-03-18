@@ -89,9 +89,9 @@ interface StreamViewerVideoAreaProps {
   serverUrl: string;
   connectionState: ConnectionState;
   showControls: boolean;
-  setShowControls: (v: boolean) => void;
+  setShowControls: (_v: boolean) => void;
   showChat: boolean;
-  setShowChat: (v: boolean) => void;
+  setShowChat: (_v: boolean) => void;
   isMobile: boolean;
   isMuted: boolean;
   isFullscreen: boolean;

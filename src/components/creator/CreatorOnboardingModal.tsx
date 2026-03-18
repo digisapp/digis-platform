@@ -2,8 +2,8 @@
 
 import { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
-import { GlassModal, GlassInput, GlassButton, LoadingSpinner } from '@/components/ui';
-import { CheckCircle, XCircle, Loader2, Camera, User, AtSign } from 'lucide-react';
+import { GlassModal } from '@/components/ui';
+import { CheckCircle, XCircle, Loader2, Camera, AtSign } from 'lucide-react';
 import { useToastContext } from '@/context/ToastContext';
 
 interface CreatorOnboardingModalProps {

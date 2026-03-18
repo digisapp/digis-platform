@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
-import { GlassModal, GlassInput, GlassButton, LoadingSpinner, PasswordInput } from '@/components/ui';
+import { GlassModal, GlassInput, PasswordInput } from '@/components/ui';
 import { CheckCircle, ArrowLeft } from 'lucide-react';
 
 interface LoginModalProps {

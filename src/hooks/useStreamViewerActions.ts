@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useRef, useCallback } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useToastContext } from '@/context/ToastContext';
 import type { StreamMessage } from '@/db/schema';
@@ -10,9 +10,9 @@ interface UseStreamViewerActionsParams {
   streamId: string;
   stream: StreamWithCreator | null;
   isFollowing: boolean;
-  setIsFollowing: (v: boolean) => void;
+  setIsFollowing: (_v: boolean) => void;
   followLoading: boolean;
-  setFollowLoading: (v: boolean) => void;
+  setFollowLoading: (_v: boolean) => void;
   setMessages: React.Dispatch<React.SetStateAction<StreamMessage[]>>;
   fetchUserBalance: () => Promise<void>;
 }
@@ -162,7 +162,7 @@ export function useStreamViewerActions({
       } else {
         setCallRequestError(data.error || 'Failed to request call');
       }
-    } catch (err) {
+    } catch  {
       setCallRequestError('Failed to request call. Please try again.');
     } finally {
       setIsRequestingCall(false);

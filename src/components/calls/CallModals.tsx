@@ -57,7 +57,7 @@ export function CallEndedModal({
   hasStarted: boolean;
   duration: number;
   estimatedCost: number;
-  formatDuration: (seconds: number) => string;
+  formatDuration: (_seconds: number) => string;
 }) {
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-200">
@@ -105,7 +105,7 @@ export function EndCallConfirmModal({
   duration: number;
   estimatedCost: number;
   isEnding: boolean;
-  formatDuration: (seconds: number) => string;
+  formatDuration: (_seconds: number) => string;
   onCancel: () => void;
   onConfirm: () => void;
 }) {
@@ -176,7 +176,7 @@ export function CreatorSummaryModal({
   finalCallDuration: number;
   finalCallEarnings: number;
   finalTipEarnings: number;
-  formatDuration: (seconds: number) => string;
+  formatDuration: (_seconds: number) => string;
   onBackToDashboard: () => void;
 }) {
   return (

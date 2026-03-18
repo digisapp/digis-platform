@@ -11,13 +11,13 @@ import type { CreatorLink } from './types';
 interface SocialSectionProps {
   currentUser: any;
   form: SettingsFormState;
-  setField: <K extends keyof SettingsFormState>(key: K, value: SettingsFormState[K]) => void;
+  setField: <K extends keyof SettingsFormState>(_key: K, _value: SettingsFormState[K]) => void;
   creatorLinks: CreatorLink[];
   linksLoading: boolean;
-  handleOpenLinkModal: (link?: CreatorLink) => void;
-  handleDeleteLink: (linkId: string) => void;
-  handleToggleLinkActive: (link: CreatorLink) => void;
-  moveLink: (index: number, direction: 'up' | 'down') => void;
+  handleOpenLinkModal: (_link?: CreatorLink) => void;
+  handleDeleteLink: (_linkId: string) => void;
+  handleToggleLinkActive: (_link: CreatorLink) => void;
+  moveLink: (_index: number, _direction: 'up' | 'down') => void;
 }
 
 export function SocialSection({

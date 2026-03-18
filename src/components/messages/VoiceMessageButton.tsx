@@ -6,7 +6,7 @@ import { Mic, X, Send, Lock, Coins } from 'lucide-react';
 import { useToastContext } from '@/context/ToastContext';
 
 interface VoiceMessageButtonProps {
-  onSend: (audioBlob: Blob, duration: number, unlockPrice?: number) => Promise<void>;
+  onSend: (_audioBlob: Blob, _duration: number, _unlockPrice?: number) => Promise<void>;
   isCreator?: boolean; // Only creators can charge for voice messages
   autoStart?: boolean; // Auto-start recording when mounted
   onCancel?: () => void; // Called when user cancels (for menu flow)

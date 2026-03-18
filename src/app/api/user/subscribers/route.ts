@@ -8,7 +8,7 @@ import { eq, and, sql } from 'drizzle-orm';
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
-export async function GET(req: NextRequest) {
+export async function GET(_req: NextRequest) {
   try {
     const supabase = await createClient();
     const { data: { user }, error: authError } = await supabase.auth.getUser();

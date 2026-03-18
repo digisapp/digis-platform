@@ -5,7 +5,7 @@ import { Send, Coins, Ticket } from 'lucide-react';
 
 interface ViewerChatInputProps {
   messageInput: string;
-  onMessageChange: (msg: string) => void;
+  onMessageChange: (_msg: string) => void;
   onSend: () => void;
   sendingMessage: boolean;
   currentUser: any;

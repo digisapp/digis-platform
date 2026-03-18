@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient as createAdminClient } from '@supabase/supabase-js';
 import { db } from '@/lib/data/system';
 import { creatorInvites, users, profiles, creatorSettings, aiTwinSettings } from '@/db/schema';
-import { eq, and, or } from 'drizzle-orm';
+import { eq, or } from 'drizzle-orm';
 import { validateUsername } from '@/lib/utils/username';
 import { rateLimit } from '@/lib/rate-limit';
 import { sendWelcomeEmail } from '@/lib/email/welcome';

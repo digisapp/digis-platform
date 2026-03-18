@@ -5,9 +5,9 @@ import { useRouter } from 'next/navigation';
 import { MobileHeader } from '@/components/layout/MobileHeader';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import {
-  BarChart3, TrendingUp, Users, Eye, Phone, Video,
-  DollarSign, Heart, Crown, ChevronDown, Image,
-  Play, Star, ArrowUpRight,
+  BarChart3, Users, Eye, Phone, Video,
+  DollarSign, Crown, ChevronDown, Image,
+  Play, ArrowUpRight,
 } from 'lucide-react';
 import {
   AreaChart, Area, BarChart, Bar, XAxis, YAxis, Tooltip,

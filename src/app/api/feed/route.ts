@@ -2,13 +2,13 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { db } from '@/lib/data/system';
 import { users, follows, streams, shows, cloudItems } from '@/lib/data/system';
-import { eq, and, desc, sql, inArray, gte, or } from 'drizzle-orm';
+import { eq, and, desc, sql, inArray, gte } from 'drizzle-orm';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
 // GET /api/feed - Get personalized feed for dashboard
-export async function GET(request: NextRequest) {
+export async function GET(_request: NextRequest) {
   try {
     const supabase = await createClient();
     const { data: { user }, error: authError } = await supabase.auth.getUser();

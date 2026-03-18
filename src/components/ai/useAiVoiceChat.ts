@@ -45,12 +45,12 @@ export type ConnectionState = 'disconnected' | 'connecting' | 'connected' | 'err
 export type SpeakingState = 'idle' | 'listening' | 'thinking' | 'speaking';
 
 interface UseAiVoiceChatOptions {
-  onTranscript?: (text: string, isFinal: boolean) => void;
-  onAiResponse?: (text: string) => void;
-  onError?: (error: string) => void;
-  onStateChange?: (state: ConnectionState) => void;
-  onBalanceUpdate?: (balance: number, minutesRemaining: number, totalCharged: number) => void;
-  onLowBalance?: (minutesRemaining: number) => void;
+  onTranscript?: (_text: string, _isFinal: boolean) => void;
+  onAiResponse?: (_text: string) => void;
+  onError?: (_error: string) => void;
+  onStateChange?: (_state: ConnectionState) => void;
+  onBalanceUpdate?: (_balance: number, _minutesRemaining: number, _totalCharged: number) => void;
+  onLowBalance?: (_minutesRemaining: number) => void;
   onBalanceDepleted?: () => void;
 }
 

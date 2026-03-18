@@ -39,12 +39,12 @@ function SortIcon({ column, sortKey, sortDir }: { column: SortKey; sortKey: Sort
 interface FansTableProps {
   fans: Fan[];
   activeDropdown: string | null;
-  setActiveDropdown: (id: string | null) => void;
-  formatDate: (dateString: string | null) => string;
-  formatCoins: (coins: number) => string;
-  onSuspend: (userId: string, isSuspended: boolean) => void;
-  onDelete: (userId: string) => void;
-  onChangeRole: (userId: string, currentRole: string, newRole: 'fan' | 'creator' | 'admin') => void;
+  setActiveDropdown: (_id: string | null) => void;
+  formatDate: (_dateString: string | null) => string;
+  formatCoins: (_coins: number) => string;
+  onSuspend: (_userId: string, _isSuspended: boolean) => void;
+  onDelete: (_userId: string) => void;
+  onChangeRole: (_userId: string, _currentRole: string, _newRole: 'fan' | 'creator' | 'admin') => void;
 }
 
 export function FansTable({

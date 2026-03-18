@@ -11,7 +11,7 @@ interface ClipCreatorModalProps {
   vodDuration: number; // in seconds
   thumbnailUrl?: string | null;
   onClose: () => void;
-  onSuccess: (clip: any) => void;
+  onSuccess: (_clip: any) => void;
 }
 
 export function ClipCreatorModal({

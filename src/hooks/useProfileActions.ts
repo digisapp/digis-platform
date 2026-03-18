@@ -11,11 +11,11 @@ interface UseProfileActionsParams {
   isAuthenticated: boolean;
   currentUserId: string | null;
   isFollowing: boolean;
-  setIsFollowing: (v: boolean) => void;
+  setIsFollowing: (_v: boolean) => void;
   isSubscribed: boolean;
-  setIsSubscribed: (v: boolean) => void;
+  setIsSubscribed: (_v: boolean) => void;
   subscriptionTier: any;
-  setProfile: (p: ProfileData | null) => void;
+  setProfile: (_p: ProfileData | null) => void;
   content: ContentItem[];
   setContent: React.Dispatch<React.SetStateAction<ContentItem[]>>;
   fetchCreatorContent: () => Promise<void>;
@@ -24,16 +24,16 @@ interface UseProfileActionsParams {
 export function useProfileActions({
   profile,
   isAuthenticated,
-  currentUserId,
+  currentUserId: _currentUserId,
   isFollowing,
   setIsFollowing,
-  isSubscribed,
+  isSubscribed: _isSubscribed,
   setIsSubscribed,
   subscriptionTier,
   setProfile,
-  content,
+  content: _content,
   setContent,
-  fetchCreatorContent,
+  fetchCreatorContent: _fetchCreatorContent,
 }: UseProfileActionsParams) {
   const router = useRouter();
   const { showError, showInfo } = useToastContext();

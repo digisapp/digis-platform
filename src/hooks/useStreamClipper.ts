@@ -4,7 +4,7 @@ import { useState, useRef, useCallback, useEffect } from 'react';
 
 interface UseStreamClipperOptions {
   bufferDurationSeconds?: number; // default 30
-  onError?: (error: string) => void;
+  onError?: (_error: string) => void;
 }
 
 /**

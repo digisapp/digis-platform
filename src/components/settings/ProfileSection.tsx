@@ -5,7 +5,7 @@ import { GlassInput, LoadingSpinner } from '@/components/ui';
 import { CheckCircle, XCircle, Loader2, User, AtSign, MessageSquare, AlertCircle, Upload, Image as ImageIcon, Mail, Calendar, Shield, Crown, Star, Tag } from 'lucide-react';
 import { CREATOR_CATEGORIES } from '@/lib/constants/categories';
 import { getNextTierProgress, getTierConfig, type SpendTier } from '@/lib/tiers/spend-tiers';
-import { getCreatorNextTierProgress, type CreatorTier } from '@/lib/tiers/creator-tiers';
+import { getCreatorNextTierProgress } from '@/lib/tiers/creator-tiers';
 import type { SettingsFormState } from '@/hooks/useSettingsForm';
 import type { UsernameStatus } from './types';
 
@@ -17,7 +17,7 @@ interface CategoryDropdownProps {
   showNone?: boolean;
   isOpen: boolean;
   onToggle: () => void;
-  onSelect: (value: string) => void;
+  onSelect: (_value: string) => void;
 }
 
 function CategoryDropdown({ label, hint, selectedValue, excludeValue, showNone, isOpen, onToggle, onSelect }: CategoryDropdownProps) {
@@ -103,20 +103,20 @@ function CategoryDropdown({ label, hint, selectedValue, excludeValue, showNone, 
 interface ProfileSectionProps {
   currentUser: any;
   form: SettingsFormState;
-  setField: <K extends keyof SettingsFormState>(key: K, value: SettingsFormState[K]) => void;
+  setField: <K extends keyof SettingsFormState>(_key: K, _value: SettingsFormState[K]) => void;
   avatarPreview: string | undefined;
   bannerPreview: string | undefined;
   uploadingAvatar: boolean;
   uploadingBanner: boolean;
-  handleAvatarUpload: (e: React.ChangeEvent<HTMLInputElement>) => void;
-  handleBannerUpload: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  handleAvatarUpload: (_e: React.ChangeEvent<HTMLInputElement>) => void;
+  handleBannerUpload: (_e: React.ChangeEvent<HTMLInputElement>) => void;
   newUsername: string;
-  setNewUsername: (val: string) => void;
+  setNewUsername: (_val: string) => void;
   usernameStatus: 'idle' | 'checking' | 'available' | 'taken';
   usernameError: string;
   usernameCooldown: UsernameStatus | null;
   savingUsername: boolean;
-  handleChangeUsername: (e: React.FormEvent) => void;
+  handleChangeUsername: (_e: React.FormEvent) => void;
 }
 
 export function ProfileSection({

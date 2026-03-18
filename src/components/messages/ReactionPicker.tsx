@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from 'react';
 import { VALID_REACTION_EMOJIS } from '@/db/schema/messages';
 
 interface ReactionPickerProps {
-  onReact: (emoji: string) => void;
+  onReact: (_emoji: string) => void;
   onClose: () => void;
   existingReaction?: string | null;
   isVisible: boolean;
@@ -78,7 +78,7 @@ interface ReactionDisplayProps {
     count: number;
     userReacted: boolean;
   }>;
-  onReact: (emoji: string) => void;
+  onReact: (_emoji: string) => void;
   compact?: boolean;
 }
 

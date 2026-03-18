@@ -62,7 +62,7 @@ export class RealtimeService {
    */
   static subscribeToStream(
     streamId: string,
-    onEvent: (event: StreamEvent) => void
+    onEvent: (_event: StreamEvent) => void
   ): RealtimeChannel {
     const supabase = createClient();
     const channelName = `stream:${streamId}`;

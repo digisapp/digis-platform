@@ -7,15 +7,11 @@ import { clearAppCaches, setLastAuthUserId } from '@/lib/cache-utils';
 import { useAuth, authSupabase } from '@/context/AuthContext';
 import {
   Home,
-  Search,
   MessageCircle,
-  Wallet,
   Video,
-  Phone,
   Coins,
   Settings,
   Radio,
-  Upload,
   Camera,
   User,
   LayoutGrid,
@@ -225,7 +221,7 @@ export function Navigation() {
       if (response.ok) {
         setBalance(data.balance);
       }
-    } catch (err) {
+    } catch  {
       // User not logged in
     }
   };
@@ -237,7 +233,7 @@ export function Navigation() {
       if (response.ok) {
         setUnreadCount(data.count);
       }
-    } catch (err) {
+    } catch  {
       // User not logged in
     }
   };
@@ -249,7 +245,7 @@ export function Navigation() {
       if (response.ok) {
         setFollowerCount(data.count);
       }
-    } catch (err) {
+    } catch  {
       // User not logged in or not a creator
     }
   };
@@ -755,7 +751,7 @@ export function Navigation() {
           ) : (
             <>
               {/* Fan Navigation: All items equal styling - Home, Streams, Chats, Profile */}
-              {navItems.map((item, index) => {
+              {navItems.map((item, _index) => {
                 const Icon = item.icon;
                 const isChats = item.label === 'Chats';
                 const isProfile = (item as any).isProfile;

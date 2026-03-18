@@ -3,8 +3,8 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 
 interface UseSpeechRecognitionOptions {
-  onResult?: (transcript: string) => void;
-  onError?: (error: string) => void;
+  onResult?: (_transcript: string) => void;
+  onError?: (_error: string) => void;
   continuous?: boolean;
   language?: string;
 }
@@ -22,7 +22,7 @@ interface UseSpeechRecognitionReturn {
 interface SpeechRecognitionResult {
   readonly isFinal: boolean;
   readonly length: number;
-  item(index: number): SpeechRecognitionAlternative;
+  item(_index: number): SpeechRecognitionAlternative;
   [index: number]: SpeechRecognitionAlternative;
 }
 
@@ -33,7 +33,7 @@ interface SpeechRecognitionAlternative {
 
 interface SpeechRecognitionResultList {
   readonly length: number;
-  item(index: number): SpeechRecognitionResult;
+  item(_index: number): SpeechRecognitionResult;
   [index: number]: SpeechRecognitionResult;
 }
 
@@ -51,8 +51,8 @@ interface SpeechRecognitionInstance {
   continuous: boolean;
   interimResults: boolean;
   lang: string;
-  onresult: ((event: SpeechRecognitionEventType) => void) | null;
-  onerror: ((event: SpeechRecognitionErrorEventType) => void) | null;
+  onresult: ((_event: SpeechRecognitionEventType) => void) | null;
+  onerror: ((_event: SpeechRecognitionErrorEventType) => void) | null;
   onend: (() => void) | null;
   start: () => void;
   stop: () => void;

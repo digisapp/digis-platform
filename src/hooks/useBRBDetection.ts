@@ -6,7 +6,7 @@ interface UseBRBDetectionOptions {
   streamId: string;
   isLive: boolean;
   streamEnded: boolean;
-  onBRBChange: (isBRB: boolean) => void;
+  onBRBChange: (_isBRB: boolean) => void;
   onStreamAutoEnd: () => void;
   intervalMs?: number;
 }

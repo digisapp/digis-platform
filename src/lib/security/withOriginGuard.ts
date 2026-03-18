@@ -20,7 +20,7 @@ import { assertValidOrigin } from './origin-check';
  * });
  */
 export function withOriginGuard<T extends Response | NextResponse>(
-  handler: (request: Request) => Promise<T>,
+  handler: (_request: Request) => Promise<T>,
   opts?: { requireHeader?: boolean }
 ) {
   return async (request: Request): Promise<Response | NextResponse> => {

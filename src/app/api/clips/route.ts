@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
-import { db, clips, vods, users } from '@/lib/data/system';
-import { eq, desc, and } from 'drizzle-orm';
+import { db, clips, vods } from '@/lib/data/system';
+import { eq, desc } from 'drizzle-orm';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';

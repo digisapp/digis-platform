@@ -44,7 +44,7 @@ function jsonError(error: string, code: ErrorResponse['code'], status: number): 
  * });
  */
 export function withAdmin<T extends Response | NextResponse>(
-  handler: (ctx: AdminContext) => Promise<T>
+  handler: (_ctx: AdminContext) => Promise<T>
 ) {
   return async (request: Request): Promise<Response | NextResponse> => {
     const method = request.method;
@@ -101,7 +101,7 @@ export function withAdmin<T extends Response | NextResponse>(
  * });
  */
 export function withAdminParams<P = Record<string, string>, T extends Response | NextResponse = NextResponse>(
-  handler: (ctx: AdminContext & { params: Promise<P> }) => Promise<T>
+  handler: (_ctx: AdminContext & { params: Promise<P> }) => Promise<T>
 ) {
   return async (
     request: Request,

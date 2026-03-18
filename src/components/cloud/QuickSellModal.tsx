@@ -9,7 +9,7 @@ interface QuickSellModalProps {
   onClose: () => void;
   selectedCount: number;
   selectedItemIds: string[];
-  onQuickSell: (action: string, itemIds: string[], packTitle?: string, packPrice?: number) => Promise<{ success: boolean; error?: string }>;
+  onQuickSell: (_action: string, _itemIds: string[], _packTitle?: string, _packPrice?: number) => Promise<{ success: boolean; error?: string }>;
 }
 
 export function QuickSellModal({

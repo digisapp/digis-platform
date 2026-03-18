@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/data/system';
 import { pageViews } from '@/db/schema/admin';
-import { users } from '@/db/schema/users';
 import { sql, desc, eq, gte, lt, and, count, countDistinct } from 'drizzle-orm';
 import { createClient as createAdminClient } from '@supabase/supabase-js';
 import { withAdmin } from '@/lib/auth/withAdmin';

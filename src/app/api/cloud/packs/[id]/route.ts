@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
-import { db, cloudPacks, cloudPackItems } from '@/lib/data/system';
+import { db, cloudPacks } from '@/lib/data/system';
 import { eq, and } from 'drizzle-orm';
 
 export const runtime = 'nodejs';

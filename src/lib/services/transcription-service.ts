@@ -1,5 +1,5 @@
 import { db } from '@/lib/data/system';
-import { vodTranscripts, vods } from '@/db/schema';
+import { vodTranscripts } from '@/db/schema';
 import { eq } from 'drizzle-orm';
 import type { TranscriptSegment, TranscriptChapter } from '@/db/schema/transcripts';
 

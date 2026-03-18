@@ -6,7 +6,7 @@ import { Monitor, MonitorOff } from 'lucide-react';
 
 interface ScreenShareControlProps {
   isScreenSharing: boolean;
-  onScreenShareChange: (sharing: boolean) => void;
+  onScreenShareChange: (_sharing: boolean) => void;
 }
 
 /**

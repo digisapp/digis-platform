@@ -11,10 +11,10 @@ interface ToastItem {
 }
 
 interface ToastContextType {
-  showToast: (message: string, type?: ToastType, duration?: number) => void;
-  showSuccess: (message: string, duration?: number) => void;
-  showError: (message: string, duration?: number) => void;
-  showInfo: (message: string, duration?: number) => void;
+  showToast: (_message: string, _type?: ToastType, _duration?: number) => void;
+  showSuccess: (_message: string, _duration?: number) => void;
+  showError: (_message: string, _duration?: number) => void;
+  showInfo: (_message: string, _duration?: number) => void;
 }
 
 const ToastContext = createContext<ToastContextType | null>(null);

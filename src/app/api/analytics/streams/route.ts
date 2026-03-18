@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { db } from '@/lib/data/system';
-import { streams, streamMessages, walletTransactions, users } from '@/lib/data/system';
+import { streams, streamMessages, walletTransactions } from '@/lib/data/system';
 import { eq, and, gte, desc, sql } from 'drizzle-orm';
 
 export const runtime = 'nodejs';

@@ -1,8 +1,8 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { db, payoutRequests, wallets, creatorBankingInfo, spendHolds, creatorPayoneerInfo } from '@/lib/data/system';
 import { eq, and, sql } from 'drizzle-orm';
-import { MIN_PAYOUT_COINS, MIN_PAYOUT_USD, formatCoinsAsUSD } from '@/lib/stripe/config';
+import { MIN_PAYOUT_COINS, formatCoinsAsUSD } from '@/lib/stripe/config';
 import { sendPayoutRequestEmail } from '@/lib/email/payout-notifications';
 import { payoutRequestSchema, validateBody } from '@/lib/validation/schemas';
 import { isPayoneerAvailable } from '@/lib/payoneer/service';

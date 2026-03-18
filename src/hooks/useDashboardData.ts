@@ -4,7 +4,7 @@
  */
 
 import { useEffect, useState } from 'react';
-import { fetchJSON, allSettled } from '@/lib/net';
+import { fetchJSON } from '@/lib/net';
 
 interface DashboardData {
   profile: any;

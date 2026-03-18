@@ -1,6 +1,6 @@
 import { db } from '@/lib/data/system';
 import { users, creatorApplications, payoutRequests, creatorSettings, aiTwinSettings } from '@/lib/data/system';
-import { eq, and, or, ilike, desc, count, sql, sum, gte } from 'drizzle-orm';
+import { eq, and, or, ilike, desc, count, sum, gte } from 'drizzle-orm';
 import { supabaseAdmin } from '@/lib/supabase/admin';
 import { withTimeoutAndRetry } from '@/lib/async-utils';
 import { sendCreatorApprovalEmail, addCreatorToAudience } from '@/lib/email/creator-notifications';

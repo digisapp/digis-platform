@@ -4,7 +4,7 @@ import { Sparkles, Radio, Video, Coins } from 'lucide-react';
 import { QUICK_ACTIONS } from '@/lib/coach/types';
 
 interface QuickActionButtonsProps {
-  onAction: (prompt: string) => void;
+  onAction: (_prompt: string) => void;
   onStartScriptGenerator: () => void;
   disabled?: boolean;
 }

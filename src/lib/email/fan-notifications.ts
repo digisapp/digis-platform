@@ -1,5 +1,5 @@
 import { sendEmail } from './resend';
-import { baseEmailTemplate, infoBox, featureList } from './templates';
+import { baseEmailTemplate, infoBox } from './templates';
 import { formatCoinsAsUSD } from '@/lib/stripe/constants';
 
 /**

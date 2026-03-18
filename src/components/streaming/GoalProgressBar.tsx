@@ -13,7 +13,7 @@ interface GoalProgressBarProps {
   goals: GoalWithGift[];
   isBroadcaster?: boolean;
   streamId?: string;
-  onEdit?: (goal: GoalWithGift) => void;
+  onEdit?: (_goal: GoalWithGift) => void;
   onGoalEnded?: () => void;
 }
 

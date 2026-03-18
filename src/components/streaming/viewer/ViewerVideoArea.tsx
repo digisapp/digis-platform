@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useMemo } from 'react';
+import React from 'react';
 import { useRouter } from 'next/navigation';
 import {
   Volume2, VolumeX, Maximize, Minimize, Users,
@@ -91,19 +91,19 @@ interface ViewerVideoAreaProps {
   toggleMute: () => void;
   toggleFullscreen: () => void;
   sendMessage: () => void;
-  handleSendGift: (giftId: string, quantity: number) => Promise<void>;
+  handleSendGift: (_giftId: string, _quantity: number) => Promise<void>;
   handleInstantTicketPurchase: () => void;
   handleBroadcasterLeft: () => void;
-  onSetMessageInput: (v: string) => void;
-  onSetShowViewerList: (v: boolean) => void;
-  onSetShowTipModal: (v: boolean) => void;
-  onSetShowMenuModal: (v: boolean) => void;
-  onSetShowBuyCoinsModal: (v: boolean) => void;
-  onSetStreamEnded: (v: boolean) => void;
-  onSetActivePoll: (v: any) => void;
-  onSetActiveCountdown: (v: any) => void;
-  onSetQuickBuyInfo: (v: any) => void;
-  onSetShowQuickBuyModal: (v: boolean) => void;
+  onSetMessageInput: (_v: string) => void;
+  onSetShowViewerList: (_v: boolean) => void;
+  onSetShowTipModal: (_v: boolean) => void;
+  onSetShowMenuModal: (_v: boolean) => void;
+  onSetShowBuyCoinsModal: (_v: boolean) => void;
+  onSetStreamEnded: (_v: boolean) => void;
+  onSetActivePoll: (_v: any) => void;
+  onSetActiveCountdown: (_v: any) => void;
+  onSetQuickBuyInfo: (_v: any) => void;
+  onSetShowQuickBuyModal: (_v: boolean) => void;
   fetchPoll: () => void;
   // ViewerVideo component
   ViewerVideo: React.ComponentType<{ onBroadcasterLeft?: () => void }>;

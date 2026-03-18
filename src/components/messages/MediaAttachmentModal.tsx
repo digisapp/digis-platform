@@ -16,7 +16,7 @@ interface ContentItem {
 
 interface MediaAttachmentModalProps {
   onClose: () => void;
-  onSend: (data: {
+  onSend: (_data: {
     file?: File;
     contentId?: string;
     mediaUrl?: string;

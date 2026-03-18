@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { db } from '@/lib/data/system';
-import { messages, messageReactions, conversations, VALID_REACTION_EMOJIS } from '@/lib/data/system';
+import { messages, messageReactions, VALID_REACTION_EMOJIS } from '@/lib/data/system';
 import { eq, and } from 'drizzle-orm';
 
 export const runtime = 'nodejs';

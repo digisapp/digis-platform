@@ -5,8 +5,8 @@ import type { CreatorLink } from '@/components/settings/types';
 
 interface UseCreatorLinksParams {
   userRole: string | undefined;
-  setMessage: (msg: string) => void;
-  setError: (err: string) => void;
+  setMessage: (_msg: string) => void;
+  setError: (_err: string) => void;
 }
 
 export function useCreatorLinks({ userRole, setMessage, setError }: UseCreatorLinksParams) {
@@ -99,7 +99,7 @@ export function useCreatorLinks({ userRole, setMessage, setError }: UseCreatorLi
         const data = await response.json();
         setError(data.error || 'Failed to save link');
       }
-    } catch (err) {
+    } catch  {
       setError('Failed to save link');
     } finally {
       setLinksSaving(false);
@@ -121,7 +121,7 @@ export function useCreatorLinks({ userRole, setMessage, setError }: UseCreatorLi
       } else {
         setError('Failed to delete link');
       }
-    } catch (err) {
+    } catch  {
       setError('Failed to delete link');
     }
   }, [setMessage, setError]);
@@ -139,7 +139,7 @@ export function useCreatorLinks({ userRole, setMessage, setError }: UseCreatorLi
           l.id === link.id ? { ...l, isActive: !l.isActive } : l
         ));
       }
-    } catch (err) {
+    } catch  {
       setError('Failed to update link');
     }
   }, [setError]);

@@ -314,7 +314,7 @@ export function useStreamControl(streamId: string) {
         const data = await res.json();
         showError(data.error || 'Failed to send message');
       }
-    } catch (err) {
+    } catch  {
       showError('Failed to send message');
     } finally {
       setIsSending(false);
@@ -330,7 +330,7 @@ export function useStreamControl(streamId: string) {
       });
       setSelectedUser(null);
       showSuccess(`${username} timed out for 5 minutes`);
-    } catch (err) {
+    } catch  {
       showError('Failed to timeout user');
     }
   };
@@ -344,7 +344,7 @@ export function useStreamControl(streamId: string) {
       });
       setSelectedUser(null);
       showSuccess(`${username} banned from stream`);
-    } catch (err) {
+    } catch  {
       showError('Failed to ban user');
     }
   };
@@ -360,7 +360,7 @@ export function useStreamControl(streamId: string) {
         setMenuEnabled(!menuEnabled);
         showSuccess(`Tip menu ${!menuEnabled ? 'enabled' : 'disabled'}`);
       }
-    } catch (err) {
+    } catch  {
       showError('Failed to toggle tip menu');
     }
   };
@@ -381,7 +381,7 @@ export function useStreamControl(streamId: string) {
         const data = await res.json();
         showError(data.error || 'Failed to start VIP show');
       }
-    } catch (err) {
+    } catch  {
       showError('Failed to start VIP show');
     } finally {
       setStartingVipStream(false);
@@ -398,7 +398,7 @@ export function useStreamControl(streamId: string) {
       } else {
         showError('Failed to end stream');
       }
-    } catch (err) {
+    } catch  {
       showError('Failed to end stream');
     } finally {
       setIsEnding(false);
@@ -422,7 +422,7 @@ export function useStreamControl(streamId: string) {
         fetchGoals();
         showSuccess('Goal deleted');
       }
-    } catch (err) {
+    } catch  {
       showError('Failed to delete goal');
     }
   };
@@ -446,7 +446,7 @@ export function useStreamControl(streamId: string) {
         const data = await res.json();
         showError(data.error || 'Failed to end poll');
       }
-    } catch (err) {
+    } catch  {
       showError('Failed to end poll');
     }
   };
@@ -470,7 +470,7 @@ export function useStreamControl(streamId: string) {
         const data = await res.json();
         showError(data.error || 'Failed to cancel countdown');
       }
-    } catch (err) {
+    } catch  {
       showError('Failed to cancel countdown');
     }
   };

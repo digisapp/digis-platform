@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { db, payoutRequests, creatorBankingInfo, users, creatorPayoneerInfo } from '@/lib/data/system';
-import { eq, desc, count, sql } from 'drizzle-orm';
+import { eq, desc, count } from 'drizzle-orm';
 import { getLastFourDigits, decrypt } from '@/lib/crypto/encryption';
 import { withAdmin } from '@/lib/auth/withAdmin';
 

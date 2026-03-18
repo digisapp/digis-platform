@@ -218,7 +218,7 @@ export async function GET(
           likeCount: item.likeCount || 0,
           hasPurchased: currentUser.id === user.id || purchasedIds.has(item.id),
         }));
-      } catch (err) {
+      } catch  {
         // Fail gracefully
       }
     }

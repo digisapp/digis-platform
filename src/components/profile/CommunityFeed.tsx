@@ -3,8 +3,8 @@
 import { useState, useEffect, useCallback } from 'react';
 import { formatDistanceToNow } from 'date-fns';
 import {
-  Heart, MessageCircle, Send, MoreHorizontal, Trash2,
-  Lock, Users, Globe, ChevronDown, Image as ImageIcon,
+  Heart, MessageCircle, Send, Trash2,
+  Lock, Users, Globe,
 } from 'lucide-react';
 
 interface Post {
@@ -53,7 +53,7 @@ const VISIBILITY_LABELS = {
   subscribers: 'Subscribers',
 };
 
-export function CommunityFeed({ creatorId, creatorUsername, isOwnProfile, isAuthenticated }: CommunityFeedProps) {
+export function CommunityFeed({ creatorId, creatorUsername: _creatorUsername, isOwnProfile, isAuthenticated }: CommunityFeedProps) {
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
   const [nextCursor, setNextCursor] = useState<string | null>(null);

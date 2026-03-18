@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { GlassCard, GlassButton, LoadingSpinner } from '@/components/ui';
 import { MobileHeader } from '@/components/layout/MobileHeader';
 import { DollarSign, TrendingUp, Clock, Download, Wallet, AlertCircle, Globe, CreditCard, ExternalLink, CheckCircle } from 'lucide-react';
-import { formatCoinsAsUSD, coinsToUSD, MIN_PAYOUT_COINS, MIN_PAYOUT_USD } from '@/lib/stripe/constants';
+import { formatCoinsAsUSD, coinsToUSD, MIN_PAYOUT_COINS } from '@/lib/stripe/constants';
 
 interface EarningsData {
   balance: number; // coins

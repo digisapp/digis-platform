@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/data/system';
 import { creatorInvites, users } from '@/db/schema';
-import { eq, sql, and, or, ilike, isNotNull, isNull, lt } from 'drizzle-orm';
+import { eq, sql, and, or, ilike } from 'drizzle-orm';
 import { nanoid } from 'nanoid';
 import { withAdmin } from '@/lib/auth/withAdmin';
 

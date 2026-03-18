@@ -1,4 +1,4 @@
-import { pgTable, uuid, integer, text, timestamp, boolean, index, uniqueIndex } from 'drizzle-orm/pg-core';
+import { pgTable, uuid, integer, text, timestamp, index, uniqueIndex } from 'drizzle-orm/pg-core';
 import { users } from './users';
 
 export const redemptionCodes = pgTable('redemption_codes', {

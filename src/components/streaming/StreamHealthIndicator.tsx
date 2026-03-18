@@ -63,7 +63,7 @@ export function StreamHealthIndicator({ streamId }: StreamHealthIndicatorProps) 
           setHealthStatus('poor');
           setConnectionState('Connected');
         }
-      } catch (error) {
+      } catch  {
         setHealthStatus('poor');
         setConnectionState('Error');
       }

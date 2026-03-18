@@ -6,16 +6,16 @@ import type Ably from 'ably';
 
 interface UseAblyChannelOptions {
   channelName: string;
-  onMessage?: (message: Ably.Message) => void;
-  onPresenceEnter?: (member: Ably.PresenceMessage) => void;
-  onPresenceLeave?: (member: Ably.PresenceMessage) => void;
+  onMessage?: (_message: Ably.Message) => void;
+  onPresenceEnter?: (_member: Ably.PresenceMessage) => void;
+  onPresenceLeave?: (_member: Ably.PresenceMessage) => void;
   trackPresence?: boolean;
   presenceData?: any;
 }
 
 interface UseAblyChannelReturn {
   channel: Ably.RealtimeChannel | null;
-  publish: (event: string, data: any) => Promise<void>;
+  publish: (_event: string, _data: any) => Promise<void>;
   presenceCount: number;
   isConnected: boolean;
   error: Error | null;

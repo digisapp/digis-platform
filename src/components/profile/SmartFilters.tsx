@@ -1,6 +1,5 @@
 'use client';
 
-import { useState } from 'react';
 import { Image, Film, Radio, Lock, Sparkles, TrendingUp, Clock, Heart } from 'lucide-react';
 
 export type ContentFilter = 'all' | 'photos' | 'videos' | 'live' | 'exclusive' | 'free';
@@ -9,8 +8,8 @@ export type SortOption = 'latest' | 'popular' | 'most_liked';
 interface SmartFiltersProps {
   activeFilter: ContentFilter;
   activeSortOption: SortOption;
-  onFilterChange: (filter: ContentFilter) => void;
-  onSortChange: (sort: SortOption) => void;
+  onFilterChange: (_filter: ContentFilter) => void;
+  onSortChange: (_sort: SortOption) => void;
   counts?: {
     all: number;
     photos: number;

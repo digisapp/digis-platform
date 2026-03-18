@@ -2,8 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { Mic, MicOff, Video, VideoOff, PhoneOff, Loader2 } from 'lucide-react';
-import { LiveKitRoom, useLocalParticipant, useTracks, VideoTrack, AudioTrack } from '@livekit/components-react';
-import { Track, LocalVideoTrack, LocalAudioTrack } from 'livekit-client';
+import { LiveKitRoom, useLocalParticipant } from '@livekit/components-react';
 import { GlassButton } from '@/components/ui/GlassButton';
 
 interface GuestStreamViewProps {
@@ -98,7 +97,7 @@ export function GuestStreamView({ streamId, requestType, onLeave }: GuestStreamV
       } else {
         setError(data.error || 'Failed to connect');
       }
-    } catch (err) {
+    } catch  {
       setError('Failed to connect to stream');
     } finally {
       setIsLoading(false);

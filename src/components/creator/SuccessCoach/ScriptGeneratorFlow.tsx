@@ -11,7 +11,7 @@ import {
 
 interface ScriptGeneratorFlowProps {
   state: ScriptGeneratorState;
-  onUpdate: (updates: Partial<ScriptGeneratorState>) => void;
+  onUpdate: (_updates: Partial<ScriptGeneratorState>) => void;
   onGenerate: () => void;
   onClose: () => void;
   isGenerating: boolean;

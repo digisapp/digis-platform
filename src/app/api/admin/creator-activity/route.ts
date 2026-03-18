@@ -86,7 +86,7 @@ export const GET = withAdmin(async () => {
       monthLogins.forEach(row => {
         loginCountsMonth[row.userId] = row.count;
       });
-    } catch (e) {
+    } catch  {
       // Table might not exist yet, that's ok - we'll use lastSeenAt
       console.log('Activity logs table not ready yet, using lastSeenAt');
     }

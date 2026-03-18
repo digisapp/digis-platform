@@ -62,7 +62,7 @@ export default function EditCollectionPage() {
         setPriceCoins(data.collection.priceCoins);
         setIsPublished(data.collection.isPublished);
       }
-    } catch (error) {
+    } catch  {
       showError('Failed to load collection');
     } finally {
       setLoading(false);

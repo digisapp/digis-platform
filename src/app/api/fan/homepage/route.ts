@@ -12,7 +12,7 @@ export const dynamic = 'force-dynamic';
  * Aggregated data for the fan homepage dashboard
  * Returns: live streams, followed creators, discover creators
  */
-export async function GET(request: NextRequest) {
+export async function GET(_request: NextRequest) {
   try {
     const supabase = await createClient();
     const { data: { user }, error: authError } = await supabase.auth.getUser();

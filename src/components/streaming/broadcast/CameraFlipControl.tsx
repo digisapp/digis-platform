@@ -7,7 +7,7 @@ import { RefreshCw } from 'lucide-react';
 
 interface CameraFlipControlProps {
   facingMode: 'user' | 'environment';
-  onFacingModeChange: (mode: 'user' | 'environment') => void;
+  onFacingModeChange: (_mode: 'user' | 'environment') => void;
   isPortrait: boolean;
 }
 

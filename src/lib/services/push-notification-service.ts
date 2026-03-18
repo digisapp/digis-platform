@@ -1,6 +1,6 @@
 import webpush from 'web-push';
 import { db } from '@/lib/data/system';
-import { pushSubscriptions, notificationPreferences, notifications } from '@/lib/data/system';
+import { pushSubscriptions, notificationPreferences } from '@/lib/data/system';
 import { eq, and } from 'drizzle-orm';
 
 /**

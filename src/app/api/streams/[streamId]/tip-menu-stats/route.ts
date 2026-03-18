@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { db } from '@/lib/data/system';
 import { streamMessages, streams } from '@/db/schema';
-import { eq, and, isNotNull, sql } from 'drizzle-orm';
+import { eq, and, isNotNull } from 'drizzle-orm';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';

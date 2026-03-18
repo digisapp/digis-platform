@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { db } from '@/lib/data/system';
 import { vods, vodPurchases, subscriptions } from '@/lib/data/system';
-import { eq, desc, and, or, gt, sql, count } from 'drizzle-orm';
+import { eq, desc, and } from 'drizzle-orm';
 import { withTimeoutAndRetry } from '@/lib/async-utils';
 import { nanoid } from 'nanoid';
 

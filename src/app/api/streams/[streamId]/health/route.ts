@@ -5,8 +5,8 @@ import { NextRequest, NextResponse } from 'next/server';
  * Returns 200 OK if the stream is accessible
  */
 export async function HEAD(
-  request: NextRequest,
-  context: { params: Promise<{ streamId: string }> }
+  _request: NextRequest,
+  _context: { params: Promise<{ streamId: string }> }
 ) {
   return new NextResponse(null, { status: 200 });
 }

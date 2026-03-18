@@ -7,9 +7,9 @@ import type { ContentItem, StreamItem, ClipItem } from './types';
 
 interface ProfileContentTabsProps {
   activeTab: 'photos' | 'video' | 'streams' | 'about';
-  onTabChange: (tab: 'photos' | 'video' | 'streams' | 'about') => void;
+  onTabChange: (_tab: 'photos' | 'video' | 'streams' | 'about') => void;
   streamsSubTab: 'vods' | 'clips';
-  onStreamsSubTabChange: (tab: 'vods' | 'clips') => void;
+  onStreamsSubTabChange: (_tab: 'vods' | 'clips') => void;
   content: ContentItem[];
   streams: StreamItem[];
   clips: ClipItem[];
@@ -18,13 +18,13 @@ interface ProfileContentTabsProps {
   hasMoreStreams: boolean;
   loadingMoreContent: boolean;
   loadingMoreStreams: boolean;
-  onLoadMoreContent: (type?: 'photo' | 'video') => void;
+  onLoadMoreContent: (_type?: 'photo' | 'video') => void;
   onLoadMoreVods: () => void;
   user: { id: string; username: string; displayName: string | null; bio: string | null; role: string; createdAt: string };
   isFollowing: boolean;
   onFollowToggle: () => void;
-  onContentClick: (item: ContentItem) => void;
-  onLikeContent: (contentId: string, e: React.MouseEvent) => void;
+  onContentClick: (_item: ContentItem) => void;
+  onLikeContent: (_contentId: string, _e: React.MouseEvent) => void;
 }
 
 export function ProfileContentTabs({
@@ -172,8 +172,8 @@ function PhotosTab({ content, hasMoreContent, loadingMoreContent, onLoadMore, on
   hasMoreContent: boolean;
   loadingMoreContent: boolean;
   onLoadMore: () => void;
-  onContentClick: (item: ContentItem) => void;
-  onLikeContent: (contentId: string, e: React.MouseEvent) => void;
+  onContentClick: (_item: ContentItem) => void;
+  onLikeContent: (_contentId: string, _e: React.MouseEvent) => void;
 }) {
   const photos = content.filter(c => c.type === 'photo');
 
@@ -282,8 +282,8 @@ function VideoTab({ content, hasMoreContent, loadingMoreContent, onLoadMore, onC
   hasMoreContent: boolean;
   loadingMoreContent: boolean;
   onLoadMore: () => void;
-  onContentClick: (item: ContentItem) => void;
-  onLikeContent: (contentId: string, e: React.MouseEvent) => void;
+  onContentClick: (_item: ContentItem) => void;
+  onLikeContent: (_contentId: string, _e: React.MouseEvent) => void;
 }) {
   const videos = content.filter(c => c.type === 'video');
 
@@ -391,7 +391,7 @@ function VideoTab({ content, hasMoreContent, loadingMoreContent, onLoadMore, onC
 
 function StreamsTab({ streamsSubTab, onStreamsSubTabChange, streams, clips, hasMoreStreams, loadingMoreStreams, onLoadMoreVods, user, isFollowing, onFollowToggle, router }: {
   streamsSubTab: 'vods' | 'clips';
-  onStreamsSubTabChange: (tab: 'vods' | 'clips') => void;
+  onStreamsSubTabChange: (_tab: 'vods' | 'clips') => void;
   streams: StreamItem[];
   clips: ClipItem[];
   hasMoreStreams: boolean;

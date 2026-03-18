@@ -1,6 +1,6 @@
 'use client';
 
-import { Circle, Square, Video } from 'lucide-react';
+import { Circle, Square } from 'lucide-react';
 
 interface StreamRecordButtonProps {
   isRecording: boolean;

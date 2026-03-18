@@ -5,7 +5,7 @@ import { useRouter, useParams, useSearchParams } from 'next/navigation';
 import { GlassCard, GlassButton, LoadingSpinner } from '@/components/ui';
 import { useToastContext } from '@/context/ToastContext';
 import { MobileHeader } from '@/components/layout/MobileHeader';
-import { Calendar, Clock, Video, Phone, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Video, Phone, ChevronLeft, ChevronRight } from 'lucide-react';
 
 interface Slot {
   startTime: string;

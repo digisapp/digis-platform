@@ -32,7 +32,7 @@ export function CallSettings() {
       } else {
         setError(data.error || 'Failed to load settings');
       }
-    } catch (err) {
+    } catch  {
       setError('Failed to load settings');
     } finally {
       setLoading(false);
@@ -62,7 +62,7 @@ export function CallSettings() {
       } else {
         setError(data.error || 'Failed to save settings');
       }
-    } catch (err) {
+    } catch  {
       setError('Failed to save settings');
     } finally {
       setSaving(false);

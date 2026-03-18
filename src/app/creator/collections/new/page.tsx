@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { GlassCard, GlassButton, LoadingSpinner } from '@/components/ui';
 import { useToastContext } from '@/context/ToastContext';
 import { MobileHeader } from '@/components/layout/MobileHeader';
-import { Plus, X, Video, Image, Layers } from 'lucide-react';
+import { X, Video, Image, Layers } from 'lucide-react';
 
 interface ContentItem {
   id: string;

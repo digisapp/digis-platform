@@ -6,11 +6,11 @@ import { useToastContext } from '@/context/ToastContext';
 
 type QuickGiftButtonsProps = {
   streamId: string;
-  onSendGift: (giftId: string, quantity: number) => Promise<void>;
+  onSendGift: (_giftId: string, _quantity: number) => Promise<void>;
   userBalance: number;
 };
 
-export function QuickGiftButtons({ streamId, onSendGift, userBalance }: QuickGiftButtonsProps) {
+export function QuickGiftButtons({ streamId: _streamId, onSendGift, userBalance }: QuickGiftButtonsProps) {
   const { showError } = useToastContext();
   const [gifts, setGifts] = useState<VirtualGift[]>([]);
   const [sending, setSending] = useState<string | null>(null);

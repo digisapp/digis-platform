@@ -4,7 +4,7 @@
 export interface FetchWithRetryOptions extends RequestInit {
   retries?: number;
   backoffMs?: number;
-  onRetry?: (attempt: number, error: Error) => void;
+  onRetry?: (_attempt: number, _error: Error) => void;
 }
 
 export async function fetchWithRetry(

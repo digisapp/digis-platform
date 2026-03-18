@@ -12,15 +12,15 @@ interface ChatInputProps {
   costPerMessage: number | null;
   currentUserIsAdmin: boolean;
   currentUserRole: string | null;
-  onInputChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  onInputChange: (_e: React.ChangeEvent<HTMLInputElement>) => void;
   onInputBlur: () => void;
-  onSubmit: (e: React.FormEvent) => void;
+  onSubmit: (_e: React.FormEvent) => void;
   onToggleAttachmentMenu: () => void;
   onShowMediaModal: () => void;
   onShowVoiceRecorder: () => void;
   onCancelVoiceRecorder: () => void;
   onShowTipModal: () => void;
-  onSendVoice: (blob: Blob, duration: number, price?: number) => Promise<void>;
+  onSendVoice: (_blob: Blob, _duration: number, _price?: number) => Promise<void>;
 }
 
 export function ChatInput({

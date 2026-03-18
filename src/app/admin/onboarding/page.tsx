@@ -222,7 +222,7 @@ export default function AdminOnboardingPage() {
       } else {
         setToast({ message: data.error || 'Failed to parse CSV', type: 'error' });
       }
-    } catch (error) {
+    } catch  {
       setToast({ message: 'Failed to parse CSV', type: 'error' });
     } finally {
       setParseLoading(false);
@@ -268,7 +268,7 @@ export default function AdminOnboardingPage() {
       } else {
         setToast({ message: data.error || 'Failed to generate invites', type: 'error' });
       }
-    } catch (error) {
+    } catch  {
       setToast({ message: 'Failed to generate invites', type: 'error' });
     } finally {
       setGenerateLoading(false);
@@ -305,7 +305,7 @@ export default function AdminOnboardingPage() {
         const data = await res.json();
         setToast({ message: data.error || 'Failed to revoke invite', type: 'error' });
       }
-    } catch (error) {
+    } catch  {
       setToast({ message: 'Failed to revoke invite', type: 'error' });
     }
   };

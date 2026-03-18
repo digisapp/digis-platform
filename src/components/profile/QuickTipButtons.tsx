@@ -7,12 +7,12 @@ import { useToastContext } from '@/context/ToastContext';
 interface QuickTipButtonsProps {
   creatorId: string;
   creatorName: string;
-  onTipSent?: (amount: number) => void;
+  onTipSent?: (_amount: number) => void;
 }
 
 const PRESET_AMOUNTS = [10, 25, 50, 100];
 
-export function QuickTipButtons({ creatorId, creatorName, onTipSent }: QuickTipButtonsProps) {
+export function QuickTipButtons({ creatorId, creatorName: _creatorName, onTipSent }: QuickTipButtonsProps) {
   const { showError } = useToastContext();
   const [sending, setSending] = useState<number | null>(null);
   const [showConfetti, setShowConfetti] = useState(false);

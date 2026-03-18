@@ -321,7 +321,7 @@ export function useStreamViewerData({ streamId }: { streamId: string }) {
       } else {
         setError(data.error || 'Stream not found');
       }
-    } catch (err) {
+    } catch  {
       setError('Failed to load stream');
     } finally {
       setLoading(false);

@@ -30,7 +30,7 @@ interface CommunityModalsProps {
   onCloseToast: () => void;
   aiSettingsModal: AiSettingsState | null;
   onCloseAiSettings: () => void;
-  onSaveAiSettings: (settings: Record<string, unknown>) => Promise<void>;
+  onSaveAiSettings: (_settings: Record<string, unknown>) => Promise<void>;
 }
 
 const VOICES = ['ara', 'eve', 'mika', 'leo', 'rex', 'sal'];
@@ -38,7 +38,7 @@ const VOICES = ['ara', 'eve', 'mika', 'leo', 'rex', 'sal'];
 function AiSettingsModalContent({ modal, onClose, onSave }: {
   modal: AiSettingsState;
   onClose: () => void;
-  onSave: (settings: Record<string, unknown>) => Promise<void>;
+  onSave: (_settings: Record<string, unknown>) => Promise<void>;
 }) {
   const s = modal.settings;
   const [enabled, setEnabled] = useState(s?.enabled ?? false);

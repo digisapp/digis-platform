@@ -8,7 +8,7 @@ import { LoadingSpinner } from '@/components/ui';
 import {
   Camera, Check, ArrowRight, ArrowLeft, DollarSign,
   Upload, Share2, Copy, CheckCircle, Sparkles, Video,
-  MessageSquare, Phone, Mic,
+  MessageSquare, Mic,
 } from 'lucide-react';
 
 interface SetupData {
@@ -258,7 +258,7 @@ export default function CreatorSetupPage() {
 
         {/* Progress bar */}
         <div className="flex items-center gap-1 mb-2">
-          {STEPS.map((step, i) => (
+          {STEPS.map((step, _i) => (
             <div key={step.id} className="flex-1 flex items-center">
               <div
                 className={`h-1.5 w-full rounded-full transition-all duration-500 ${

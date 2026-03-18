@@ -8,7 +8,7 @@ export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
 // GET - Get user's subscriptions
-export async function GET(req: NextRequest) {
+export async function GET(_req: NextRequest) {
   const requestId = nanoid(10);
 
   try {

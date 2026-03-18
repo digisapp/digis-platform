@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { GlassButton, GlassCard, LoadingSpinner } from '@/components/ui';
 import { Mic, MicOff, PhoneOff, Bot, Volume2, Sparkles, Coins, AlertTriangle } from 'lucide-react';
 import { useToastContext } from '@/context/ToastContext';
-import { useAiVoiceChat, ConnectionState, SpeakingState } from './useAiVoiceChat';
+import { useAiVoiceChat } from './useAiVoiceChat';
 
 interface AiVoiceChatProps {
   creatorId: string;

@@ -301,7 +301,7 @@ export function useGoLiveDevices() {
               advanced: [{ zoom: minZoom }],
             });
           }
-        } catch (zoomError) {
+        } catch  {
           // Zoom not supported - ignore
         }
       }

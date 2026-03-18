@@ -118,7 +118,7 @@ export function useAdminCommunity() {
       } else if (!response.ok) {
         setFetchError(result?.error || 'Failed to load data');
       }
-    } catch (error: unknown) {
+    } catch  {
       setFetchError('Failed to load data. Please check your connection and try again.');
     } finally {
       setLoading(false);

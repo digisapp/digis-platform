@@ -19,7 +19,7 @@ interface GuestInvite {
 interface GuestInvitePopupProps {
   streamId: string;
   invite: GuestInvite;
-  onAccepted: (inviteType: 'video' | 'voice') => void;
+  onAccepted: (_inviteType: 'video' | 'voice') => void;
   onDeclined: () => void;
 }
 

@@ -6,7 +6,7 @@ import { X, ZoomIn, ZoomOut, RotateCcw, Check } from 'lucide-react';
 
 interface ImageCropperProps {
   image: string;
-  onCropComplete: (croppedImageBlob: Blob) => void;
+  onCropComplete: (_croppedImageBlob: Blob) => void;
   onCancel: () => void;
   cropShape?: 'round' | 'rect';
   aspectRatio?: number;

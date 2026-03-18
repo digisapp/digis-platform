@@ -8,7 +8,7 @@ import { PaymentErrorBoundary } from '@/components/error-boundaries';
 interface TipModalProps {
   creatorUsername: string;
   userBalance: number;
-  onSendTip: (amount: number, note?: string) => Promise<void>;
+  onSendTip: (_amount: number, _note?: string) => Promise<void>;
   onClose: () => void;
 }
 

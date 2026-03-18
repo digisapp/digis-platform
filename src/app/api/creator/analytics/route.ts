@@ -60,7 +60,7 @@ export async function GET(request: NextRequest) {
           tag: 'getUserRole'
         }
       );
-    } catch (error) {
+    } catch  {
       console.error('[CREATOR_ANALYTICS]', {
         requestId,
         error: 'Failed to verify user role',

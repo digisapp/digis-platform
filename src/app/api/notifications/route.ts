@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { db } from '@/lib/data/system';
 import { notifications } from '@/lib/data/system';
-import { eq, desc, and, or, inArray } from 'drizzle-orm';
+import { eq, desc, and, inArray } from 'drizzle-orm';
 import { withTimeoutAndRetry } from '@/lib/async-utils';
 import { success, degraded } from '@/types/api';
 import { nanoid } from 'nanoid';
@@ -114,7 +114,7 @@ export async function GET(request: NextRequest) {
 }
 
 // POST /api/notifications/mark-all-read - Mark all as read
-export async function POST(request: NextRequest) {
+export async function POST(_request: NextRequest) {
   try {
     const supabase = await createClient();
     const { data: { user }, error: authError } = await supabase.auth.getUser();

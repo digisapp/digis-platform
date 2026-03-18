@@ -39,12 +39,12 @@ interface UseStreamEndHandlingParams {
   viewerCount: number;
   totalEarnings: number;
   formatDuration: () => string;
-  showError: (msg: string) => void;
-  setToken: (token: string) => void;
-  setHasManuallyEnded: (ended: boolean) => void;
-  setShowEndConfirm: (show: boolean) => void;
-  setShowStreamSummary: (show: boolean) => void;
-  setAnnouncedTicketedStream: (stream: null) => void;
+  showError: (_msg: string) => void;
+  setToken: (_token: string) => void;
+  setHasManuallyEnded: (_ended: boolean) => void;
+  setShowEndConfirm: (_show: boolean) => void;
+  setShowStreamSummary: (_show: boolean) => void;
+  setAnnouncedTicketedStream: (_stream: null) => void;
 }
 
 export function useStreamEndHandling({
@@ -178,7 +178,7 @@ export function useStreamEndHandling({
         setShowEndConfirm(false);
         setShowVipEndChoice(false);
       }
-    } catch (err) {
+    } catch  {
       showError('Failed to end stream');
       setHasManuallyEnded(false);
       setShowEndConfirm(false);
@@ -207,7 +207,7 @@ export function useStreamEndHandling({
         showError(data.error || 'Failed to end stream');
         setHasManuallyEnded(false);
       }
-    } catch (err) {
+    } catch  {
       showError('Failed to end stream');
       setHasManuallyEnded(false);
     } finally {
@@ -249,7 +249,7 @@ export function useStreamEndHandling({
         showError(data.error || 'Failed to end stream');
         setHasManuallyEnded(false);
       }
-    } catch (err) {
+    } catch  {
       showError('Failed to end stream');
       setHasManuallyEnded(false);
     } finally {

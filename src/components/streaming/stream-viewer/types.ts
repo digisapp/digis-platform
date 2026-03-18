@@ -1,4 +1,4 @@
-import type { Stream, StreamGoal, VirtualGift, StreamGift } from '@/db/schema';
+import type { Stream, VirtualGift, StreamGift } from '@/db/schema';
 
 export type StreamWithCreator = Stream & {
   creator?: {

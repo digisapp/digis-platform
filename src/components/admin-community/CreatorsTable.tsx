@@ -35,15 +35,15 @@ function SortIcon({ column, sortKey, sortDir }: { column: SortKey; sortKey: Sort
 interface CreatorsTableProps {
   creators: Creator[];
   activeDropdown: string | null;
-  setActiveDropdown: (id: string | null) => void;
-  formatDate: (dateString: string | null) => string;
-  formatCoins: (coins: number) => string;
-  onVerify: (userId: string, isVerified: boolean) => void;
-  onHide: (userId: string, isHidden: boolean) => void;
-  onSuspend: (userId: string, isSuspended: boolean) => void;
-  onDelete: (userId: string) => void;
-  onChangeRole: (userId: string, currentRole: string, newRole: 'fan' | 'creator' | 'admin') => void;
-  onOpenAiSettings: (creatorId: string, creatorUsername: string) => void;
+  setActiveDropdown: (_id: string | null) => void;
+  formatDate: (_dateString: string | null) => string;
+  formatCoins: (_coins: number) => string;
+  onVerify: (_userId: string, _isVerified: boolean) => void;
+  onHide: (_userId: string, _isHidden: boolean) => void;
+  onSuspend: (_userId: string, _isSuspended: boolean) => void;
+  onDelete: (_userId: string) => void;
+  onChangeRole: (_userId: string, _currentRole: string, _newRole: 'fan' | 'creator' | 'admin') => void;
+  onOpenAiSettings: (_creatorId: string, _creatorUsername: string) => void;
 }
 
 export function CreatorsTable({

@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext, useContext, useEffect, useState, useMemo, ReactNode } from 'react';
+import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { closeAblyClient } from '@/lib/ably/client';
 import type { Session } from '@supabase/supabase-js';

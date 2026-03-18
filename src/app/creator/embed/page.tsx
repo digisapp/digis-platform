@@ -50,7 +50,7 @@ export default function EmbedGeneratorPage() {
   @${username} on Digis
 </a>`;
 
-  const copy = (text: string, setter: (v: boolean) => void) => {
+  const copy = (text: string, setter: (_v: boolean) => void) => {
     navigator.clipboard.writeText(text);
     setter(true);
     setTimeout(() => setter(false), 2000);

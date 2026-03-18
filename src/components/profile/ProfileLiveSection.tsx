@@ -24,7 +24,7 @@ type Status = {
 interface ProfileLiveSectionProps {
   username: string;
   isAuthenticated?: boolean;
-  onRequireAuth?: (action: string) => void;
+  onRequireAuth?: (_action: string) => void;
 }
 
 export default function ProfileLiveSection({ username, isAuthenticated, onRequireAuth }: ProfileLiveSectionProps) {

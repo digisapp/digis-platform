@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { Search, X, UserPlus, GripVertical, Users, Info } from 'lucide-react';
+import { Search, X, UserPlus, Users, Info } from 'lucide-react';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 
 interface Creator {
@@ -15,7 +15,7 @@ interface Creator {
 
 interface FeaturedCreatorSelectorProps {
   selectedCreators: Creator[];
-  onCreatorsChange: (creators: Creator[]) => void;
+  onCreatorsChange: (_creators: Creator[]) => void;
   maxCreators?: number;
 }
 

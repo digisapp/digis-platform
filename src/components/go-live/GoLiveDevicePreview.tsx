@@ -6,19 +6,19 @@ import { HelpCircle, Camera, RefreshCw } from 'lucide-react';
 
 interface GoLiveDevicePreviewProps {
   orientation: 'landscape' | 'portrait';
-  setOrientation: (v: 'landscape' | 'portrait') => void;
+  setOrientation: (_v: 'landscape' | 'portrait') => void;
   devicesLoading: boolean;
   previewError: string;
   videoPlaying: boolean;
-  setVideoPlaying: (v: boolean) => void;
+  setVideoPlaying: (_v: boolean) => void;
   mediaStream: MediaStream | null;
   videoRef: React.RefObject<HTMLVideoElement | null>;
   videoDevices: MediaDeviceInfo[];
   audioDevices: MediaDeviceInfo[];
   selectedVideoDevice: string;
-  setSelectedVideoDevice: (v: string) => void;
+  setSelectedVideoDevice: (_v: string) => void;
   selectedAudioDevice: string;
-  setSelectedAudioDevice: (v: string) => void;
+  setSelectedAudioDevice: (_v: string) => void;
   audioLevel: number;
   onInitializeDevices: () => void;
   onTapToPlay: () => void;

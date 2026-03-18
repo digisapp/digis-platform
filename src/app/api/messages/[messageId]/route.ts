@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { db } from '@/lib/data/system';
 import { messages } from '@/lib/data/system';
-import { eq, and } from 'drizzle-orm';
+import { eq } from 'drizzle-orm';
 
 export const runtime = 'nodejs';
 
@@ -87,7 +87,7 @@ export async function DELETE(
               await supabase.storage.from(bucket).remove([filePath]);
             }
           }
-        } catch (e) {
+        } catch  {
           // Ignore thumbnail deletion errors
         }
       }

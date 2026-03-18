@@ -15,8 +15,8 @@ interface TicketAnnouncementModalProps {
   userBalance: number;
   currentUser: any;
   quickBuyLoading: boolean;
-  onPurchase: (showId: string, price: number) => void;
-  onDismiss: (dismissed: { ticketedStreamId: string; title: string; ticketPrice: number; startsAt: string }) => void;
+  onPurchase: (_showId: string, _price: number) => void;
+  onDismiss: (_dismissed: { ticketedStreamId: string; title: string; ticketPrice: number; startsAt: string }) => void;
   onBuyCoins: () => void;
 }
 

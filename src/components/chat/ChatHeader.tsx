@@ -7,7 +7,7 @@ import type { Conversation } from './types';
 interface ChatHeaderProps {
   conversation: Conversation;
   showOptionsMenu: boolean;
-  setShowOptionsMenu: (v: boolean) => void;
+  setShowOptionsMenu: (_v: boolean) => void;
   isBlocking: boolean;
   onBlockUser: () => void;
 }

@@ -151,7 +151,7 @@ export const POST = withOriginGuard(async (request: Request) => {
 });
 
 // GET endpoint to check cooldown status
-export async function GET(request: NextRequest) {
+export async function GET(_request: NextRequest) {
   try {
     const supabase = await createClient();
     const { data: { user: authUser }, error: authError } = await supabase.auth.getUser();

@@ -6,10 +6,10 @@ interface UseVipShowParams {
   streamId: string;
   announcedTicketedStream: { id: string; title: string; ticketPrice: number; startsAt: Date } | null;
   vipModeActive: boolean;
-  setVipModeActive: (active: boolean) => void;
-  setAnnouncedTicketedStream: (val: { id: string; title: string; ticketPrice: number; startsAt: Date } | null) => void;
-  setVipTicketCount: (count: number) => void;
-  showError: (msg: string) => void;
+  setVipModeActive: (_active: boolean) => void;
+  setAnnouncedTicketedStream: (_val: { id: string; title: string; ticketPrice: number; startsAt: Date } | null) => void;
+  setVipTicketCount: (_count: number) => void;
+  showError: (_msg: string) => void;
 }
 
 export function useVipShow({

@@ -65,7 +65,7 @@ export function PendingCalls() {
         const data = await response.json();
         showError(data.error || 'Failed to accept call');
       }
-    } catch (err) {
+    } catch  {
       showError('Failed to accept call');
     } finally {
       setProcessingId(null);
@@ -91,7 +91,7 @@ export function PendingCalls() {
         const data = await response.json();
         showError(data.error || 'Failed to reject call');
       }
-    } catch (err) {
+    } catch  {
       showError('Failed to reject call');
     } finally {
       setProcessingId(null);

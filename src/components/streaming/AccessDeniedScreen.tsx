@@ -18,7 +18,7 @@ interface AccessDeniedData {
 interface AccessDeniedScreenProps {
   accessDenied: AccessDeniedData;
   onRetryAccess: () => void;
-  onNavigate: (path: string) => void;
+  onNavigate: (_path: string) => void;
 }
 
 export function AccessDeniedScreen({

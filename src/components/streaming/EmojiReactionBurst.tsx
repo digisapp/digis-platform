@@ -11,7 +11,7 @@ type FloatingEmoji = {
 
 type EmojiReactionBurstProps = {
   reactions: Array<{ id: string; emoji: string; timestamp: number }>;
-  onComplete?: (id: string) => void;
+  onComplete?: (_id: string) => void;
 };
 
 // CSS-based floating emoji animation (no framer-motion dependency)

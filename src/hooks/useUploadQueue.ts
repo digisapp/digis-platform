@@ -54,7 +54,7 @@ function persistQueue(items: QueueItem[]) {
   try {
     const serializable: PersistedQueueItem[] = items
       .filter(i => i.status !== 'ready') // Don't persist completed items
-      .map(({ file, progress, signedUrl, ...rest }) => rest);
+      .map(({ file: _file, progress: _progress, signedUrl: _signedUrl, ...rest }) => rest);
     localStorage.setItem(STORAGE_KEY, JSON.stringify(serializable));
   } catch {}
 }
@@ -337,7 +337,7 @@ function uploadWithXHR(
   file: File,
   contentType: string,
   token: string,
-  onProgress: (pct: number) => void,
+  onProgress: (_pct: number) => void,
 ): Promise<{ ok: boolean; error?: string }> {
   return new Promise((resolve) => {
     const xhr = new XMLHttpRequest();
@@ -385,7 +385,7 @@ async function uploadWithTUS(
   storagePath: string,
   file: File,
   contentType: string,
-  onProgress: (pct: number) => void,
+  onProgress: (_pct: number) => void,
 ): Promise<{ ok: boolean; error?: string }> {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
   const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;

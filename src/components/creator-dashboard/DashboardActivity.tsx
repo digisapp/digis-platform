@@ -12,7 +12,7 @@ import type { Activity, ContentItem } from './types';
 interface DashboardActivityProps {
   recentActivities: Activity[];
   recentContent: ContentItem[];
-  onFulfillOrder: (orderId: string) => void;
+  onFulfillOrder: (_orderId: string) => void;
 }
 
 const getActivityIcon = (iconType: string) => {

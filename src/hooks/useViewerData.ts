@@ -115,9 +115,9 @@ interface UseViewerDataParams {
   showViewerList: boolean;
   dismissedTicketedStream: any;
   ticketedAnnouncement: any;
-  setUpcomingTicketedShow: (show: any) => void;
-  setCurrentUser: (user: any) => void;
-  setUserBalance: (balance: number) => void;
+  setUpcomingTicketedShow: (_show: any) => void;
+  setCurrentUser: (_user: any) => void;
+  setUserBalance: (_balance: number) => void;
 }
 
 export function useViewerData({

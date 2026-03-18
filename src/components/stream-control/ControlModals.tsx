@@ -12,8 +12,8 @@ interface ControlModalsProps {
   currentViewers: number;
   // Moderation
   selectedUser: { id: string; username: string } | null;
-  onTimeout: (userId: string, username: string) => void;
-  onBan: (userId: string, username: string) => void;
+  onTimeout: (_userId: string, _username: string) => void;
+  onBan: (_userId: string, _username: string) => void;
   onCloseModeration: () => void;
   // End stream
   showEndConfirm: boolean;
@@ -36,7 +36,7 @@ interface ControlModalsProps {
   // Announce
   showAnnounceModal: boolean;
   onCloseAnnounceModal: () => void;
-  onAnnounceSuccess: (show: { id: string; title: string; ticketPrice: number; startsAt: Date }) => void;
+  onAnnounceSuccess: (_show: { id: string; title: string; ticketPrice: number; startsAt: Date }) => void;
 }
 
 export function ControlModals({

@@ -10,9 +10,9 @@ interface DashboardEarningsProps {
   earningsChange: number | null;
   selectedPeriod: string;
   showPeriodDropdown: boolean;
-  setShowPeriodDropdown: (v: boolean) => void;
-  onPeriodChange: (period: '7' | '30' | '90' | 'all') => void;
-  getPeriodLabel: (period: string) => string;
+  setShowPeriodDropdown: (_v: boolean) => void;
+  onPeriodChange: (_period: '7' | '30' | '90' | 'all') => void;
+  getPeriodLabel: (_period: string) => string;
 }
 
 export function DashboardEarnings({

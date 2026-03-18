@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { ArrowLeft } from 'lucide-react';
-import { GlassModal, GlassInput, GlassButton, LoadingSpinner, PasswordInput } from '@/components/ui';
+import { GlassModal, GlassInput, PasswordInput } from '@/components/ui';
 import { createClient } from '@/lib/supabase/client';
 import { useToastContext } from '@/context/ToastContext';
 

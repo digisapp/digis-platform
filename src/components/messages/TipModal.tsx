@@ -16,7 +16,7 @@ interface VirtualGift {
 
 interface TipModalProps {
   onClose: () => void;
-  onSend: (amount: number, message: string, giftId?: string, giftEmoji?: string, giftName?: string) => Promise<void>;
+  onSend: (_amount: number, _message: string, _giftId?: string, _giftEmoji?: string, _giftName?: string) => Promise<void>;
   receiverName: string;
 }
 

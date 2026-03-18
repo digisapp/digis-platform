@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/data/system';
-import { users, creatorInvites, creatorSettings, aiTwinSettings, profiles, creatorApplications } from '@/lib/data/system';
+import { users, creatorInvites, creatorSettings, aiTwinSettings, profiles } from '@/lib/data/system';
 import { eq, and } from 'drizzle-orm';
 import { rateLimit } from '@/lib/rate-limit';
 import { isBlockedDomain, isHoneypotTriggered } from '@/lib/validation/spam-protection';

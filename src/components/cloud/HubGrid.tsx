@@ -7,8 +7,8 @@ import type { CloudItem } from '@/hooks/useCloudData';
 interface CloudGridProps {
   items: CloudItem[];
   selectedItems: Set<string>;
-  onToggleSelect: (id: string) => void;
-  onItemClick: (item: CloudItem) => void;
+  onToggleSelect: (_id: string) => void;
+  onItemClick: (_item: CloudItem) => void;
   selectionMode: boolean;
 }
 
@@ -27,8 +27,8 @@ const CloudGridItem = memo(({ item, selected, selectionMode, onToggleSelect, onI
   item: CloudItem;
   selected: boolean;
   selectionMode: boolean;
-  onToggleSelect: (id: string) => void;
-  onItemClick: (item: CloudItem) => void;
+  onToggleSelect: (_id: string) => void;
+  onItemClick: (_item: CloudItem) => void;
 }) => {
   const badge = statusBadge[item.status as keyof typeof statusBadge] || statusBadge.private;
   const BadgeIcon = badge.icon;

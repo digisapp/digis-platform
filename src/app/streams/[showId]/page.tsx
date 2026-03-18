@@ -7,7 +7,7 @@ import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { createClient } from '@/lib/supabase/client';
 import { format, formatDistanceToNow } from 'date-fns';
 import { TicketPurchaseModal } from '@/components/shows/TicketPurchaseModal';
-import { Pencil, Trash2, Play, X } from 'lucide-react';
+import { Trash2, Play } from 'lucide-react';
 import { useToastContext } from '@/context/ToastContext';
 
 interface Show {

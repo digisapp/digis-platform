@@ -16,14 +16,14 @@ type SpotlightedCreator = {
 
 type GiftSelectorProps = {
   streamId: string;
-  onSendGift: (giftId: string, quantity: number, recipientCreatorId?: string, recipientUsername?: string) => Promise<void>;
-  onSendTip?: (amount: number, recipientCreatorId?: string, recipientUsername?: string, message?: string) => Promise<void>;
+  onSendGift: (_giftId: string, _quantity: number, _recipientCreatorId?: string, _recipientUsername?: string) => Promise<void>;
+  onSendTip?: (_amount: number, _recipientCreatorId?: string, _recipientUsername?: string, _message?: string) => Promise<void>;
   userBalance: number;
   spotlightedCreator?: SpotlightedCreator | null;
   hostName?: string; // Stream host's display name
 };
 
-export function GiftSelector({ streamId, onSendGift, onSendTip, userBalance, spotlightedCreator, hostName }: GiftSelectorProps) {
+export function GiftSelector({ streamId: _streamId, onSendGift, onSendTip, userBalance, spotlightedCreator, hostName }: GiftSelectorProps) {
   const { showError, showInfo } = useToastContext();
   const [gifts, setGifts] = useState<VirtualGift[]>([]);
   const [selectedGift, setSelectedGift] = useState<VirtualGift | null>(null);

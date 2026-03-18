@@ -11,12 +11,12 @@ interface UseBroadcasterInteractionsParams {
   messages: StreamMessage[];
   clipIt: () => Promise<Blob | null>;
   clipBufferSeconds: number;
-  setClipIsClipping: (v: boolean) => void;
+  setClipIsClipping: (_v: boolean) => void;
   setMessages: React.Dispatch<React.SetStateAction<StreamMessage[]>>;
   menuEnabled: boolean;
   setMenuEnabled: React.Dispatch<React.SetStateAction<boolean>>;
-  showSuccess: (msg: string) => void;
-  showError: (msg: string) => void;
+  showSuccess: (_msg: string) => void;
+  showError: (_msg: string) => void;
 }
 
 export function useBroadcasterInteractions({

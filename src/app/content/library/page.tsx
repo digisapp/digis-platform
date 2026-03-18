@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { GlassCard, LoadingSpinner } from '@/components/ui';
+import { LoadingSpinner } from '@/components/ui';
 import { MobileHeader } from '@/components/layout/MobileHeader';
 import { Play, Image as ImageIcon, Download, Calendar } from 'lucide-react';
 

@@ -17,7 +17,7 @@ export function ShareDigisCard({
   username,
   displayName,
   profileImage,
-  bio
+  bio: _bio
 }: ShareDigisCardProps) {
   const cardRef = useRef<HTMLDivElement>(null);
   const [downloading, setDownloading] = useState(false);
@@ -66,7 +66,7 @@ export function ShareDigisCard({
           text: `Check out ${displayName || username} on Digis!`,
           url: profileUrl,
         });
-      } catch (error) {
+      } catch  {
         // User cancelled or share failed
         handleCopyLink();
       }

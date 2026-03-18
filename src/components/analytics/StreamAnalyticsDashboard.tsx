@@ -8,7 +8,6 @@ import {
   Users,
   Coins,
   Clock,
-  Calendar,
   DollarSign,
   Gift,
   MessageCircle,

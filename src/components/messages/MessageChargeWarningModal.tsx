@@ -16,7 +16,7 @@ interface MessageChargeWarningModalProps {
 export function MessageChargeWarningModal({
   recipientName,
   messageCharge,
-  messagePreview,
+  messagePreview: _messagePreview,
   onClose,
   onConfirm,
 }: MessageChargeWarningModalProps) {

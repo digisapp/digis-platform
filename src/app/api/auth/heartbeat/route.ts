@@ -22,7 +22,7 @@ export async function POST() {
     res.headers.set('Expires', '0');
     res.headers.set('Vary', 'Cookie'); // Prevent proxies from mixing users
     return res;
-  } catch (error) {
+  } catch  {
     return NextResponse.json({ ok: false }, { status: 200 });
   }
 }

@@ -10,7 +10,7 @@ interface AdminModerationTabProps {
   loading: boolean;
   moderation: ModerationData | null;
   moderationTab: 'blocked' | 'bans';
-  setModerationTab: (tab: 'blocked' | 'bans') => void;
+  setModerationTab: (_tab: 'blocked' | 'bans') => void;
   onRetry: () => void;
 }
 

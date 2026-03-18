@@ -10,33 +10,33 @@ import type { StreamMethod } from '@/hooks/useGoLiveData';
 
 interface GoLiveStreamFormProps {
   title: string;
-  setTitle: (v: string) => void;
+  setTitle: (_v: string) => void;
   category: string;
-  setCategory: (v: string) => void;
+  setCategory: (_v: string) => void;
   showCategoryDropdown: boolean;
-  setShowCategoryDropdown: (v: boolean) => void;
+  setShowCategoryDropdown: (_v: boolean) => void;
   tags: string[];
-  setTags: (v: string[]) => void;
+  setTags: (_v: string[]) => void;
   tagInput: string;
-  setTagInput: (v: string) => void;
+  setTagInput: (_v: string) => void;
   privacy: string;
-  setPrivacy: (v: string) => void;
+  setPrivacy: (_v: string) => void;
   goPrivateEnabled: boolean;
-  setGoPrivateEnabled: (v: boolean) => void;
+  setGoPrivateEnabled: (_v: boolean) => void;
   goPrivateRate: number | null;
-  setGoPrivateRate: (v: number | null) => void;
+  setGoPrivateRate: (_v: number | null) => void;
   goPrivateMinDuration: number | null;
-  setGoPrivateMinDuration: (v: number | null) => void;
+  setGoPrivateMinDuration: (_v: number | null) => void;
   defaultCallSettings: { rate: number; minDuration: number } | null;
   featuredCreators: FeaturedCreator[];
-  setFeaturedCreators: (v: FeaturedCreator[]) => void;
+  setFeaturedCreators: (_v: FeaturedCreator[]) => void;
   featuredCreatorCommission: number;
-  setFeaturedCreatorCommission: (v: number) => void;
+  setFeaturedCreatorCommission: (_v: number) => void;
   hasAiTwin: boolean;
   aiChatModEnabled: boolean;
-  setAiChatModEnabled: (v: boolean) => void;
+  setAiChatModEnabled: (_v: boolean) => void;
   streamMethod: StreamMethod;
-  setStreamMethod: (v: StreamMethod) => void;
+  setStreamMethod: (_v: StreamMethod) => void;
 }
 
 export function GoLiveStreamForm({

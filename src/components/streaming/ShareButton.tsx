@@ -22,7 +22,7 @@ export function ShareButton({ streamTitle, creatorName }: ShareButtonProps) {
       await navigator.clipboard.writeText(shareUrl);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
-    } catch (err) {
+    } catch  {
       showError('Failed to copy link');
     }
   };
@@ -45,7 +45,7 @@ export function ShareButton({ streamTitle, creatorName }: ShareButtonProps) {
           text: shareText,
           url: shareUrl,
         });
-      } catch (err) {
+      } catch  {
         console.log('Share cancelled');
       }
     }

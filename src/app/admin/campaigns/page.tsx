@@ -12,7 +12,6 @@ import {
   XCircle,
   Clock,
   Play,
-  Pause,
   RefreshCw,
   Upload,
   TestTube,

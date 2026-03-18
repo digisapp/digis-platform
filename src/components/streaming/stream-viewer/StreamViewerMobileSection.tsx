@@ -18,7 +18,7 @@ interface StreamViewerMobileSectionProps {
   leaderboard: any[];
   spotlightedCreator: FeaturedCreator | null;
   creatorCallSettings: CreatorCallSettings | null;
-  onSendMessage: (message: string) => Promise<void>;
+  onSendMessage: (_message: string) => Promise<void>;
   onFollowToggle: () => void;
   onShowGiftPanel: () => void;
   onShowCallModal: () => void;

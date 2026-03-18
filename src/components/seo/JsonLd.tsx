@@ -1,4 +1,3 @@
-import Script from 'next/script';
 
 interface PersonJsonLdProps {
   name: string;

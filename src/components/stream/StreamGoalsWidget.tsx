@@ -18,7 +18,7 @@ interface StreamGoal {
 
 interface StreamGoalsWidgetProps {
   goals: StreamGoal[];
-  onGoalComplete?: (goal: StreamGoal) => void;
+  onGoalComplete?: (_goal: StreamGoal) => void;
   compact?: boolean;
 }
 

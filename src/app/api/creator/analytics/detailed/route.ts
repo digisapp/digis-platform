@@ -2,8 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { db } from '@/lib/data/system';
 import {
-  users, streams, streamGifts, calls, walletTransactions,
-  clips, cloudItems, cloudPurchases, subscriptions, fanCreatorSpend,
+  users, streams, calls,
+  clips, cloudItems, cloudPurchases, fanCreatorSpend,
 } from '@/db/schema';
 import { eq, and, sql, desc, gte, count } from 'drizzle-orm';
 import { rateLimit } from '@/lib/rate-limit';

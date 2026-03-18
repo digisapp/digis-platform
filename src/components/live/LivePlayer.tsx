@@ -13,7 +13,7 @@ interface LivePlayerProps {
 }
 
 // Component to display the broadcaster's video (camera or screen share)
-function BroadcasterVideoPreview({ onConnectionChange }: { onConnectionChange: (connected: boolean) => void }) {
+function BroadcasterVideoPreview({ onConnectionChange }: { onConnectionChange: (_connected: boolean) => void }) {
   const participants = useRemoteParticipants();
   const hasNotifiedRef = useRef(false);
 

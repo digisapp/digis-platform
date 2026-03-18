@@ -14,7 +14,7 @@ interface SaveStreamModalProps {
   streamId: string;
   streamTitle: string;
   streamDescription?: string;
-  onSaved: (vodId: string) => void;
+  onSaved: (_vodId: string) => void;
 }
 
 export function SaveStreamModal({

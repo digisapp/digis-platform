@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/data/system';
 import { streamGoals, streams } from '@/db/schema';
-import { eq, and } from 'drizzle-orm';
+import { eq } from 'drizzle-orm';
 import { createClient } from '@/lib/supabase/server';
 import { AblyRealtimeService } from '@/lib/streams/ably-realtime-service';
 

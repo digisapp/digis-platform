@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/data/system';
 import { streams } from '@/lib/data/system';
-import { eq, and, lt } from 'drizzle-orm';
+import { eq } from 'drizzle-orm';
 import { StreamService } from '@/lib/streams/stream-service';
 import { publishToChannel } from '@/lib/ably/server';
 import { createClient } from '@/lib/supabase/server';

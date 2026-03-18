@@ -1,6 +1,6 @@
 import { db } from '@/lib/data/system';
-import { aiTwinSettings, users, streams, streamMessages } from '@/db/schema';
-import { eq, sql, and, desc } from 'drizzle-orm';
+import { aiTwinSettings, users, streamMessages } from '@/db/schema';
+import { eq, sql } from 'drizzle-orm';
 import { AblyRealtimeService } from '@/lib/streams/ably-realtime-service';
 import { XaiCollectionsService } from './xai-collections-service';
 

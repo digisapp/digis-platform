@@ -31,7 +31,7 @@ interface ViewerFloatingElementsProps {
   userBalance: number;
   // Floating gifts
   floatingGifts: FloatingGift[];
-  removeFloatingGift: (id: string) => void;
+  removeFloatingGift: (_id: string) => void;
   // Goal celebration
   celebratingGoal: { title: string; rewardText: string } | null;
   completedGoalsQueue: any[];
@@ -54,22 +54,22 @@ interface ViewerFloatingElementsProps {
   // Digital download
   digitalDownload: { show: boolean; url: string; itemLabel: string; amount: number } | null;
   // Handlers
-  handleTip: (amount: number, note?: string, tipMenuItem?: { id: string; label: string } | null) => Promise<void>;
-  handleQuickBuyTicket: (showId: string, price: number) => Promise<void>;
+  handleTip: (_amount: number, _note?: string, _tipMenuItem?: { id: string; label: string } | null) => Promise<void>;
+  handleQuickBuyTicket: (_showId: string, _price: number) => Promise<void>;
   loadCurrentUser: () => void;
-  onSetShowTipModal: (v: boolean) => void;
-  onSetShowMenuModal: (v: boolean) => void;
-  onSetShowBuyCoinsModal: (v: boolean) => void;
-  onSetDigitalDownload: (v: any) => void;
-  onSetTicketedAnnouncement: (v: any) => void;
-  onSetDismissedTicketedStream: (v: any) => void;
-  onSetShowQuickBuyModal: (v: boolean) => void;
-  onSetQuickBuyInfo: (v: any) => void;
+  onSetShowTipModal: (_v: boolean) => void;
+  onSetShowMenuModal: (_v: boolean) => void;
+  onSetShowBuyCoinsModal: (_v: boolean) => void;
+  onSetDigitalDownload: (_v: any) => void;
+  onSetTicketedAnnouncement: (_v: any) => void;
+  onSetDismissedTicketedStream: (_v: any) => void;
+  onSetShowQuickBuyModal: (_v: boolean) => void;
+  onSetQuickBuyInfo: (_v: any) => void;
 }
 
 export function ViewerFloatingElements({
   stream,
-  streamId,
+  streamId: _streamId,
   streamEnded,
   currentUser,
   userBalance,
@@ -89,7 +89,7 @@ export function ViewerFloatingElements({
   showTipModal,
   showMenuModal,
   showBuyCoinsModal,
-  menuEnabled,
+  menuEnabled: _menuEnabled,
   menuItems,
   digitalDownload,
   handleTip,

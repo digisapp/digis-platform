@@ -112,8 +112,8 @@ export interface PayoneerError {
 
 // Mock response generators for development
 export interface MockPayoneerClient {
-  generateMockRegistrationLink(payeeId: string): RegistrationLinkResponse;
-  getMockPayeeStatus(payeeId: string): PayeeStatusResponse;
-  submitMockPayout(request: PayoutRequest): PayoutResponse;
-  getMockPaymentStatus(paymentId: string): PaymentStatusResponse;
+  generateMockRegistrationLink(_payeeId: string): RegistrationLinkResponse;
+  getMockPayeeStatus(_payeeId: string): PayeeStatusResponse;
+  submitMockPayout(_request: PayoutRequest): PayoutResponse;
+  getMockPaymentStatus(_paymentId: string): PaymentStatusResponse;
 }

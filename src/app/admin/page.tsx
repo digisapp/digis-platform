@@ -17,7 +17,6 @@ import {
   AdminToolsTab,
   AdminPayoutsTab,
 } from '@/components/admin-dashboard';
-import type { MainTab } from '@/components/admin-dashboard/types';
 
 export default function AdminDashboard() {
   const d = useAdminDashboard();

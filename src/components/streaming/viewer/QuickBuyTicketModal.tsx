@@ -10,7 +10,7 @@ interface QuickBuyTicketModalProps {
   userBalance: number;
   currentUser: any;
   quickBuyLoading: boolean;
-  onPurchase: (showId: string, price: number) => void;
+  onPurchase: (_showId: string, _price: number) => void;
   onClose: () => void;
   onBuyCoins: () => void;
 }

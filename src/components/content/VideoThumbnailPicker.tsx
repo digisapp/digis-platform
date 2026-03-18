@@ -7,9 +7,9 @@ import { generateVideoThumbnail, ThumbnailResult } from '@/lib/utils/video-thumb
 interface VideoThumbnailPickerProps {
   videoFile: File;
   thumbnail: ThumbnailResult | null;
-  onThumbnailChange: (thumbnail: ThumbnailResult) => void;
+  onThumbnailChange: (_thumbnail: ThumbnailResult) => void;
   generating: boolean;
-  setGenerating: (g: boolean) => void;
+  setGenerating: (_g: boolean) => void;
 }
 
 export function VideoThumbnailPicker({

@@ -12,7 +12,7 @@ interface ControlPanelProps {
   startingVipStream: boolean;
   menuEnabled: boolean;
   onShowGoalModal: () => void;
-  onDeleteGoal: (goalId: string) => void;
+  onDeleteGoal: (_goalId: string) => void;
   onShowAnnounceModal: () => void;
   onStartVipShow: () => void;
   onShowCreatePollModal: () => void;

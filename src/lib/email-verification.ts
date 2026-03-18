@@ -94,7 +94,7 @@ export enum VerificationRequiredAction {
 /**
  * Check if action requires email verification
  */
-export function requiresVerification(action: VerificationRequiredAction): boolean {
+export function requiresVerification(_action: VerificationRequiredAction): boolean {
   // All specified actions require verification
   return true;
 }

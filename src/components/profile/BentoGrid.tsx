@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Video, Image as ImageIcon, Lock, Heart, TrendingUp, Clock, Play } from 'lucide-react';
+import { Lock, Heart, TrendingUp, Clock, Play } from 'lucide-react';
 
 interface ContentItem {
   id: string;

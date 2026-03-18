@@ -8,7 +8,6 @@ import {
   wallets,
 } from '@/lib/data/system';
 import { eq, and, desc, sql, gt, lte } from 'drizzle-orm';
-import { nanoid } from 'nanoid';
 import { NotificationService } from './notification-service';
 
 export class SubscriptionService {

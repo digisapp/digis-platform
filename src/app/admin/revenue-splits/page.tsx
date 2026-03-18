@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import {
-  DollarSign, Settings, Users, PieChart, Save, Plus,
+  DollarSign, Settings, Users, Save, Plus,
 } from 'lucide-react';
 
 interface PlatformFee {

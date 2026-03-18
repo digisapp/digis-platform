@@ -110,7 +110,7 @@ export function GoLiveActiveStream({ activeStream, isMobile, onStreamEnded }: Go
                 } else {
                   showError('Failed to end stream');
                 }
-              } catch (e) {
+              } catch  {
                 showError('Failed to end stream');
               }
             }}

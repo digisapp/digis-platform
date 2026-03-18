@@ -6,7 +6,7 @@ import { GlassCard } from '@/components/ui/GlassCard';
 import { GlassButton } from '@/components/ui/GlassButton';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { useToastContext } from '@/context/ToastContext';
-import { ArrowLeft, DollarSign, Star, Users, ToggleLeft, ToggleRight, Plus, X } from 'lucide-react';
+import { DollarSign, Star, Users, ToggleLeft, ToggleRight, Plus, X } from 'lucide-react';
 
 export default function SubscriptionSetupPage() {
   const router = useRouter();

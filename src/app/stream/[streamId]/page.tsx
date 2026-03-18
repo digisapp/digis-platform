@@ -1,6 +1,6 @@
 import { Metadata } from 'next';
 import { db } from '@/lib/data/system';
-import { streams, users } from '@/lib/data/system';
+import { streams } from '@/lib/data/system';
 import { eq } from 'drizzle-orm';
 import StreamViewerPageClient from './StreamViewerPageClient';
 import { BroadcastEventJsonLd } from '@/components/seo/JsonLd';

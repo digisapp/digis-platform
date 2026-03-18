@@ -1,5 +1,5 @@
 import { db } from '@/lib/data/system';
-import { calls, creatorSettings, users, spendHolds, walletTransactions, wallets } from '@/lib/data/system';
+import { calls, creatorSettings, spendHolds, walletTransactions, wallets } from '@/lib/data/system';
 import { eq, and, or, desc, lt, sql } from 'drizzle-orm';
 import { nanoid } from 'nanoid';
 import * as Sentry from '@sentry/nextjs';

@@ -9,7 +9,7 @@ interface AnnounceTicketedStreamModalProps {
   streamId: string;
   currentViewers: number;
   onClose: () => void;
-  onSuccess: (ticketedStream: {
+  onSuccess: (_ticketedStream: {
     id: string;
     title: string;
     ticketPrice: number;

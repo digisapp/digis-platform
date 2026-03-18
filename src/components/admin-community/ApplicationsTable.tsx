@@ -7,13 +7,13 @@ interface ApplicationsTableProps {
   applications: Application[];
   loading: boolean;
   statusFilter: 'all' | 'pending' | 'approved' | 'rejected';
-  onStatusFilterChange: (status: 'all' | 'pending' | 'approved' | 'rejected') => void;
+  onStatusFilterChange: (_status: 'all' | 'pending' | 'approved' | 'rejected') => void;
   counts: ApplicationCounts;
   pagination: Pagination;
-  onPageChange: (page: number) => void;
-  onApprove: (id: string) => void;
-  onReject: (id: string) => void;
-  formatDate: (d: string | null) => string;
+  onPageChange: (_page: number) => void;
+  onApprove: (_id: string) => void;
+  onReject: (_id: string) => void;
+  formatDate: (_d: string | null) => string;
 }
 
 const STATUS_FILTERS: { key: 'pending' | 'approved' | 'rejected' | 'all'; label: string; color: string }[] = [

@@ -28,13 +28,13 @@ interface UseViewerInteractionsParams {
   stream: any;
   currentUser: any;
   userBalance: number;
-  setUserBalance: (balance: number) => void;
-  showSuccess: (msg: string) => void;
-  showError: (msg: string) => void;
-  showInfo: (msg: string) => void;
+  setUserBalance: (_balance: number) => void;
+  showSuccess: (_msg: string) => void;
+  showError: (_msg: string) => void;
+  showInfo: (_msg: string) => void;
   clipIt: () => Promise<Blob | null>;
   clipBufferSeconds: number;
-  setClipIsClipping: (v: boolean) => void;
+  setClipIsClipping: (_v: boolean) => void;
   loadStream: () => void;
   setMessages: React.Dispatch<React.SetStateAction<ChatMessage[]>>;
   MAX_CHAT_MESSAGES: number;
@@ -58,9 +58,9 @@ export function useViewerInteractions({
   showError,
   showInfo,
   clipIt,
-  clipBufferSeconds,
+  clipBufferSeconds: _clipBufferSeconds,
   setClipIsClipping,
-  loadStream,
+  loadStream: _loadStream,
   setMessages,
   MAX_CHAT_MESSAGES,
 }: UseViewerInteractionsParams) {

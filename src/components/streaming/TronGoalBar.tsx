@@ -14,8 +14,8 @@ interface Goal {
 interface TronGoalBarProps {
   goals: Goal[];
   className?: string;
-  onEdit?: (goalId: string) => void; // Optional edit callback for host
-  onCancel?: (goalId: string) => void; // Optional cancel callback for host
+  onEdit?: (_goalId: string) => void; // Optional edit callback for host
+  onCancel?: (_goalId: string) => void; // Optional cancel callback for host
   vertical?: boolean; // If true, renders as vertical bar on the side
 }
 

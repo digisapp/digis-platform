@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
-import { db, cloudLockedMessages, cloudLockedMessageRecipients, cloudLockedMessageItems, wallets, walletTransactions } from '@/lib/data/system';
+import { db, cloudLockedMessages, cloudLockedMessageRecipients, wallets, walletTransactions } from '@/lib/data/system';
 import { eq, and, sql } from 'drizzle-orm';
 import { rateLimit } from '@/lib/rate-limit';
 import { nanoid } from 'nanoid';

@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { createClient } from '@/lib/supabase/client';
-import { GlassButton, GlassInput, LoadingSpinner } from '@/components/ui';
+import { GlassButton, LoadingSpinner } from '@/components/ui';
 import { CheckCircle, XCircle, Loader2, AlertCircle } from 'lucide-react';
 
 export default function UsernameSetupPage() {

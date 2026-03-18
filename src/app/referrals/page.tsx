@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { MobileHeader } from '@/components/layout/MobileHeader';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import {
-  Users, Gift, Copy, Check, Share2, Coins, Trophy,
+  Users, Gift, Copy, Check, Share2, Coins,
 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 

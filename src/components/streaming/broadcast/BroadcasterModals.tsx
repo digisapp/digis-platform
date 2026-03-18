@@ -48,12 +48,12 @@ interface BroadcasterModalsProps {
   // Save stream modal
   showSaveStreamModal: boolean;
   setShowSaveStreamModal: React.Dispatch<React.SetStateAction<boolean>>;
-  showSuccess: (msg: string) => void;
+  showSuccess: (_msg: string) => void;
   // Announce modal
   showAnnounceModal: boolean;
   setShowAnnounceModal: React.Dispatch<React.SetStateAction<boolean>>;
   viewerCount: number;
-  setAnnouncedTicketedStream: (s: { id: string; title: string; ticketPrice: number; startsAt: Date } | null) => void;
+  setAnnouncedTicketedStream: (_s: { id: string; title: string; ticketPrice: number; startsAt: Date } | null) => void;
   // QR modal
   showQRCode: boolean;
   setShowQRCode: React.Dispatch<React.SetStateAction<boolean>>;

@@ -8,7 +8,7 @@ import { useToastContext } from '@/context/ToastContext';
 type FloatingGiftBarProps = {
   streamId: string;
   creatorId: string;
-  onSendGift: (giftId: string, quantity: number) => Promise<void>;
+  onSendGift: (_giftId: string, _quantity: number) => Promise<void>;
   userBalance: number;
   isAuthenticated: boolean;
   onAuthRequired?: () => void;
@@ -17,8 +17,8 @@ type FloatingGiftBarProps = {
 };
 
 export function FloatingGiftBar({
-  streamId,
-  creatorId,
+  streamId: _streamId,
+  creatorId: _creatorId,
   onSendGift,
   userBalance,
   isAuthenticated,

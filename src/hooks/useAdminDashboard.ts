@@ -50,7 +50,7 @@ export function useAdminDashboard() {
     confirmText: string;
     placeholder?: string;
     requireInput?: string;
-    onConfirm: (inputValue?: string) => void;
+    onConfirm: (_inputValue?: string) => void;
   }>({
     isOpen: false, title: '', message: '', type: 'confirm', icon: 'warning',
     confirmText: 'Confirm', onConfirm: () => {},

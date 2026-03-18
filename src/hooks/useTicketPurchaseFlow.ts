@@ -13,9 +13,9 @@ interface UseTicketPurchaseFlowParams {
   currentUser: any;
   userBalance: number;
   setUserBalance: React.Dispatch<React.SetStateAction<number>>;
-  showError: (msg: string) => void;
-  setShowBuyCoinsModal: (show: boolean) => void;
-  routerPush: (path: string) => void;
+  showError: (_msg: string) => void;
+  setShowBuyCoinsModal: (_show: boolean) => void;
+  routerPush: (_path: string) => void;
 }
 
 export function useTicketPurchaseFlow({

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Trash2, Check, CheckCheck, SmilePlus, Bot, Lock, Play, Image as ImageIcon, Images, Pencil, X, Reply, CornerUpLeft } from 'lucide-react';
 import { ReactionPicker, ReactionDisplay, useMessageReactions } from './ReactionPicker';
 import { useToastContext } from '@/context/ToastContext';
@@ -38,7 +38,7 @@ function ContentCard({ contentId, onPurchase }: { contentId: string; onPurchase?
           mediaUrl: data.mediaUrl,
           isPurchased: data.hasAccess || data.isFree || false,
         });
-      } catch (err) {
+      } catch  {
         setError('Content unavailable');
       } finally {
         setLoading(false);
@@ -305,10 +305,10 @@ interface MessageBubbleProps {
   message: Message;
   isOwnMessage: boolean;
   currentUserId: string;
-  onUnlock?: (messageId: string) => Promise<void>;
-  onDelete?: (messageId: string) => Promise<void>;
-  onEdit?: (messageId: string, newContent: string) => Promise<void>;
-  onReply?: (message: Message) => void;
+  onUnlock?: (_messageId: string) => Promise<void>;
+  onDelete?: (_messageId: string) => Promise<void>;
+  onEdit?: (_messageId: string, _newContent: string) => Promise<void>;
+  onReply?: (_message: Message) => void;
 }
 
 // Quoted message preview component
@@ -395,7 +395,7 @@ export function MessageBubble({ message, isOwnMessage, currentUserId, onUnlock, 
     try {
       await onEdit(message.id, editContent.trim());
       setIsEditing(false);
-    } catch (error) {
+    } catch  {
       showError('Failed to edit message');
       setEditContent(message.content);
     } finally {

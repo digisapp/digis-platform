@@ -13,7 +13,7 @@ type FloatingGift = {
 
 type GiftFloatingEmojisProps = {
   gifts: Array<{ id: string; emoji: string; rarity: string; timestamp: number; giftName?: string }>;
-  onComplete?: (id: string) => void;
+  onComplete?: (_id: string) => void;
 };
 
 // Gift-specific sounds - unique sound for each gift type

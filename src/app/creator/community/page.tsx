@@ -134,7 +134,7 @@ function CommunityContent() {
         const data = await response.json();
         setError(data.error || 'Failed to unblock user');
       }
-    } catch (err) {
+    } catch  {
       setError('Failed to unblock user');
     } finally {
       setUnblockingId(null);

@@ -4,7 +4,7 @@ import React from 'react';
 
 interface StreamEndedOverlayProps {
   creatorUsername: string;
-  onNavigate: (path: string) => void;
+  onNavigate: (_path: string) => void;
 }
 
 export function StreamEndedOverlay({ creatorUsername, onNavigate }: StreamEndedOverlayProps) {

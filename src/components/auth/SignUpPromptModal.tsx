@@ -14,7 +14,7 @@ interface SignUpPromptModalProps {
   onSignUp?: () => void; // Optional callback to open signup modal
 }
 
-export function SignUpPromptModal({ isOpen, onClose, action, creatorName, onSignIn, onSignUp }: SignUpPromptModalProps) {
+export function SignUpPromptModal({ isOpen, onClose, action: _action, creatorName: _creatorName, onSignIn, onSignUp }: SignUpPromptModalProps) {
   const router = useRouter();
   const [isClosing, setIsClosing] = useState(false);
   const [mounted, setMounted] = useState(false);

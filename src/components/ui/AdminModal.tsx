@@ -6,7 +6,7 @@ import { X, AlertTriangle, CheckCircle, Trash2, UserPlus, Shield } from 'lucide-
 interface AdminModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onConfirm: (inputValue?: string) => void;
+  onConfirm: (_inputValue?: string) => void;
   title: string;
   message: string;
   type?: 'confirm' | 'prompt' | 'danger' | 'success';

@@ -1,6 +1,6 @@
 import { db } from '../db';
 import { streams, users } from '../db/schema';
-import { eq, desc } from 'drizzle-orm';
+import { eq } from 'drizzle-orm';
 
 async function checkLiveStreams() {
   // Check for any 'live' streams

@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { db } from '@/lib/data/system';
 import { users } from '@/db/schema/users';
-import { referrals } from '@/db/schema/referrals';
 import { eq } from 'drizzle-orm';
 import { getReferralStats, getReferralList } from '@/lib/referrals';
 
@@ -10,7 +9,7 @@ export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
 // GET /api/creator/referrals - Get creator's referral stats and list
-export async function GET(request: NextRequest) {
+export async function GET(_request: NextRequest) {
   try {
     const supabase = await createClient();
     const { data: { user }, error: authError } = await supabase.auth.getUser();

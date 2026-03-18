@@ -13,7 +13,7 @@ export const dynamic = 'force-dynamic';
 /**
  * GET - Fetch all goals for the authenticated creator
  */
-export async function GET(request: NextRequest) {
+export async function GET(_request: NextRequest) {
   const requestId = nanoid(10);
 
   try {
