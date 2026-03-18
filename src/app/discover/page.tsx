@@ -428,11 +428,11 @@ function FeedCard({ item, isActive, isAuthenticated, userId, onLikeToggle }: Fee
               aria-hidden="true"
             />
           ) : item.thumbnailUrl ? (
-            <Image
+            /* eslint-disable-next-line @next/next/no-img-element */
+            <img
               src={item.thumbnailUrl}
               alt=""
-              fill
-              className="object-cover blur-2xl opacity-40 brightness-75"
+              className="w-full h-full object-cover blur-2xl opacity-40 brightness-75"
               aria-hidden="true"
             />
           ) : null}
@@ -488,6 +488,7 @@ function FeedCard({ item, isActive, isAuthenticated, userId, onLikeToggle }: Fee
               fill
               className="object-cover"
               priority={isActive}
+              unoptimized
             />
           ) : (
             <div className="w-full h-full bg-gray-900/50 flex items-center justify-center">
@@ -534,6 +535,7 @@ function FeedCard({ item, isActive, isAuthenticated, userId, onLikeToggle }: Fee
                 width={44}
                 height={44}
                 className="w-11 h-11 rounded-full object-cover ring-2 ring-white/20"
+                unoptimized
               />
             ) : (
               <div className="w-11 h-11 rounded-full bg-gradient-to-tr from-gray-700 to-gray-600 ring-2 ring-white/20" />
