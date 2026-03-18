@@ -50,6 +50,55 @@ function generateId(): string {
   return `${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
 }
 
+/**
+ * Extract a poster frame from a video file using canvas.
+ * The browser can decode HEVC/H.265 .mov files that server-side ffmpeg can't.
+ * Returns a JPEG blob or null if extraction fails.
+ */
+async function extractVideoThumbnail(file: File): Promise<Blob | null> {
+  return new Promise((resolve) => {
+    const video = document.createElement('video');
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    video.preload = 'metadata';
+    video.muted = true;
+    video.playsInline = true;
+
+    const cleanup = () => {
+      URL.revokeObjectURL(video.src);
+      video.remove();
+      canvas.remove();
+    };
+
+    const timeout = setTimeout(() => { cleanup(); resolve(null); }, 15000);
+
+    video.onloadeddata = () => {
+      // Seek to 1 second (or 0 for very short videos)
+      video.currentTime = Math.min(1, video.duration * 0.1);
+    };
+
+    video.onseeked = () => {
+      clearTimeout(timeout);
+      try {
+        canvas.width = Math.min(video.videoWidth, 800);
+        canvas.height = Math.round(canvas.width * (video.videoHeight / video.videoWidth));
+        ctx?.drawImage(video, 0, 0, canvas.width, canvas.height);
+        canvas.toBlob(
+          (blob) => { cleanup(); resolve(blob); },
+          'image/jpeg',
+          0.8
+        );
+      } catch {
+        cleanup();
+        resolve(null);
+      }
+    };
+
+    video.onerror = () => { clearTimeout(timeout); cleanup(); resolve(null); };
+    video.src = URL.createObjectURL(file);
+  });
+}
+
 function persistQueue(items: QueueItem[]) {
   try {
     const serializable: PersistedQueueItem[] = items
@@ -210,6 +259,31 @@ export function useUploadQueue() {
 
           updateItem(next.id, { status: 'uploaded', progress: 100 });
 
+          // Step 2.5: Extract + upload client-side thumbnail for videos
+          // Handles HEVC .mov files that server-side ffmpeg may not decode
+          let clientThumbnailPath: string | null = null;
+          if (next.type === 'video' && next.file) {
+            try {
+              const thumbBlob = await extractVideoThumbnail(next.file);
+              if (thumbBlob) {
+                const thumbStoragePath = storagePath.replace(/\.[^.]+$/, '_thumb_client.jpg');
+                const supabase = createSupabaseClient();
+                const { error: thumbUpErr } = await supabase.storage
+                  .from('content')
+                  .upload(thumbStoragePath, thumbBlob, {
+                    cacheControl: '31536000',
+                    upsert: true,
+                    contentType: 'image/jpeg',
+                  });
+                if (!thumbUpErr) {
+                  clientThumbnailPath = thumbStoragePath;
+                }
+              }
+            } catch {
+              // Thumbnail extraction failed — server-side processing will handle it
+            }
+          }
+
           // Step 3: Register item in database
           updateItem(next.id, { status: 'registering' });
 
@@ -221,6 +295,7 @@ export function useUploadQueue() {
               type: next.type,
               sizeBytes: next.fileSize,
               durationSeconds: next.durationSeconds,
+              clientThumbnailPath,
             }),
           });
 

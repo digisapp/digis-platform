@@ -70,7 +70,15 @@ export async function POST(request: NextRequest) {
           .download(storagePath);
 
         if (dlError || !fileData) {
-          results.push({ id: item.id, status: 'failed', error: `Download failed: ${dlError?.message}` });
+          // If file is gone from storage, mark the DB record as deleted
+          if (dlError?.message?.includes('not found') || dlError?.message?.includes('404')) {
+            await db.update(cloudItems)
+              .set({ status: 'private' })
+              .where(and(eq(cloudItems.id, item.id), eq(cloudItems.status, 'live')));
+            results.push({ id: item.id, status: 'removed', error: 'File missing from storage — hidden from profile' });
+          } else {
+            results.push({ id: item.id, status: 'failed', error: `Download failed: ${dlError?.message}` });
+          }
           failed++;
           continue;
         }

@@ -31,7 +31,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { storagePath, type, sizeBytes, durationSeconds } = body;
+    const { storagePath, type, sizeBytes, durationSeconds, clientThumbnailPath } = body;
 
     if (!storagePath || !type || !sizeBytes) {
       return NextResponse.json({ error: 'storagePath, type, and sizeBytes required' }, { status: 400 });
@@ -60,16 +60,24 @@ export async function POST(request: NextRequest) {
       // Already registered — return existing item (idempotent)
       return NextResponse.json({
         item: existing,
-        processingStatus: existing.thumbnailUrl && existing.thumbnailUrl !== publicUrl ? 'done' : 'queued',
+        processingStatus: (existing.thumbnailUrl && existing.thumbnailUrl !== publicUrl) ? 'done' : 'queued',
         duplicate: true,
       });
     }
 
-    // Create drops item — starts as private, thumbnailUrl = original for now
+    // Use client-generated thumbnail if available (handles HEVC .mov files)
+    // Falls back to fileUrl — server-side processing will attempt to replace it
+    let initialThumbnailUrl = publicUrl;
+    if (clientThumbnailPath && clientThumbnailPath.startsWith(`${user.id}/`)) {
+      const { data: { publicUrl: thumbPublicUrl } } = supabase.storage.from('content').getPublicUrl(clientThumbnailPath);
+      initialThumbnailUrl = thumbPublicUrl;
+    }
+
+    // Create drops item — starts as private
     const [item] = await db.insert(cloudItems).values({
       creatorId: user.id,
       fileUrl: publicUrl,
-      thumbnailUrl: publicUrl, // Will be replaced by background processing
+      thumbnailUrl: initialThumbnailUrl,
       type,
       durationSeconds: type === 'video' ? (durationSeconds || null) : null,
       sizeBytes,
