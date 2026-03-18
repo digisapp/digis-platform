@@ -25,3 +25,4 @@ export * from './transcripts';
 export * from './redemption-codes';
 export * from './cloud';
 export * from './cloud-phase2';
+export * from './community';

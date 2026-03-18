@@ -20,6 +20,7 @@ import {
   User,
   LayoutGrid,
   Compass,
+  BarChart3,
 } from 'lucide-react';
 import { BuyCoinsModal } from '@/components/wallet/BuyCoinsModal';
 import { useRef } from 'react';
@@ -346,6 +347,13 @@ export function Navigation() {
       icon: MessageCircle,
       path: '/chats',
       active: isActive('/chats') || pathname?.startsWith('/chats'),
+    },
+    {
+      label: 'Analytics',
+      icon: BarChart3,
+      path: '/creator/analytics',
+      active: isActive('/creator/analytics'),
+      desktopOnly: true,
     },
   ] : [
     // Home — fans land on Explore, admins on Admin dashboard

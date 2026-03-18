@@ -1,5 +1,5 @@
 import { db } from '@/lib/data/system';
-import { wallets, walletTransactions, spendHolds, users } from '@/lib/data/system';
+import { wallets, walletTransactions, spendHolds, users, fanCreatorSpend } from '@/lib/data/system';
 import { eq, and, sql } from 'drizzle-orm';
 import { v4 as uuidv4 } from 'uuid';
 import * as Sentry from '@sentry/nextjs';
@@ -243,6 +243,34 @@ export class WalletService {
               spendTier: newTier,
             })
             .where(eq(users.id, userId));
+        }
+      }
+
+      // Update per-creator fan spend (for loyalty tiers)
+      if (amount < 0 && auditContext?.targetUserId) {
+        const spentAmount = Math.abs(amount);
+        const creatorId = auditContext.targetUserId;
+        try {
+          await tx.execute(sql`
+            INSERT INTO fan_creator_spend (fan_id, creator_id, total_spent, tier, last_transaction_at)
+            VALUES (${userId}, ${creatorId}, ${spentAmount}, ${calculateFanTier(spentAmount)}, NOW())
+            ON CONFLICT (fan_id, creator_id)
+            DO UPDATE SET
+              total_spent = fan_creator_spend.total_spent + ${spentAmount},
+              tier = ${sql`CASE
+                WHEN fan_creator_spend.total_spent + ${spentAmount} >= 50000 THEN 'diamond'
+                WHEN fan_creator_spend.total_spent + ${spentAmount} >= 10000 THEN 'platinum'
+                WHEN fan_creator_spend.total_spent + ${spentAmount} >= 2000 THEN 'gold'
+                WHEN fan_creator_spend.total_spent + ${spentAmount} >= 500 THEN 'silver'
+                WHEN fan_creator_spend.total_spent + ${spentAmount} >= 100 THEN 'bronze'
+                ELSE 'none'
+              END`},
+              last_transaction_at = NOW(),
+              updated_at = NOW()
+          `);
+        } catch (fanSpendErr) {
+          // Non-critical — don't fail the transaction
+          console.error('[WalletService] Fan spend update failed:', fanSpendErr);
         }
       }
 
@@ -628,4 +656,14 @@ export class WalletService {
 
     return { status: 'ok', balance: wallet.balance };
   }
+}
+
+/** Calculate fan tier for per-creator spend */
+function calculateFanTier(totalSpent: number): string {
+  if (totalSpent >= 50000) return 'diamond';
+  if (totalSpent >= 10000) return 'platinum';
+  if (totalSpent >= 2000) return 'gold';
+  if (totalSpent >= 500) return 'silver';
+  if (totalSpent >= 100) return 'bronze';
+  return 'none';
 }

@@ -20,6 +20,7 @@ import {
   ProfileLiveSection,
   ProfileGoalsWidget,
 } from '@/components/profile';
+import { CommunityFeed } from '@/components/profile/CommunityFeed';
 import type { ContentItem } from '@/components/profile/types';
 
 export default function ProfilePageClient() {
@@ -205,6 +206,16 @@ export default function ProfilePageClient() {
           <div className="mb-6">
             <ProfileGoalsWidget goals={data.goals} maxDisplay={3} onGoalUpdate={data.fetchGoals} />
           </div>
+        )}
+
+        {/* Community Posts */}
+        {user.role === 'creator' && (
+          <CommunityFeed
+            creatorId={user.id}
+            creatorUsername={user.username}
+            isOwnProfile={data.currentUserId === user.id}
+            isAuthenticated={data.isAuthenticated}
+          />
         )}
 
         {/* Content Tabs - creators only */}

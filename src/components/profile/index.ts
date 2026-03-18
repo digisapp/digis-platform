@@ -5,4 +5,5 @@ export { AnimatedAvatar } from './AnimatedAvatar';
 export { ParallaxBanner } from './ParallaxBanner';
 export { ProfileGoalsWidget } from './ProfileGoalsWidget';
 export { default as ProfileLiveSection } from './ProfileLiveSection';
+export { CommunityFeed } from './CommunityFeed';
 export type { ProfileData, ContentItem, StreamItem, ClipItem, ContentToUnlock, TipSuccessGift, InsufficientFundsDetails } from './types';
