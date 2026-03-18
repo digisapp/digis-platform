@@ -35,7 +35,6 @@ export async function POST(request: NextRequest) {
       WHERE (
         thumbnail_url = file_url
         OR thumbnail_url IS NULL
-        OR preview_url IS NULL
       )
       AND file_url IS NOT NULL
       AND status IN ('live', 'private')
