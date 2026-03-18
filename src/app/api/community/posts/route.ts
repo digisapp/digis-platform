@@ -140,7 +140,9 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const rateLimitResult = await rateLimit(request, 'community:post');
-    if (rateLimitResult) return rateLimitResult;
+    if (!rateLimitResult.ok) {
+      return NextResponse.json({ error: 'Too many requests' }, { status: 429, headers: rateLimitResult.headers });
+    }
 
     const supabase = await createClient();
     const { data: { user }, error } = await supabase.auth.getUser();
