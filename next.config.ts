@@ -35,6 +35,11 @@ const nextConfig: NextConfig = {
         destination: '/',
         permanent: true,
       },
+      {
+        source: '/discover',
+        destination: '/for-you',
+        permanent: true,
+      },
     ];
   },
   // Security headers

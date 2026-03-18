@@ -363,8 +363,8 @@ export function Navigation() {
     {
       label: 'For You',
       icon: Compass,
-      path: '/discover',
-      active: isActive('/discover'),
+      path: '/for-you',
+      active: isActive('/for-you'),
     },
     // Watch: All live streams, schedule, and replays
     ...(showStreams ? [{

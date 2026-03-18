@@ -10,7 +10,7 @@ import {
   Heart, Share2, Eye, Play,
   Volume2, VolumeX, ChevronUp, ChevronDown, Lock,
   CheckCircle, Compass, UserPlus, Coins,
-  Sparkles,
+  Sparkles, RefreshCw, ImageOff,
 } from 'lucide-react';
 
 interface FeedCreator {
@@ -50,6 +50,8 @@ export default function ForYouPage() {
   const containerRef = useRef<HTMLDivElement>(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
+  // Persist mute state across all cards
+  const [globalMuted, setGlobalMuted] = useState(true);
 
   // Check auth
   useEffect(() => {
@@ -199,6 +201,8 @@ export default function ForYouPage() {
             isActive={index === activeIndex}
             isAuthenticated={isAuthenticated}
             userId={userId}
+            globalMuted={globalMuted}
+            onMuteToggle={() => setGlobalMuted(m => !m)}
             onLikeToggle={(liked) => {
               setItems(prev => prev.map(i =>
                 i.id === item.id
@@ -246,16 +250,19 @@ interface FeedCardProps {
   isActive: boolean;
   isAuthenticated: boolean;
   userId: string | null;
+  globalMuted: boolean;
+  onMuteToggle: () => void;
   onLikeToggle: (_liked: boolean) => void;
 }
 
-function FeedCard({ item, isActive, isAuthenticated, userId, onLikeToggle }: FeedCardProps) {
+function FeedCard({ item, isActive, isAuthenticated, userId, globalMuted, onMuteToggle, onLikeToggle }: FeedCardProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [playing, setPlaying] = useState(false);
-  const [muted, setMuted] = useState(true);
   const [liking, setLiking] = useState(false);
   const [showHeart, setShowHeart] = useState(false);
   const [videoProgress, setVideoProgress] = useState(0);
+  const [videoError, setVideoError] = useState(false);
+  const [imageLoaded, setImageLoaded] = useState(false);
   const [following, setFollowing] = useState(false);
   const [isFollowing, setIsFollowing] = useState(false);
   const lastTapRef = useRef(0);
@@ -263,7 +270,14 @@ function FeedCard({ item, isActive, isAuthenticated, userId, onLikeToggle }: Fee
 
   const isVideo = item.type === 'clip' || item.type === 'cloud_video';
   const hasVideo = isVideo && item.videoUrl;
+  const isPhoto = item.type === 'cloud_photo';
   const isPaid = !item.isFree && item.priceCoins;
+
+  // Sync mute state from global
+  useEffect(() => {
+    const video = videoRef.current;
+    if (video) video.muted = globalMuted;
+  }, [globalMuted]);
 
   // Play/pause based on active state
   useEffect(() => {
@@ -271,6 +285,7 @@ function FeedCard({ item, isActive, isAuthenticated, userId, onLikeToggle }: Fee
     if (!video) return;
 
     if (isActive) {
+      video.muted = globalMuted;
       video.play().then(() => setPlaying(true)).catch(() => setPlaying(false));
     } else {
       video.pause();
@@ -278,7 +293,7 @@ function FeedCard({ item, isActive, isAuthenticated, userId, onLikeToggle }: Fee
       setPlaying(false);
       setVideoProgress(0);
     }
-  }, [isActive]);
+  }, [isActive, globalMuted]);
 
   // Video progress tracking
   useEffect(() => {
@@ -308,13 +323,13 @@ function FeedCard({ item, isActive, isAuthenticated, userId, onLikeToggle }: Fee
     // Single tap = play/pause (delayed to check for double tap)
     setTimeout(() => {
       if (Date.now() - lastTapRef.current >= 280) {
-        togglePlay();
+        if (hasVideo) togglePlay();
       }
     }, 300);
   };
 
   const handleDoubleTapLike = async () => {
-    if (!isAuthenticated || item.type !== 'clip') return;
+    if (!isAuthenticated) return;
 
     // Show heart animation
     setShowHeart(true);
@@ -337,20 +352,17 @@ function FeedCard({ item, isActive, isAuthenticated, userId, onLikeToggle }: Fee
     }
   };
 
-  const toggleMute = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    const video = videoRef.current;
-    if (!video) return;
-    video.muted = !video.muted;
-    setMuted(video.muted);
-  };
-
   const handleLike = async () => {
-    if (!isAuthenticated || liking || item.type !== 'clip') return;
+    if (!isAuthenticated || liking) return;
     setLiking(true);
 
     try {
-      const res = await fetch(`/api/clips/${item.id}/like`, { method: 'POST' });
+      // Clips use /api/clips/:id/like, cloud items use /api/cloud/items/:id/like
+      const endpoint = item.type === 'clip'
+        ? `/api/clips/${item.id}/like`
+        : `/api/cloud/items/${item.id}/like`;
+
+      const res = await fetch(endpoint, { method: 'POST' });
       if (res.ok) {
         const data = await res.json();
         onLikeToggle(data.liked);
@@ -417,45 +429,55 @@ function FeedCard({ item, isActive, isAuthenticated, userId, onLikeToggle }: Fee
   return (
     <div className="h-[100dvh] snap-start relative bg-black overflow-hidden">
       {/* Blurred background fill — eliminates black bars */}
-      {(item.thumbnailUrl || item.videoUrl) && (
+      {item.thumbnailUrl && (
         <div className="absolute inset-0 scale-[1.4]" aria-hidden>
-          {hasVideo ? (
-            <video
-              src={item.videoUrl!}
-              muted
-              playsInline
-              className="w-full h-full object-cover blur-2xl opacity-40 brightness-75"
-              aria-hidden="true"
-            />
-          ) : item.thumbnailUrl ? (
-            /* eslint-disable-next-line @next/next/no-img-element */
-            <img
-              src={item.thumbnailUrl}
-              alt=""
-              className="w-full h-full object-cover blur-2xl opacity-40 brightness-75"
-              aria-hidden="true"
-            />
-          ) : null}
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={item.thumbnailUrl}
+            alt=""
+            className="w-full h-full object-cover blur-2xl opacity-40 brightness-75"
+            aria-hidden="true"
+          />
         </div>
       )}
 
       {/* Main media */}
       {hasVideo ? (
         <div className="absolute inset-0 flex items-center justify-center" onClick={handleTap}>
-          <video
-            ref={videoRef}
-            src={item.videoUrl!}
-            poster={item.thumbnailUrl || undefined}
-            loop
-            muted={muted}
-            playsInline
-            preload={isActive ? 'auto' : 'none'}
-            className="w-full h-full object-cover"
-          />
+          {!videoError ? (
+            <video
+              ref={videoRef}
+              src={item.videoUrl!}
+              poster={item.thumbnailUrl || undefined}
+              loop
+              muted={globalMuted}
+              playsInline
+              preload={isActive ? 'auto' : 'none'}
+              className="w-full h-full object-cover"
+              onError={() => setVideoError(true)}
+            />
+          ) : (
+            <div className="flex flex-col items-center gap-3">
+              <div className="p-4 rounded-full bg-white/10">
+                <ImageOff className="w-10 h-10 text-gray-400" />
+              </div>
+              <p className="text-gray-400 text-sm">Video failed to load</p>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setVideoError(false);
+                }}
+                className="flex items-center gap-1.5 px-4 py-2 bg-white/10 hover:bg-white/20 rounded-full text-white text-sm transition-all"
+              >
+                <RefreshCw className="w-4 h-4" />
+                Try Again
+              </button>
+            </div>
+          )}
 
           {/* Pause icon (shows briefly on pause) */}
-          {!playing && (
-            <div className="absolute inset-0 flex items-center justify-center">
+          {!playing && !videoError && (
+            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
               <div className="p-5 rounded-full bg-black/30 backdrop-blur-sm animate-fade-in">
                 <Play className="w-14 h-14 text-white/90 fill-white/90 ml-1" />
               </div>
@@ -470,35 +492,68 @@ function FeedCard({ item, isActive, isAuthenticated, userId, onLikeToggle }: Fee
           )}
         </div>
       ) : (
-        // Photo content
+        // Photo or cloud video preview (no playable video URL in feed)
         <div
           className="absolute inset-0 flex items-center justify-center cursor-pointer"
-          onClick={() => {
-            if (isPaid) {
-              router.push(`/${item.creator.username}`);
-            } else {
-              router.push(`/${item.creator.username}`);
+          onClick={(e) => {
+            // Double-tap to like on photos too
+            const now = Date.now();
+            const timeSinceLastTap = now - lastTapRef.current;
+            lastTapRef.current = now;
+            if (timeSinceLastTap < 300) {
+              handleDoubleTapLike();
+              return;
             }
+            setTimeout(() => {
+              if (Date.now() - lastTapRef.current >= 280) {
+                router.push(`/${item.creator.username}`);
+              }
+            }, 300);
           }}
         >
           {item.thumbnailUrl ? (
-            <Image
-              src={item.thumbnailUrl}
-              alt={item.title || 'Content'}
-              fill
-              className="object-cover"
-              priority={isActive}
-              unoptimized
-            />
+            <>
+              {/* Loading shimmer */}
+              {!imageLoaded && (
+                <div className="absolute inset-0 bg-gray-900 animate-pulse" />
+              )}
+              <Image
+                src={item.thumbnailUrl}
+                alt={item.title || 'Content'}
+                fill
+                className={`transition-opacity duration-300 ${
+                  isPhoto ? 'object-contain' : 'object-cover'
+                } ${imageLoaded ? 'opacity-100' : 'opacity-0'}`}
+                priority={isActive}
+                unoptimized
+                onLoad={() => setImageLoaded(true)}
+              />
+            </>
           ) : (
             <div className="w-full h-full bg-gray-900/50 flex items-center justify-center">
               <p className="text-gray-600">No preview</p>
             </div>
           )}
 
+          {/* Cloud video indicator (has no playable URL in feed) */}
+          {item.type === 'cloud_video' && !isPaid && (
+            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+              <div className="p-4 rounded-full bg-black/40 backdrop-blur-sm">
+                <Play className="w-10 h-10 text-white/80 fill-white/80 ml-0.5" />
+              </div>
+            </div>
+          )}
+
+          {/* Double-tap heart animation for photos */}
+          {showHeart && (
+            <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-30">
+              <Heart className="w-24 h-24 text-red-500 fill-red-500 animate-heart-burst" />
+            </div>
+          )}
+
           {/* PPV locked overlay */}
           {isPaid && (
-            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-black/10 backdrop-blur-md flex items-center justify-center">
+            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-black/10 backdrop-blur-md flex items-center justify-center rounded-2xl">
               <div className="text-center">
                 <div className="w-16 h-16 rounded-full bg-gradient-to-tr from-cyan-500/30 to-purple-500/30 border border-white/20 flex items-center justify-center mx-auto mb-3 backdrop-blur-sm">
                   <Lock className="w-7 h-7 text-white" />
@@ -509,8 +564,14 @@ function FeedCard({ item, isActive, isAuthenticated, userId, onLikeToggle }: Fee
                   <span className="text-yellow-400 font-bold">{item.priceCoins}</span>
                   <span className="text-gray-400 text-sm">coins</span>
                 </div>
-                <button className="px-6 py-2.5 bg-gradient-to-r from-cyan-500 to-purple-500 text-white rounded-full text-sm font-bold hover:opacity-90 transition-opacity shadow-lg shadow-purple-500/20">
-                  Unlock Now
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    router.push(`/${item.creator.username}`);
+                  }}
+                  className="px-6 py-2.5 bg-gradient-to-r from-cyan-500 to-purple-500 text-white rounded-full text-sm font-bold hover:opacity-90 transition-opacity shadow-lg shadow-purple-500/20"
+                >
+                  View Profile
                 </button>
               </div>
             </div>
@@ -626,11 +687,11 @@ function FeedCard({ item, isActive, isAuthenticated, userId, onLikeToggle }: Fee
         {/* Mute/unmute (video only) */}
         {hasVideo && (
           <button
-            onClick={toggleMute}
+            onClick={(e) => { e.stopPropagation(); onMuteToggle(); }}
             className="p-2.5 rounded-full bg-white/10 hover:bg-white/20 transition-all"
-            aria-label={muted ? 'Unmute' : 'Mute'}
+            aria-label={globalMuted ? 'Unmute' : 'Mute'}
           >
-            {muted ? (
+            {globalMuted ? (
               <VolumeX className="w-5 h-5 text-white drop-shadow-lg" />
             ) : (
               <Volume2 className="w-5 h-5 text-white drop-shadow-lg" />
@@ -640,7 +701,7 @@ function FeedCard({ item, isActive, isAuthenticated, userId, onLikeToggle }: Fee
       </div>
 
       {/* Video progress bar */}
-      {hasVideo && (
+      {hasVideo && !videoError && (
         <div className="absolute bottom-[72px] left-0 right-0 z-10 px-0">
           <div className="h-[3px] bg-white/20">
             <div
