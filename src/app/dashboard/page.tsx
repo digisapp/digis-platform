@@ -9,6 +9,7 @@ import { createClient } from '@/lib/supabase/client';
 import { useAuth } from '@/context/AuthContext';
 import { Clock, Users, Eye, Play, Image as ImageIcon, Lock } from 'lucide-react';
 import { getCategoryLabel, getCategoryColor } from '@/lib/constants/categories';
+import { FanOnboardingModal } from '@/components/home/FanOnboardingModal';
 
 interface Creator {
   id: string;
@@ -189,6 +190,14 @@ export default function FanDashboard() {
 
       {/* Mobile Header */}
       <MobileHeader />
+
+      {/* Fan onboarding modal — shows once for new fans */}
+      {isNewUser && !isCreator && user && suggestedCreators.length > 0 && (
+        <FanOnboardingModal
+          suggestedCreators={suggestedCreators}
+          userId={user.id}
+        />
+      )}
 
       {/* Spacer for fixed mobile header */}
       <div className="md:hidden" style={{ height: 'calc(48px + env(safe-area-inset-top, 0px))' }} />

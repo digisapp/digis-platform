@@ -20,9 +20,10 @@ export default function ChatsPage() {
           <div className="text-center max-w-md">
             <MessageCircle className="w-24 h-24 mx-auto mb-6 text-cyan-400" />
             <h2 className="text-3xl font-bold bg-gradient-to-r from-white via-cyan-100 to-white bg-clip-text text-transparent mb-4">
-              Select a Chat
+              Your Messages
             </h2>
-            <p className="text-gray-400 mb-6">Choose a conversation from the left or start a new one</p>
+            <p className="text-gray-400 mb-4">Message creators directly, send tips, and request video calls.</p>
+            <p className="text-gray-500 text-sm">Select a conversation or find a creator to start chatting.</p>
           </div>
         </div>
       </div>

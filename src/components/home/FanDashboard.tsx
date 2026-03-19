@@ -12,6 +12,8 @@ import {
   UserCircle, BadgeCheck, X,
 } from 'lucide-react';
 import { CreatorCard, SkeletonCard } from './CreatorCards';
+import { FanOnboardingModal } from './FanOnboardingModal';
+import { useAuth } from '@/context/AuthContext';
 import type { Creator, HomepageData } from './types';
 
 const FILTERS = [
@@ -23,6 +25,7 @@ const FILTERS = [
 
 export function FanDashboard() {
   const router = useRouter();
+  const { user } = useAuth();
   const [dashboardData, setDashboardData] = useState<HomepageData | null>(null);
   const [dashboardLoading, setDashboardLoading] = useState(true);
 
@@ -166,9 +169,19 @@ export function FanDashboard() {
   const hasLiveStreams = dashboardData && dashboardData.liveStreams.length > 0;
   const hasFollowedCreators = dashboardData && dashboardData.followedCreators.length > 0;
 
+  const isNewFan = dashboardData && dashboardData.followedCreators.length === 0;
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#0a0a0f] via-[#121218] to-[#0a0a0f]">
       <MobileHeader />
+
+      {/* Fan onboarding modal — shows once for new fans */}
+      {isNewFan && user && dashboardData?.discoverCreators && (
+        <FanOnboardingModal
+          suggestedCreators={dashboardData.discoverCreators}
+          userId={user.id}
+        />
+      )}
       <div className="md:hidden pt-safe-area" style={{ height: '64px', paddingTop: 'env(safe-area-inset-top, 0px)' }} />
 
       <main className="pb-24 md:pt-6 md:pb-8 md:pl-20">

@@ -329,7 +329,11 @@ export function ChatsSidebar() {
             <h3 className="text-xl font-bold mb-2 text-white">
               {filter === 'unread' ? 'No unread chats' : 'No chats yet'}
             </h3>
-            <p className="text-gray-400 mb-4">Start a conversation with a creator</p>
+            <p className="text-gray-400 mb-4">
+              {filter === 'unread'
+                ? 'You\'re all caught up!'
+                : 'Message creators to chat, send tips, or request calls'}
+            </p>
             <button
               onClick={handleStartNewChat}
               className="px-5 py-2.5 bg-gradient-to-r from-cyan-600 to-purple-600 text-white rounded-xl font-semibold hover:scale-105 transition-transform flex items-center gap-2 mx-auto"

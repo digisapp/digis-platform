@@ -6,12 +6,15 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
 import { LoadingSpinner } from '@/components/ui';
+import { NeonLoader } from '@/components/ui/NeonLoader';
 import {
   Heart, Share2, Play,
   Volume2, VolumeX, ChevronUp, ChevronDown, Lock,
   CheckCircle, Compass, Plus, Coins,
-  Sparkles, RefreshCw, ImageOff,
+  RefreshCw, ImageOff,
 } from 'lucide-react';
+import { checkMilestone } from '@/lib/fan-milestones';
+import { useToastContext } from '@/context/ToastContext';
 
 interface FeedCreator {
   id: string;
@@ -124,16 +127,7 @@ export default function ForYouPage() {
   if (loading) {
     return (
       <div className="h-[100dvh] bg-black flex items-center justify-center">
-        <div className="text-center">
-          <div className="relative">
-            <div className="w-16 h-16 rounded-full bg-gradient-to-tr from-cyan-500 via-purple-500 to-pink-500 animate-spin" style={{ animationDuration: '1.5s' }} />
-            <div className="absolute inset-1 rounded-full bg-black" />
-            <div className="absolute inset-0 flex items-center justify-center">
-              <Sparkles className="w-6 h-6 text-cyan-400 animate-pulse" />
-            </div>
-          </div>
-          <p className="mt-4 text-gray-500 text-sm">Loading your feed...</p>
-        </div>
+        <NeonLoader size="lg" fullScreen />
       </div>
     );
   }
@@ -250,6 +244,7 @@ interface FeedCardProps {
 }
 
 function FeedCard({ item, isActive, isAuthenticated, userId, globalMuted, onMuteToggle, onLikeToggle }: FeedCardProps) {
+  const { showSuccess } = useToastContext();
   const videoRef = useRef<HTMLVideoElement>(null);
   const [playing, setPlaying] = useState(false);
   const [liking, setLiking] = useState(false);
@@ -357,6 +352,10 @@ function FeedCard({ item, isActive, isAuthenticated, userId, globalMuted, onMute
       if (res.ok) {
         const data = await res.json();
         onLikeToggle(data.liked);
+        if (data.liked) {
+          const milestone = checkMilestone('first_like');
+          if (milestone) showSuccess(milestone);
+        }
       }
     } catch {
       // ignore
@@ -372,7 +371,11 @@ function FeedCard({ item, isActive, isAuthenticated, userId, globalMuted, onMute
 
     try {
       const res = await fetch(`/api/follow/${item.creator.id}`, { method: 'POST' });
-      if (res.ok) setFollowed(true);
+      if (res.ok) {
+        setFollowed(true);
+        const milestone = checkMilestone('first_follow');
+        if (milestone) showSuccess(milestone);
+      }
     } catch {}
   };
 

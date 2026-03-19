@@ -25,4 +25,5 @@ export interface Stream {
 export interface HomepageData {
   liveStreams: Stream[];
   followedCreators: (Creator & { isLive: boolean })[];
+  discoverCreators: Creator[];
 }
