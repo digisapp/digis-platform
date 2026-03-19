@@ -256,6 +256,7 @@ function FeedCard({ item, isActive, isAuthenticated, userId, globalMuted, onMute
   const [showHeart, setShowHeart] = useState(false);
   const [videoProgress, setVideoProgress] = useState(0);
   const [videoError, setVideoError] = useState(false);
+  const [videoBuffering, setVideoBuffering] = useState(false);
   const [imageLoaded, setImageLoaded] = useState(false);
   const [followed, setFollowed] = useState(false);
   const lastTapRef = useRef(0);
@@ -432,6 +433,8 @@ function FeedCard({ item, isActive, isAuthenticated, userId, globalMuted, onMute
               preload={isActive ? 'auto' : 'none'}
               className="w-full h-full object-cover"
               onError={() => setVideoError(true)}
+              onWaiting={() => setVideoBuffering(true)}
+              onPlaying={() => setVideoBuffering(false)}
             />
           ) : (
             <div className="flex flex-col items-center gap-3">
@@ -457,9 +460,22 @@ function FeedCard({ item, isActive, isAuthenticated, userId, globalMuted, onMute
             </div>
           )}
 
+          {videoBuffering && playing && (
+            <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-20">
+              <div className="w-10 h-10 border-3 border-white/30 border-t-white rounded-full animate-spin" />
+            </div>
+          )}
+
           {showHeart && (
             <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-30">
               <Heart className="w-24 h-24 text-red-500 fill-red-500 animate-heart-burst" />
+            </div>
+          )}
+
+          {/* Duration badge */}
+          {item.duration != null && item.duration > 0 && (
+            <div className="absolute top-4 right-3 md:right-14 px-2 py-0.5 bg-black/60 backdrop-blur-sm rounded text-white text-xs font-mono z-10">
+              {formatDuration(item.duration)}
             </div>
           )}
         </div>
@@ -509,6 +525,13 @@ function FeedCard({ item, isActive, isAuthenticated, userId, globalMuted, onMute
               <div className="p-4 rounded-full bg-black/40 backdrop-blur-sm">
                 <Play className="w-10 h-10 text-white/80 fill-white/80 ml-0.5" />
               </div>
+            </div>
+          )}
+
+          {/* Duration badge for non-autoplaying videos */}
+          {item.type === 'cloud_video' && item.duration != null && item.duration > 0 && (
+            <div className="absolute top-4 right-3 md:right-14 px-2 py-0.5 bg-black/60 backdrop-blur-sm rounded text-white text-xs font-mono z-10">
+              {formatDuration(item.duration)}
             </div>
           )}
 
@@ -699,4 +722,10 @@ function formatCount(n: number): string {
   if (n >= 1000000) return `${(n / 1000000).toFixed(1)}M`;
   if (n >= 1000) return `${(n / 1000).toFixed(1)}K`;
   return n.toString();
+}
+
+function formatDuration(seconds: number): string {
+  const m = Math.floor(seconds / 60);
+  const s = Math.floor(seconds % 60);
+  return `${m}:${s.toString().padStart(2, '0')}`;
 }

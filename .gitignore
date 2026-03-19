@@ -45,3 +45,4 @@ drizzle/
 
 # Creator data files
 creator-data/
+.env*.local
