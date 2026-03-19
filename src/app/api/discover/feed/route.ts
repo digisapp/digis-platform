@@ -146,6 +146,8 @@ export async function GET(request: NextRequest) {
         .select({
           id: cloudItems.id,
           type: cloudItems.type,
+          fileUrl: cloudItems.fileUrl,
+          playbackUrl: cloudItems.playbackUrl,
           previewUrl: cloudItems.previewUrl,
           thumbnailUrl: cloudItems.thumbnailUrl,
           priceCoins: cloudItems.priceCoins,
@@ -184,7 +186,11 @@ export async function GET(request: NextRequest) {
           title: null,
           description: null,
           thumbnailUrl: item.previewUrl || item.thumbnailUrl,
-          videoUrl: null, // Never expose full video URL in feed — requires purchase
+          // Free videos: show playback URL so they autoplay in feed
+          // Paid videos: never expose — requires purchase
+          videoUrl: (item.priceCoins === null || item.priceCoins === 0) && item.type === 'video'
+            ? (item.playbackUrl || item.fileUrl)
+            : null,
           duration: item.durationSeconds,
           viewCount: 0,
           likeCount: item.likeCount,
