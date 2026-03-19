@@ -45,7 +45,7 @@ export default function ForYouPage() {
   const [loadingMore, setLoadingMore] = useState(false);
   const [nextCursor, setNextCursor] = useState<string | null>(null);
   const [activeIndex, setActiveIndex] = useState(0);
-  const [filter, setFilter] = useState<'all' | 'clips' | 'content'>('all');
+  const [filter, setFilter] = useState<'all' | 'clips'>('all');
   const containerRef = useRef<HTMLDivElement>(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
@@ -164,17 +164,17 @@ export default function ForYouPage() {
       <div className="absolute top-0 left-0 right-0 z-20 px-4 md:pl-24 pt-[calc(env(safe-area-inset-top,0px)+8px)] pb-3">
         <div className="flex items-center justify-center">
           <div className="flex gap-0.5 bg-black/40 backdrop-blur-md rounded-full p-1 border border-white/10">
-            {(['all', 'clips', 'content'] as const).map((f) => (
+            {(['all', 'clips'] as const).map((f) => (
               <button
                 key={f}
                 onClick={() => setFilter(f)}
-                className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all ${
+                className={`px-5 py-1.5 rounded-full text-xs font-bold transition-all ${
                   filter === f
                     ? 'bg-white text-black shadow-lg'
                     : 'text-white/60 hover:text-white'
                 }`}
               >
-                {f === 'all' ? 'For You' : f === 'clips' ? 'Clips' : 'Exclusive'}
+                {f === 'all' ? 'For You' : 'Clips'}
               </button>
             ))}
           </div>
