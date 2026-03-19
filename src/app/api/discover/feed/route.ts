@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { db } from '@/lib/data/system';
-import { clips, clipLikes, cloudItems, users, follows } from '@/db/schema';
+import { clips, clipLikes, cloudItems, cloudLikes, users, follows } from '@/db/schema';
 import { eq, desc, and, sql, isNotNull, gt } from 'drizzle-orm';
 
 export const runtime = 'nodejs';
@@ -44,15 +44,22 @@ export async function GET(request: NextRequest) {
       followedIds = followRows.map(f => f.followingId);
     }
 
-    // Get liked clip IDs for the current user (for UI state)
+    // Get liked IDs for the current user (for UI state)
     let likedClipIds: Set<string> = new Set();
-    if (currentUserId && (type === 'all' || type === 'clips')) {
-      const likes = await db
-        .select({ clipId: clipLikes.clipId })
-        .from(clipLikes)
-        .where(eq(clipLikes.userId, currentUserId))
-        .limit(500);
-      likedClipIds = new Set(likes.map(l => l.clipId));
+    let likedCloudIds: Set<string> = new Set();
+    if (currentUserId) {
+      const [clipLikeRows, cloudLikeRows] = await Promise.all([
+        (type === 'all' || type === 'clips')
+          ? db.select({ clipId: clipLikes.clipId }).from(clipLikes)
+              .where(eq(clipLikes.userId, currentUserId)).limit(500)
+          : Promise.resolve([]),
+        (type === 'all' || type === 'content')
+          ? db.select({ itemId: cloudLikes.itemId }).from(cloudLikes)
+              .where(eq(cloudLikes.userId, currentUserId)).limit(500)
+          : Promise.resolve([]),
+      ]);
+      likedClipIds = new Set(clipLikeRows.map(l => l.clipId));
+      likedCloudIds = new Set(cloudLikeRows.map(l => l.itemId));
     }
 
     const feedItems: FeedItem[] = [];
@@ -189,7 +196,7 @@ export async function GET(request: NextRequest) {
           viewCount: 0,
           likeCount: item.likeCount,
           shareCount: 0,
-          isLiked: false,
+          isLiked: likedCloudIds.has(item.id),
           isFree: item.priceCoins === null || item.priceCoins === 0,
           priceCoins: item.priceCoins,
           createdAt: item.publishedAt?.toISOString() || '',
