@@ -146,10 +146,8 @@ export async function GET(request: NextRequest) {
         .select({
           id: cloudItems.id,
           type: cloudItems.type,
-          fileUrl: cloudItems.fileUrl,
           previewUrl: cloudItems.previewUrl,
           thumbnailUrl: cloudItems.thumbnailUrl,
-          processingStatus: cloudItems.processingStatus,
           priceCoins: cloudItems.priceCoins,
           likeCount: cloudItems.likeCount,
           durationSeconds: cloudItems.durationSeconds,
@@ -166,6 +164,9 @@ export async function GET(request: NextRequest) {
           and(
             eq(cloudItems.status, 'live'),
             isNotNull(cloudItems.publishedAt),
+            // Must have a proper thumbnail (not the raw file URL)
+            isNotNull(cloudItems.thumbnailUrl),
+            sql`${cloudItems.thumbnailUrl} != ${cloudItems.fileUrl}`,
             cursorCondition,
             eq(users.accountStatus, 'active'),
             eq(users.isHiddenFromDiscovery, false),
@@ -177,20 +178,12 @@ export async function GET(request: NextRequest) {
         .limit(limit);
 
       for (const item of contentResults) {
-        // Skip items that aren't ready to display
-        const displayUrl = item.previewUrl || item.thumbnailUrl;
-        if (!displayUrl) continue;
-        // Skip if thumbnail is the raw file URL (processing never completed)
-        if (displayUrl === item.fileUrl) continue;
-        // Skip items still processing or failed
-        if (item.processingStatus !== 'ready') continue;
-
         feedItems.push({
           id: item.id,
           type: item.type === 'video' ? 'cloud_video' : 'cloud_photo',
           title: null,
           description: null,
-          thumbnailUrl: displayUrl,
+          thumbnailUrl: item.previewUrl || item.thumbnailUrl,
           videoUrl: null, // Never expose full video URL in feed — requires purchase
           duration: item.durationSeconds,
           viewCount: 0,
