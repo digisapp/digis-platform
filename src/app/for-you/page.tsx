@@ -165,9 +165,9 @@ export default function ForYouPage() {
   }
 
   return (
-    <div className="h-[100dvh] bg-black relative">
+    <div className="h-[100dvh] bg-black relative md:pl-20">
       {/* Header overlay */}
-      <div className="absolute top-0 left-0 right-0 z-20 px-4 pt-[calc(env(safe-area-inset-top,0px)+8px)] pb-3">
+      <div className="absolute top-0 left-0 right-0 z-20 px-4 md:pl-24 pt-[calc(env(safe-area-inset-top,0px)+8px)] pb-3">
         <div className="flex items-center justify-center">
           <div className="flex gap-0.5 bg-black/40 backdrop-blur-md rounded-full p-1 border border-white/10">
             {(['all', 'clips', 'content'] as const).map((f) => (
@@ -580,13 +580,13 @@ function FeedCard({ item, isActive, isAuthenticated, userId, globalMuted, onMute
       )}
 
       {/* Top gradient for header */}
-      <div className="absolute top-0 left-0 right-0 h-28 bg-gradient-to-b from-black/60 to-transparent pointer-events-none z-10" />
+      <div className="absolute top-0 left-0 md:left-20 right-0 h-28 bg-gradient-to-b from-black/60 to-transparent pointer-events-none z-10" />
 
       {/* Bottom gradient */}
       <div className="absolute bottom-0 left-0 right-0 h-72 bg-gradient-to-t from-black/90 via-black/50 to-transparent pointer-events-none" />
 
       {/* Creator info (bottom left) */}
-      <div className="absolute bottom-20 left-4 right-20 z-10">
+      <div className="absolute bottom-20 left-4 md:left-24 right-20 z-10">
         <div className="flex items-center gap-2.5 mb-3">
           <Link href={`/${item.creator.username}`} className="shrink-0">
             {item.creator.avatarUrl ? (

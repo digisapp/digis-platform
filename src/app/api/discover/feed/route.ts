@@ -139,8 +139,10 @@ export async function GET(request: NextRequest) {
         .select({
           id: cloudItems.id,
           type: cloudItems.type,
+          fileUrl: cloudItems.fileUrl,
           previewUrl: cloudItems.previewUrl,
           thumbnailUrl: cloudItems.thumbnailUrl,
+          processingStatus: cloudItems.processingStatus,
           priceCoins: cloudItems.priceCoins,
           likeCount: cloudItems.likeCount,
           durationSeconds: cloudItems.durationSeconds,
@@ -168,12 +170,20 @@ export async function GET(request: NextRequest) {
         .limit(limit);
 
       for (const item of contentResults) {
+        // Skip items with no displayable thumbnail (processing failed/pending)
+        const displayUrl = item.previewUrl || item.thumbnailUrl;
+        if (!displayUrl) continue;
+        // Skip if thumbnail is just the raw file URL (processing never completed)
+        if (displayUrl === item.fileUrl && item.type === 'video') continue;
+        // Skip items still being processed
+        if (item.processingStatus === 'pending' || item.processingStatus === 'processing') continue;
+
         feedItems.push({
           id: item.id,
           type: item.type === 'video' ? 'cloud_video' : 'cloud_photo',
           title: null,
           description: null,
-          thumbnailUrl: item.previewUrl || item.thumbnailUrl,
+          thumbnailUrl: displayUrl,
           videoUrl: null, // Never expose full video URL in feed — requires purchase
           duration: item.durationSeconds,
           viewCount: 0,
@@ -204,8 +214,21 @@ export async function GET(request: NextRequest) {
     // Sort by engagement score (descending)
     feedItems.sort((a, b) => b.engagementScore - a.engagementScore);
 
-    // Trim to requested limit
-    const trimmed = feedItems.slice(0, limit);
+    // Diversify: interleave creators so no single creator dominates the feed
+    // Max 3 items per creator in any window of 10
+    const diversified: FeedItem[] = [];
+    const creatorCount = new Map<string, number>();
+
+    for (const item of feedItems) {
+      const count = creatorCount.get(item.creator.id) || 0;
+      if (count < 3) {
+        diversified.push(item);
+        creatorCount.set(item.creator.id, count + 1);
+      }
+      if (diversified.length >= limit) break;
+    }
+
+    const trimmed = diversified;
 
     // Calculate next cursor
     const nextCursor = trimmed.length === limit
