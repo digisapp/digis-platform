@@ -5,6 +5,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { GlassModal } from '@/components/ui/GlassModal';
 import { useToastContext } from '@/context/ToastContext';
+import { useLanguage } from '@/context/LanguageContext';
 import {
   Compass, Heart, Coins, ArrowRight,
   CheckCircle, BadgeCheck, Sparkles,
@@ -34,12 +35,11 @@ export function FanOnboardingModal({ suggestedCreators, userId }: FanOnboardingM
   const [claimingBonus, setClaimingBonus] = useState(false);
   const [bonusClaimed, setBonusClaimed] = useState(false);
   const { showSuccess } = useToastContext();
+  const { t } = useLanguage();
 
-  // Show modal if fan hasn't completed onboarding
   useEffect(() => {
     const onboarded = localStorage.getItem(ONBOARDING_KEY);
     if (!onboarded) {
-      // Small delay so dashboard loads first
       const timer = setTimeout(() => setIsOpen(true), 800);
       return () => clearTimeout(timer);
     }
@@ -67,7 +67,7 @@ export function FanOnboardingModal({ suggestedCreators, userId }: FanOnboardingM
       const res = await fetch('/api/wallet/welcome-bonus', { method: 'POST' });
       if (res.ok) {
         setBonusClaimed(true);
-        showSuccess('10 free coins added to your wallet!');
+        showSuccess(t.onboarding.coinsClaimed);
       }
     } catch {
       // Silently fail
@@ -89,7 +89,7 @@ export function FanOnboardingModal({ suggestedCreators, userId }: FanOnboardingM
   if (!isOpen) return null;
 
   return (
-    <GlassModal isOpen={isOpen} onClose={handleClose} size="md" ariaLabel="Welcome to Digis">
+    <GlassModal isOpen={isOpen} onClose={handleClose} size="md" ariaLabel={t.onboarding.welcomeTitle}>
       {/* Step indicators */}
       <div className="flex justify-center gap-2 mb-6">
         {[1, 2, 3].map((s) => (
@@ -108,8 +108,8 @@ export function FanOnboardingModal({ suggestedCreators, userId }: FanOnboardingM
           <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-cyan-500/20 to-purple-500/20 flex items-center justify-center mx-auto mb-4">
             <Image src="/images/digis-logo-white.png" alt="Digis" width={40} height={14} />
           </div>
-          <h2 className="text-2xl font-bold text-white mb-2">Welcome to Digis!</h2>
-          <p className="text-gray-400 mb-6">Follow creators to see their streams, content, and updates in your feed.</p>
+          <h2 className="text-2xl font-bold text-white mb-2">{t.onboarding.welcomeTitle}</h2>
+          <p className="text-gray-400 mb-6">{t.onboarding.welcomeDesc}</p>
 
           {suggestedCreators.length > 0 && (
             <div className="space-y-3 mb-6 max-h-[280px] overflow-y-auto">
@@ -156,12 +156,12 @@ export function FanOnboardingModal({ suggestedCreators, userId }: FanOnboardingM
                   >
                     {followedIds.has(creator.id) ? (
                       <span className="flex items-center gap-1">
-                        <CheckCircle className="w-3 h-3" /> Following
+                        <CheckCircle className="w-3 h-3" /> {t.common.following}
                       </span>
                     ) : followingInProgress === creator.id ? (
                       '...'
                     ) : (
-                      'Follow'
+                      t.common.follow
                     )}
                   </button>
                 </div>
@@ -173,7 +173,7 @@ export function FanOnboardingModal({ suggestedCreators, userId }: FanOnboardingM
             onClick={() => setStep(2)}
             className="w-full py-3 bg-gradient-to-r from-cyan-500 to-purple-500 text-white rounded-xl font-bold hover:opacity-90 transition-opacity flex items-center justify-center gap-2"
           >
-            Next <ArrowRight className="w-4 h-4" />
+            {t.common.next} <ArrowRight className="w-4 h-4" />
           </button>
         </div>
       )}
@@ -184,14 +184,14 @@ export function FanOnboardingModal({ suggestedCreators, userId }: FanOnboardingM
           <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-yellow-500/20 to-orange-500/20 flex items-center justify-center mx-auto mb-4">
             <Coins className="w-8 h-8 text-yellow-400" />
           </div>
-          <h2 className="text-2xl font-bold text-white mb-2">Coins Power Everything</h2>
-          <p className="text-gray-400 mb-6">Use coins to support creators and unlock exclusive experiences.</p>
+          <h2 className="text-2xl font-bold text-white mb-2">{t.onboarding.coinsTitle}</h2>
+          <p className="text-gray-400 mb-6">{t.onboarding.coinsDesc}</p>
 
           <div className="space-y-3 mb-6 text-left">
             {[
-              { icon: Heart, label: 'Send tips', desc: 'Support creators during streams and in DMs' },
-              { icon: Sparkles, label: 'Unlock exclusive content', desc: 'Access premium photos and videos' },
-              { icon: Compass, label: 'Book video calls', desc: '1-on-1 video and voice calls with creators' },
+              { icon: Heart, label: t.onboarding.sendTips, desc: t.onboarding.sendTipsDesc },
+              { icon: Sparkles, label: t.onboarding.unlockContent, desc: t.onboarding.unlockContentDesc },
+              { icon: Compass, label: t.onboarding.bookCalls, desc: t.onboarding.bookCallsDesc },
             ].map(({ icon: Icon, label, desc }) => (
               <div key={label} className="flex items-start gap-3 p-3 rounded-xl bg-white/5 border border-white/10">
                 <div className="p-2 rounded-lg bg-cyan-500/10 shrink-0">
@@ -205,7 +205,6 @@ export function FanOnboardingModal({ suggestedCreators, userId }: FanOnboardingM
             ))}
           </div>
 
-          {/* Welcome bonus claim */}
           {!bonusClaimed ? (
             <button
               onClick={handleClaimBonus}
@@ -213,16 +212,16 @@ export function FanOnboardingModal({ suggestedCreators, userId }: FanOnboardingM
               className="w-full py-3 mb-3 bg-gradient-to-r from-yellow-500 to-orange-500 text-white rounded-xl font-bold hover:opacity-90 transition-opacity flex items-center justify-center gap-2"
             >
               {claimingBonus ? (
-                'Claiming...'
+                t.onboarding.claiming
               ) : (
                 <>
-                  <Coins className="w-4 h-4" /> Claim 10 Free Coins
+                  <Coins className="w-4 h-4" /> {t.onboarding.claimFreeCoins}
                 </>
               )}
             </button>
           ) : (
             <div className="w-full py-3 mb-3 bg-green-500/20 border border-green-500/30 text-green-400 rounded-xl font-bold flex items-center justify-center gap-2">
-              <CheckCircle className="w-4 h-4" /> 10 Coins Claimed!
+              <CheckCircle className="w-4 h-4" /> {t.onboarding.coinsClaimed}
             </div>
           )}
 
@@ -230,7 +229,7 @@ export function FanOnboardingModal({ suggestedCreators, userId }: FanOnboardingM
             onClick={() => setStep(3)}
             className="w-full py-3 bg-gradient-to-r from-cyan-500 to-purple-500 text-white rounded-xl font-bold hover:opacity-90 transition-opacity flex items-center justify-center gap-2"
           >
-            Next <ArrowRight className="w-4 h-4" />
+            {t.common.next} <ArrowRight className="w-4 h-4" />
           </button>
         </div>
       )}
@@ -241,11 +240,13 @@ export function FanOnboardingModal({ suggestedCreators, userId }: FanOnboardingM
           <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-cyan-500/20 to-purple-500/20 flex items-center justify-center mx-auto mb-4">
             <Compass className="w-8 h-8 text-cyan-400" />
           </div>
-          <h2 className="text-2xl font-bold text-white mb-2">You&apos;re All Set!</h2>
+          <h2 className="text-2xl font-bold text-white mb-2">{t.onboarding.allSetTitle}</h2>
           <p className="text-gray-400 mb-6">
             {followedIds.size > 0
-              ? `You're following ${followedIds.size} creator${followedIds.size > 1 ? 's' : ''}. Their content will appear in your feed.`
-              : 'Explore creators, watch live streams, and discover exclusive content.'}
+              ? t.onboarding.allSetFollowing
+                  .replace('{count}', String(followedIds.size))
+                  .replace('{s}', followedIds.size > 1 ? 's' : '')
+              : t.onboarding.allSetExplore}
           </p>
 
           <div className="grid grid-cols-2 gap-3 mb-6">
@@ -255,8 +256,8 @@ export function FanOnboardingModal({ suggestedCreators, userId }: FanOnboardingM
               className="p-4 rounded-xl bg-white/5 border border-white/10 hover:border-cyan-500/30 transition-all text-center group"
             >
               <Compass className="w-8 h-8 text-cyan-400 mx-auto mb-2 group-hover:scale-110 transition-transform" />
-              <p className="text-white font-semibold text-sm">Explore</p>
-              <p className="text-gray-500 text-xs">Find creators</p>
+              <p className="text-white font-semibold text-sm">{t.common.explore}</p>
+              <p className="text-gray-500 text-xs">{t.onboarding.findCreators}</p>
             </Link>
             <Link
               href="/for-you"
@@ -264,8 +265,8 @@ export function FanOnboardingModal({ suggestedCreators, userId }: FanOnboardingM
               className="p-4 rounded-xl bg-white/5 border border-white/10 hover:border-purple-500/30 transition-all text-center group"
             >
               <Heart className="w-8 h-8 text-purple-400 mx-auto mb-2 group-hover:scale-110 transition-transform" />
-              <p className="text-white font-semibold text-sm">For You</p>
-              <p className="text-gray-500 text-xs">Browse content</p>
+              <p className="text-white font-semibold text-sm">{t.nav.forYou}</p>
+              <p className="text-gray-500 text-xs">{t.onboarding.browseContent}</p>
             </Link>
           </div>
 
@@ -273,7 +274,7 @@ export function FanOnboardingModal({ suggestedCreators, userId }: FanOnboardingM
             onClick={handleComplete}
             className="w-full py-3 bg-gradient-to-r from-cyan-500 to-purple-500 text-white rounded-xl font-bold hover:opacity-90 transition-opacity"
           >
-            Start Exploring
+            {t.onboarding.startExploring}
           </button>
         </div>
       )}

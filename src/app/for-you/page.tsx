@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import { checkMilestone } from '@/lib/fan-milestones';
 import { useToastContext } from '@/context/ToastContext';
+import { useLanguage } from '@/context/LanguageContext';
 
 interface FeedCreator {
   id: string;
@@ -245,6 +246,7 @@ interface FeedCardProps {
 
 function FeedCard({ item, isActive, isAuthenticated, userId, globalMuted, onMuteToggle, onLikeToggle }: FeedCardProps) {
   const { showSuccess } = useToastContext();
+  const { t } = useLanguage();
   const videoRef = useRef<HTMLVideoElement>(null);
   const [playing, setPlaying] = useState(false);
   const [liking, setLiking] = useState(false);
@@ -353,8 +355,7 @@ function FeedCard({ item, isActive, isAuthenticated, userId, globalMuted, onMute
         const data = await res.json();
         onLikeToggle(data.liked);
         if (data.liked) {
-          const milestone = checkMilestone('first_like');
-          if (milestone) showSuccess(milestone);
+          if (checkMilestone('first_like')) showSuccess(t.milestones.firstLike);
         }
       }
     } catch {
@@ -373,8 +374,7 @@ function FeedCard({ item, isActive, isAuthenticated, userId, globalMuted, onMute
       const res = await fetch(`/api/follow/${item.creator.id}`, { method: 'POST' });
       if (res.ok) {
         setFollowed(true);
-        const milestone = checkMilestone('first_follow');
-        if (milestone) showSuccess(milestone);
+        if (checkMilestone('first_follow')) showSuccess(t.milestones.firstFollow);
       }
     } catch {}
   };

@@ -4,6 +4,7 @@ import "./globals.css";
 import { AuthNavGate } from "@/components/layout/AuthNavGate";
 import { AuthProvider } from "@/context/AuthContext";
 import { ToastProvider } from "@/context/ToastContext";
+import { LanguageProvider } from "@/context/LanguageContext";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { IncomingCallPopupLazy } from "@/components/calls/IncomingCallPopupLazy";
 import { Analytics } from "@vercel/analytics/next";
@@ -102,12 +103,14 @@ export default function RootLayout({
       <body className="antialiased bg-black min-h-screen">
         <ErrorBoundary>
           <AuthProvider>
-            <ToastProvider>
-              <PageTracker />
-              <AuthNavGate />
-              <IncomingCallPopupLazy />
-              {children}
-            </ToastProvider>
+            <LanguageProvider>
+              <ToastProvider>
+                <PageTracker />
+                <AuthNavGate />
+                <IncomingCallPopupLazy />
+                {children}
+              </ToastProvider>
+            </LanguageProvider>
           </AuthProvider>
         </ErrorBoundary>
         <Analytics />

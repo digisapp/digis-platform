@@ -3,11 +3,11 @@
 import { useAuth } from '@/context/AuthContext';
 import { GlassButton, LoadingSpinner, ResponsiveSettingsLayout, ImageCropper } from '@/components/ui';
 import { MobileHeader } from '@/components/layout/MobileHeader';
-import { CheckCircle, AlertCircle, User, Share2, Settings, Circle } from 'lucide-react';
+import { CheckCircle, AlertCircle, User, Share2, Settings, Circle, Globe } from 'lucide-react';
 import { useSettingsForm } from '@/hooks/useSettingsForm';
 import { useSettingsData } from '@/hooks/useSettingsData';
 import { useCreatorLinks } from '@/hooks/useCreatorLinks';
-import { ProfileSection, SocialSection, ActionsSection, LinkModal } from '@/components/settings';
+import { ProfileSection, SocialSection, ActionsSection, LanguageSection, LinkModal } from '@/components/settings';
 import { ShareDigisCard } from '@/components/share/ShareDigisCard';
 
 export default function SettingsPage() {
@@ -100,6 +100,12 @@ export default function SettingsPage() {
         </>
       ),
     }] : []),
+    {
+      id: 'language',
+      label: 'Language',
+      icon: Globe,
+      content: <LanguageSection />,
+    },
     {
       id: 'actions',
       label: 'Actions',

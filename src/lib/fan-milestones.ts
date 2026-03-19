@@ -5,29 +5,7 @@
 
 const MILESTONE_KEY = 'digis_fan_milestones';
 
-type MilestoneType = 'first_follow' | 'first_like' | 'first_tip' | 'first_message' | 'first_purchase';
-
-interface MilestoneConfig {
-  message: string;
-}
-
-const MILESTONES: Record<MilestoneType, MilestoneConfig> = {
-  first_follow: {
-    message: 'You followed your first creator! Their content will appear in your feed.',
-  },
-  first_like: {
-    message: 'First like! Creators love knowing fans enjoy their content.',
-  },
-  first_tip: {
-    message: 'First tip sent! You just made a creator\'s day.',
-  },
-  first_message: {
-    message: 'First message sent! Creators typically reply within a few hours.',
-  },
-  first_purchase: {
-    message: 'Content unlocked! Enjoy your exclusive access.',
-  },
-};
+export type MilestoneType = 'first_follow' | 'first_like' | 'first_tip' | 'first_message' | 'first_purchase';
 
 function getCompletedMilestones(): Set<MilestoneType> {
   try {
@@ -46,14 +24,14 @@ function markMilestone(type: MilestoneType) {
 }
 
 /**
- * Check and trigger a milestone celebration.
- * Returns the celebration message if this is a first-time action, or null if already completed.
+ * Check if this is a first-time action.
+ * Returns true if milestone was just achieved (first time), false if already completed.
  * Automatically marks the milestone as completed.
  */
-export function checkMilestone(type: MilestoneType): string | null {
+export function checkMilestone(type: MilestoneType): boolean {
   const completed = getCompletedMilestones();
-  if (completed.has(type)) return null;
+  if (completed.has(type)) return false;
 
   markMilestone(type);
-  return MILESTONES[type].message;
+  return true;
 }

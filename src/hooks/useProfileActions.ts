@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { useToastContext } from '@/context/ToastContext';
 import { checkMilestone } from '@/lib/fan-milestones';
+import { useLanguage } from '@/context/LanguageContext';
 import type { ProfileData, ContentItem, ContentToUnlock, TipSuccessGift, InsufficientFundsDetails } from '@/components/profile/types';
 
 interface UseProfileActionsParams {
@@ -38,6 +39,7 @@ export function useProfileActions({
 }: UseProfileActionsParams) {
   const router = useRouter();
   const { showError, showInfo, showSuccess } = useToastContext();
+  const { t } = useLanguage();
 
   const [followLoading, setFollowLoading] = useState(false);
   const [subscribeLoading, setSubscribeLoading] = useState(false);
@@ -104,8 +106,7 @@ export function useProfileActions({
       if (!isFollowing) {
         setShowConfetti(true);
         setTimeout(() => setShowConfetti(false), 2000);
-        const milestone = checkMilestone('first_follow');
-        if (milestone) showSuccess(milestone);
+        if (checkMilestone('first_follow')) showSuccess(t.milestones.firstFollow);
       }
 
       if (profile) {
@@ -359,8 +360,7 @@ export function useProfileActions({
       setTipSuccessGift(giftEmoji && giftName ? { emoji: giftEmoji, name: giftName } : null);
       setShowTipSuccessModal(true);
 
-      const milestone = checkMilestone('first_tip');
-      if (milestone) showSuccess(milestone);
+      if (checkMilestone('first_tip')) showSuccess(t.milestones.firstTip);
     } catch (error) {
       throw error;
     }
