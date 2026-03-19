@@ -177,13 +177,13 @@ export async function GET(request: NextRequest) {
         .limit(limit);
 
       for (const item of contentResults) {
-        // Skip items with no displayable thumbnail (processing failed/pending)
+        // Skip items that aren't ready to display
         const displayUrl = item.previewUrl || item.thumbnailUrl;
         if (!displayUrl) continue;
-        // Skip if thumbnail is just the raw file URL (processing never completed)
-        if (displayUrl === item.fileUrl && item.type === 'video') continue;
-        // Skip items still being processed
-        if (item.processingStatus === 'pending' || item.processingStatus === 'processing') continue;
+        // Skip if thumbnail is the raw file URL (processing never completed)
+        if (displayUrl === item.fileUrl) continue;
+        // Skip items still processing or failed
+        if (item.processingStatus !== 'ready') continue;
 
         feedItems.push({
           id: item.id,
