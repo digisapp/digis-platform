@@ -46,8 +46,8 @@ export function extractInstagramHandle(input: string): string {
     }
   }
 
-  // Remove any remaining @ and trim
-  return handle.replace(/^@/, '').trim();
+  // Remove any remaining @, spaces, and trim (social handles never contain spaces)
+  return handle.replace(/^@/, '').replace(/\s+/g, '').trim();
 }
 
 /**
@@ -82,7 +82,7 @@ export function extractTiktokHandle(input: string): string {
     }
   }
 
-  return handle.replace(/^@/, '').trim();
+  return handle.replace(/^@/, '').replace(/\s+/g, '').trim();
 }
 
 /**
@@ -119,7 +119,7 @@ export function extractTwitterHandle(input: string): string {
     }
   }
 
-  return handle.replace(/^@/, '').trim();
+  return handle.replace(/^@/, '').replace(/\s+/g, '').trim();
 }
 
 /**
@@ -156,7 +156,7 @@ export function extractSnapchatHandle(input: string): string {
     }
   }
 
-  return handle.replace(/^@/, '').trim();
+  return handle.replace(/^@/, '').replace(/\s+/g, '').trim();
 }
 
 /**
@@ -201,5 +201,5 @@ export function extractYoutubeHandle(input: string): string {
     }
   }
 
-  return handle.replace(/^@/, '').trim();
+  return handle.replace(/^@/, '').replace(/\s+/g, '').trim();
 }
