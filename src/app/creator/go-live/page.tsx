@@ -16,9 +16,11 @@ import {
 } from '@/components/go-live';
 import { OBSStreamSetup } from '@/components/go-live/OBSStreamSetup';
 import { Video, Monitor } from 'lucide-react';
+import { useLanguage } from '@/context/LanguageContext';
 
 export default function GoLivePage() {
   const router = useRouter();
+  const { t } = useLanguage();
   const data = useGoLiveData();
   const devices = useGoLiveDevices();
 
@@ -40,9 +42,9 @@ export default function GoLivePage() {
       <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 flex items-center justify-center p-4">
         <div className="max-w-md w-full backdrop-blur-2xl bg-gradient-to-br from-black/40 via-gray-900/60 to-black/40 rounded-2xl border-2 border-purple-500/30 p-8 text-center shadow-[0_0_30px_rgba(168,85,247,0.2)]">
           <div className="text-6xl mb-4">🎥</div>
-          <h1 className="text-2xl font-bold text-white mb-4">Creator Access Required</h1>
+          <h1 className="text-2xl font-bold text-white mb-4">{t.goLive.creatorAccessRequired}</h1>
           <p className="text-gray-300 mb-6">
-            You need to be a verified creator to start live streaming.
+            {t.goLive.needVerifiedCreator}
           </p>
           <GlassButton
             variant="gradient"
@@ -52,7 +54,7 @@ export default function GoLivePage() {
             shimmer
             glow
           >
-            Apply to Be a Creator
+            {t.goLive.applyToBeCreator}
           </GlassButton>
         </div>
       </div>

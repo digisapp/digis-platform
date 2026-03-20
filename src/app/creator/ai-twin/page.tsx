@@ -10,6 +10,7 @@ import {
   MapPin, Brain, X, Plus, Database, RefreshCw
 } from 'lucide-react';
 import { COIN_TO_USD_RATE } from '@/lib/stripe/constants';
+import { useLanguage } from '@/context/LanguageContext';
 
 const formatCoinsToUSD = (coins: number): string => {
   const usd = coins * COIN_TO_USD_RATE;
@@ -137,6 +138,7 @@ interface AiSettings {
 
 export default function AiTwinPage() {
   const router = useRouter();
+  const { t } = useLanguage();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [autoSaving, setAutoSaving] = useState(false);
@@ -362,9 +364,9 @@ export default function AiTwinPage() {
           setSettings(prev => ({ ...prev, ...data.settings }));
         }
         const savedStatus = [];
-        if (settings.enabled) savedStatus.push('Voice Chat ON');
-        if (settings.textChatEnabled) savedStatus.push('Text Chat ON');
-        setMessage(`AI Twin settings saved! ${savedStatus.join(', ') || 'All features OFF'}`);
+        if (settings.enabled) savedStatus.push(t.aiTwin.voiceChatOn);
+        if (settings.textChatEnabled) savedStatus.push(t.aiTwin.textChatOn);
+        setMessage(`${t.aiTwin.settingsSaved} ${savedStatus.join(', ') || 'All features OFF'}`);
         setTimeout(() => setMessage(''), 5000);
       } else {
         console.error('[AI Twin Save] Error response:', data);
@@ -400,13 +402,13 @@ export default function AiTwinPage() {
           <div className="mb-6">
             <h1 className="text-2xl font-bold text-white flex items-center gap-2">
               <Bot className="w-7 h-7 text-cyan-400" />
-              AI Twin
+              {t.aiTwin.aiTwin}
               <span className="ml-2 px-2 py-0.5 text-xs bg-gradient-to-r from-purple-500 to-pink-500 rounded-full">
-                Beta
+                {t.aiTwin.beta}
               </span>
             </h1>
             <p className="text-gray-400 text-sm mt-1">
-              Let fans chat with your AI clone via voice or text 24/7
+              {t.aiTwin.aiTwinDesc}
             </p>
           </div>
 
@@ -456,15 +458,15 @@ export default function AiTwinPage() {
                 </div>
                 <div className="flex-1">
                   <h3 className="font-bold text-white flex items-center gap-2">
-                    Voice Chat
+                    {t.aiTwin.voiceChat}
                     {autoSaved === 'voice' && (
                       <span className="text-xs text-green-400 font-normal flex items-center gap-1">
-                        <CheckCircle className="w-3 h-3" /> Saved
+                        <CheckCircle className="w-3 h-3" /> {t.aiTwin.saved}
                       </span>
                     )}
                   </h3>
                   <p className="text-xs text-gray-400">
-                    Real-time voice calls with AI
+                    {t.aiTwin.voiceChatDesc}
                   </p>
                 </div>
                 <button
@@ -522,15 +524,15 @@ export default function AiTwinPage() {
                 </div>
                 <div className="flex-1">
                   <h3 className="font-bold text-white flex items-center gap-2">
-                    Text Chat
+                    {t.aiTwin.textChat}
                     {autoSaved === 'text' && (
                       <span className="text-xs text-green-400 font-normal flex items-center gap-1">
-                        <CheckCircle className="w-3 h-3" /> Saved
+                        <CheckCircle className="w-3 h-3" /> {t.aiTwin.saved}
                       </span>
                     )}
                   </h3>
                   <p className="text-xs text-gray-400">
-                    AI responds to DMs
+                    {t.aiTwin.textChatDesc}
                   </p>
                 </div>
                 <button
@@ -571,8 +573,8 @@ export default function AiTwinPage() {
                       <Volume2 className="w-5 h-5 text-purple-400" />
                     </div>
                     <div>
-                      <h3 className="font-bold text-white">Voice</h3>
-                      <p className="text-xs text-gray-400">Choose your AI&apos;s voice</p>
+                      <h3 className="font-bold text-white">{t.aiTwin.voice}</h3>
+                      <p className="text-xs text-gray-400">{t.aiTwin.chooseVoice}</p>
                     </div>
                   </div>
 
@@ -602,14 +604,14 @@ export default function AiTwinPage() {
                     <Sparkles className="w-5 h-5 text-pink-400" />
                   </div>
                   <div>
-                    <h3 className="font-bold text-white">Personality</h3>
-                    <p className="text-xs text-gray-400">Choose your AI&apos;s vibe</p>
+                    <h3 className="font-bold text-white">{t.aiTwin.personality}</h3>
+                    <p className="text-xs text-gray-400">{t.aiTwin.choosePersonality}</p>
                   </div>
                 </div>
 
                 {/* Vibe Presets */}
                 <div className="mb-5">
-                  <p className="text-xs text-gray-400 mb-2 font-medium">Quick Vibe Presets</p>
+                  <p className="text-xs text-gray-400 mb-2 font-medium">{t.aiTwin.quickVibePresets}</p>
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                     {VIBE_PRESETS.map((vibe) => (
                       <button
@@ -633,7 +635,7 @@ export default function AiTwinPage() {
 
                 {/* Trait Chips */}
                 <div className="mb-5">
-                  <p className="text-xs text-gray-400 mb-2 font-medium">Fine-tune with Traits</p>
+                  <p className="text-xs text-gray-400 mb-2 font-medium">{t.aiTwin.fineTuneTraits}</p>
                   <div className="flex flex-wrap gap-2">
                     {PERSONALITY_TRAITS.map((trait) => (
                       <button
@@ -654,7 +656,7 @@ export default function AiTwinPage() {
 
                 {/* Custom Additions */}
                 <div>
-                  <p className="text-xs text-gray-400 mb-2 font-medium">Add Custom Details (optional)</p>
+                  <p className="text-xs text-gray-400 mb-2 font-medium">{t.aiTwin.addCustomDetails}</p>
                   <textarea
                     value={customAdditions}
                     onChange={(e) => setCustomAdditions(e.target.value)}
@@ -666,7 +668,7 @@ export default function AiTwinPage() {
                 {/* Preview */}
                 {(selectedVibe || selectedTraits.length > 0 || customAdditions) && (
                   <div className="mt-4 p-3 rounded-lg bg-pink-500/10 border border-pink-500/20">
-                    <p className="text-xs text-pink-400 font-medium mb-1">Preview:</p>
+                    <p className="text-xs text-pink-400 font-medium mb-1">{t.aiTwin.preview}</p>
                     <p className="text-sm text-gray-300">
                       {generatePersonalityPrompt(selectedVibe, selectedTraits, customAdditions) || 'Select a vibe or traits to see preview'}
                     </p>
@@ -681,8 +683,8 @@ export default function AiTwinPage() {
                     <Mic className="w-5 h-5 text-green-400" />
                   </div>
                   <div>
-                    <h3 className="font-bold text-white">Welcome Message</h3>
-                    <p className="text-xs text-gray-400">First thing your AI says</p>
+                    <h3 className="font-bold text-white">{t.aiTwin.welcomeMessage}</h3>
+                    <p className="text-xs text-gray-400">{t.aiTwin.firstThingSays}</p>
                   </div>
                 </div>
 
@@ -701,15 +703,15 @@ export default function AiTwinPage() {
                     <Brain className="w-5 h-5 text-blue-400" />
                   </div>
                   <div>
-                    <h3 className="font-bold text-white">Knowledge Base</h3>
-                    <p className="text-xs text-gray-400">Help your AI know you deeply</p>
+                    <h3 className="font-bold text-white">{t.aiTwin.knowledgeBase}</h3>
+                    <p className="text-xs text-gray-400">{t.aiTwin.helpAiKnow}</p>
                   </div>
                 </div>
 
                 {/* Location */}
                 <div className="mb-5">
                   <label className="text-xs text-gray-400 mb-2 font-medium flex items-center gap-1">
-                    <MapPin className="w-3 h-3" /> Where are you from?
+                    <MapPin className="w-3 h-3" /> {t.aiTwin.whereFrom}
                   </label>
                   <input
                     type="text"
@@ -722,7 +724,7 @@ export default function AiTwinPage() {
 
                 {/* Expertise Areas */}
                 <div className="mb-5">
-                  <p className="text-xs text-gray-400 mb-2 font-medium">What are you knowledgeable about?</p>
+                  <p className="text-xs text-gray-400 mb-2 font-medium">{t.aiTwin.knowledgeable}</p>
                   <div className="flex flex-wrap gap-2 mb-3">
                     {EXPERTISE_PRESETS.map((expertise) => (
                       <button
@@ -747,7 +749,7 @@ export default function AiTwinPage() {
                       value={customExpertise}
                       onChange={(e) => setCustomExpertise(e.target.value)}
                       onKeyDown={(e) => e.key === 'Enter' && addCustomExpertise()}
-                      placeholder="Add custom topic..."
+                      placeholder={t.aiTwin.addCustomTopic}
                       className="flex-1 px-3 py-2 bg-black/40 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 text-sm"
                     />
                     <button
@@ -781,7 +783,7 @@ export default function AiTwinPage() {
 
                 {/* Deep Knowledge Textarea */}
                 <div>
-                  <p className="text-xs text-gray-400 mb-2 font-medium">Tell your AI everything about you</p>
+                  <p className="text-xs text-gray-400 mb-2 font-medium">{t.aiTwin.tellEverything}</p>
                   <p className="text-xs text-gray-500 mb-3">
                     Background, life story, education, experiences, expertise details, opinions, catchphrases - anything you want your AI to know and share with fans.
                   </p>
@@ -800,7 +802,7 @@ Fun facts: I love spicy food, I'm obsessed with true crime podcasts, and I alway
                   />
                   <div className="flex justify-between mt-2">
                     <p className="text-xs text-gray-500">
-                      The more detail you provide, the more authentic your AI will be
+                      {t.aiTwin.moreDetail}
                     </p>
                     <p className="text-xs text-gray-500">
                       {(settings.knowledgeBase || '').length} chars
@@ -816,9 +818,9 @@ Fun facts: I love spicy food, I'm obsessed with true crime podcasts, and I alway
                     <Database className="w-5 h-5 text-emerald-400" />
                   </div>
                   <div>
-                    <h3 className="font-bold text-white">AI Knowledge Sync</h3>
+                    <h3 className="font-bold text-white">{t.aiTwin.aiKnowledgeSync}</h3>
                     <p className="text-xs text-gray-400">
-                      Auto-syncs when you save settings
+                      {t.aiTwin.autoSyncs}
                     </p>
                   </div>
                 </div>
@@ -831,10 +833,10 @@ Fun facts: I love spicy food, I'm obsessed with true crime podcasts, and I alway
                   <div>
                     {syncStatus?.lastSyncedAt ? (
                       <p className="text-xs text-gray-500">
-                        Last synced: {new Date(syncStatus.lastSyncedAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                        {t.aiTwin.lastSynced} {new Date(syncStatus.lastSyncedAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
                       </p>
                     ) : (
-                      <p className="text-xs text-gray-500">Will sync on first save</p>
+                      <p className="text-xs text-gray-500">{t.aiTwin.willSyncFirst}</p>
                     )}
                   </div>
                   <button
@@ -851,7 +853,7 @@ Fun facts: I love spicy food, I'm obsessed with true crime podcasts, and I alway
                     ) : (
                       <>
                         <RefreshCw className="w-3.5 h-3.5" />
-                        Re-sync
+                        {t.aiTwin.reSync}
                       </>
                     )}
                   </button>
@@ -865,31 +867,39 @@ Fun facts: I love spicy food, I'm obsessed with true crime podcasts, and I alway
                     <AlertCircle className="w-5 h-5 text-red-400" />
                   </div>
                   <div>
-                    <h3 className="font-bold text-white">Boundaries</h3>
-                    <p className="text-xs text-gray-400">Set your comfort level</p>
+                    <h3 className="font-bold text-white">{t.aiTwin.boundaries}</h3>
+                    <p className="text-xs text-gray-400">{t.aiTwin.comfortLevel}</p>
                   </div>
                 </div>
 
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                  {BOUNDARY_OPTIONS.map((option) => (
-                    <button
-                      key={option.id}
-                      onClick={() => setSelectedBoundary(option.id)}
-                      className={`p-3 rounded-xl border transition-all text-center ${
-                        selectedBoundary === option.id
-                          ? 'border-red-500 bg-red-500/20'
-                          : 'border-white/10 hover:border-white/30 bg-white/5'
-                      }`}
-                    >
-                      <span className="text-2xl block mb-1">{option.emoji}</span>
-                      <span className="font-semibold text-white text-sm block">{option.label}</span>
-                      <span className="text-xs text-gray-400">{option.description}</span>
-                    </button>
-                  ))}
+                  {BOUNDARY_OPTIONS.map((option) => {
+                    const boundaryLabels: Record<string, string> = {
+                      pg: t.aiTwin.keepPg,
+                      light: t.aiTwin.lightFlirting,
+                      flirty: t.aiTwin.flirtyFun,
+                      spicy: t.aiTwin.spicyAllowed,
+                    };
+                    return (
+                      <button
+                        key={option.id}
+                        onClick={() => setSelectedBoundary(option.id)}
+                        className={`p-3 rounded-xl border transition-all text-center ${
+                          selectedBoundary === option.id
+                            ? 'border-red-500 bg-red-500/20'
+                            : 'border-white/10 hover:border-white/30 bg-white/5'
+                        }`}
+                      >
+                        <span className="text-2xl block mb-1">{option.emoji}</span>
+                        <span className="font-semibold text-white text-sm block">{boundaryLabels[option.id] || option.label}</span>
+                        <span className="text-xs text-gray-400">{option.description}</span>
+                      </button>
+                    );
+                  })}
                 </div>
 
                 <p className="text-xs text-gray-500 mt-3">
-                  Your AI will stay within these boundaries during conversations
+                  {t.aiTwin.boundaryNote}
                 </p>
               </GlassCard>
 
@@ -902,10 +912,9 @@ Fun facts: I love spicy food, I'm obsessed with true crime podcasts, and I alway
               <div className="w-20 h-20 rounded-full bg-gradient-to-br from-cyan-500/20 to-purple-500/20 flex items-center justify-center mx-auto mb-4">
                 <Bot className="w-10 h-10 text-cyan-400" />
               </div>
-              <h3 className="text-lg font-semibold text-white mb-2">Enable AI Twin</h3>
+              <h3 className="text-lg font-semibold text-white mb-2">{t.aiTwin.enableAiTwin}</h3>
               <p className="text-gray-400 mb-4 max-w-md mx-auto">
-                Let fans chat with an AI version of you via voice or text.
-                Toggle on Voice Chat, Text Chat, or both above to get started.
+                {t.aiTwin.enableDesc}
               </p>
             </div>
           )}
@@ -917,7 +926,7 @@ Fun facts: I love spicy food, I'm obsessed with true crime podcasts, and I alway
             disabled={saving}
             className="w-full mt-6"
           >
-            {saving ? <LoadingSpinner size="sm" /> : 'Save AI Twin Settings'}
+            {saving ? <LoadingSpinner size="sm" /> : t.aiTwin.saveSettings}
           </GlassButton>
         </div>
       </div>

@@ -1,6 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
+import { useLanguage } from '@/context/LanguageContext';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { MobileHeader } from '@/components/layout/MobileHeader';
 import { Toast } from '@/components/ui/Toast';
@@ -19,6 +20,7 @@ import { formatDistanceToNow } from 'date-fns';
 
 export default function CreatorDashboard() {
   const router = useRouter();
+  const { t } = useLanguage();
   const d = useCreatorDashboard();
 
   if (d.loading) {
@@ -57,7 +59,7 @@ export default function CreatorDashboard() {
       <div className="container mx-auto">
         <div className="px-4 pt-2 md:pt-10 pb-24 md:pb-10 max-w-6xl mx-auto">
 
-          <h1 className="hidden md:block text-2xl font-bold text-white mb-4">Dashboard</h1>
+          <h1 className="hidden md:block text-2xl font-bold text-white mb-4">{t.creatorDashboard.dashboard}</h1>
 
           {/* Pending Orders Hero Card */}
           {d.pendingOrders.length > 0 && (
@@ -69,9 +71,9 @@ export default function CreatorDashboard() {
                   </div>
                   <div>
                     <h3 className="text-lg font-bold text-white">
-                      {d.pendingOrders.length} Pending Order{d.pendingOrders.length > 1 ? 's' : ''}
+                      {d.pendingOrders.length} {d.pendingOrders.length > 1 ? t.creatorDashboard.pendingOrdersPlural : t.creatorDashboard.pendingOrders}
                     </h3>
-                    <p className="text-sm text-orange-300">Action required - fulfill to receive payment</p>
+                    <p className="text-sm text-orange-300">{t.creatorDashboard.actionRequired}</p>
                   </div>
                 </div>
               </div>
@@ -86,12 +88,12 @@ export default function CreatorDashboard() {
                       <p className="text-xs text-gray-400">{order.description}</p>
                     </div>
                     <div className="flex items-center gap-2 ml-3">
-                      <span className="text-sm font-bold text-orange-400">{order.amount} coins</span>
+                      <span className="text-sm font-bold text-orange-400">{order.amount} {t.common.coins}</span>
                       <button
                         onClick={() => order.action && d.handleFulfillOrder(order.action.orderId)}
                         className="px-4 py-2 bg-orange-500 hover:bg-orange-400 text-white text-sm font-semibold rounded-lg transition-colors"
                       >
-                        Fulfill
+                        {t.creatorDashboard.fulfill}
                       </button>
                     </div>
                   </div>
@@ -116,9 +118,9 @@ export default function CreatorDashboard() {
                   <AlertCircle className="w-5 h-5 text-yellow-400" />
                 </div>
                 <div className="flex-1">
-                  <h3 className="text-sm font-semibold text-yellow-400">Pending Verification</h3>
+                  <h3 className="text-sm font-semibold text-yellow-400">{t.creatorDashboard.pendingVerification}</h3>
                   <p className="text-xs text-gray-400">
-                    Your creator account is under review. You can still set up your profile while we verify your account.
+                    {t.creatorDashboard.pendingVerificationDesc}
                   </p>
                 </div>
               </div>
@@ -143,14 +145,14 @@ export default function CreatorDashboard() {
               className="flex items-center justify-center gap-3 p-5 rounded-2xl bg-gradient-to-br from-red-500/20 to-pink-500/20 border border-red-500/30 hover:border-red-500/50 transition-all hover:scale-[1.02] active:scale-[0.98]"
             >
               <Radio className="w-6 h-6 text-red-400" />
-              <span className="text-lg font-semibold text-white">Go Live</span>
+              <span className="text-lg font-semibold text-white">{t.nav.goLive}</span>
             </button>
             <button
               onClick={() => router.push('/cloud')}
               className="flex items-center justify-center gap-3 p-5 rounded-2xl bg-gradient-to-br from-cyan-500/20 to-blue-500/20 border border-cyan-500/30 hover:border-cyan-500/50 transition-all hover:scale-[1.02] active:scale-[0.98]"
             >
               <Upload className="w-6 h-6 text-cyan-400" />
-              <span className="text-lg font-semibold text-white">Cloud</span>
+              <span className="text-lg font-semibold text-white">{t.nav.cloud}</span>
             </button>
           </div>
 
@@ -171,7 +173,7 @@ export default function CreatorDashboard() {
             <div className="mb-6 p-4 rounded-2xl bg-white/5 border border-purple-500/30">
               <div className="flex items-center gap-2 mb-3">
                 <Calendar className="w-5 h-5 text-purple-400" />
-                <h3 className="font-semibold text-white">Upcoming</h3>
+                <h3 className="font-semibold text-white">{t.creatorDashboard.upcoming}</h3>
               </div>
               <div className="space-y-2">
                 {d.upcomingEvents.map((event) => (

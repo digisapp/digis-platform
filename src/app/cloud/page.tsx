@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
+import { useLanguage } from '@/context/LanguageContext';
 import { useRouter } from 'next/navigation';
 import { useCloudData, CloudItem } from '@/hooks/useCloudData';
 import { CloudGrid } from '@/components/cloud/HubGrid';
@@ -38,8 +39,14 @@ const statusFilters = [
 export default function CloudPage() {
   const { isCreator, loading: authLoading } = useAuth();
   const router = useRouter();
+  const { t } = useLanguage();
 
   const cloud = useCloudData();
+
+  const translatedStatusFilters = statusFilters.map(f => ({
+    ...f,
+    label: f.value === 'all' ? t.cloud.all : f.value === 'private' ? t.cloud.hidden : t.cloud.live,
+  }));
 
   // Modals
   const [showUpload, setShowUpload] = useState(false);
@@ -81,10 +88,10 @@ export default function CloudPage() {
           <div className="flex items-center gap-3 min-w-0">
             <div>
               <h1 className="text-2xl font-bold bg-gradient-to-r from-white via-cyan-100 to-white bg-clip-text text-transparent">
-                Cloud
+                {t.cloud.cloud}
               </h1>
               <p className="text-gray-500 text-sm mt-0.5">
-                {cloud.total} items
+                {cloud.total} {t.cloud.items}
               </p>
             </div>
             {/* Streak badge */}
@@ -102,23 +109,23 @@ export default function CloudPage() {
             className="flex items-center gap-2 sm:gap-3 px-4 sm:px-5 py-3 rounded-2xl bg-gradient-to-br from-cyan-500/20 to-blue-500/20 border border-cyan-500/30 hover:border-cyan-500/50 transition-all hover:scale-[1.02] active:scale-[0.98] flex-shrink-0"
           >
             <Upload className="w-5 h-5 text-cyan-400" />
-            <span className="text-sm sm:text-base font-semibold text-white">Upload</span>
+            <span className="text-sm sm:text-base font-semibold text-white">{t.cloud.upload}</span>
           </button>
         </div>
 
         {/* Welcome banner for empty state */}
         {cloud.total === 0 && (
           <div className="mb-6 bg-gradient-to-r from-cyan-500/10 to-pink-500/10 border border-cyan-500/20 rounded-2xl p-6 text-center">
-            <h2 className="text-lg font-bold text-white mb-2">Welcome to Cloud</h2>
+            <h2 className="text-lg font-bold text-white mb-2">{t.cloud.welcomeToCloud}</h2>
             <p className="text-gray-400 text-sm mb-4">
-              Upload your content, set prices, and start earning.
+              {t.cloud.uploadDesc}
             </p>
             <button
               onClick={() => setShowUpload(true)}
               className="flex items-center gap-2 mx-auto px-5 py-2.5 rounded-xl bg-gradient-to-r from-cyan-500 to-cyan-600 text-black font-semibold hover:from-cyan-400 hover:to-cyan-500 transition-all text-sm"
             >
               <Upload className="w-4 h-4" />
-              Upload your first content
+              {t.cloud.uploadFirst}
             </button>
           </div>
         )}
@@ -126,7 +133,7 @@ export default function CloudPage() {
         {/* Filter bar */}
         <div className="flex flex-wrap items-center justify-between mb-4 gap-2">
           <div className="flex items-center gap-1 bg-white/5 rounded-xl p-1 overflow-x-auto scrollbar-hide">
-            {statusFilters.map(filter => {
+            {translatedStatusFilters.map(filter => {
               const Icon = filter.icon;
               const isActive = cloud.statusFilter === filter.value;
               return (
@@ -156,7 +163,7 @@ export default function CloudPage() {
               }`}
             >
               <Image className="w-4 h-4" />
-              <span>Photos</span>
+              <span>{t.cloud.photos}</span>
             </button>
             <button
               onClick={() => cloud.setTypeFilter(cloud.typeFilter === 'video' ? 'all' : 'video')}
@@ -167,7 +174,7 @@ export default function CloudPage() {
               }`}
             >
               <Film className="w-4 h-4" />
-              <span>Videos</span>
+              <span>{t.cloud.videos}</span>
             </button>
           </div>
 
@@ -176,12 +183,12 @@ export default function CloudPage() {
             {selectionMode ? (
               <>
                 <span className="text-sm text-gray-400">
-                  {cloud.selectedItems.size} selected
+                  {cloud.selectedItems.size} {t.cloud.selected}
                 </span>
                 <button
                   onClick={cloud.selectAll}
                   className="p-2.5 rounded-lg text-gray-400 hover:text-white hover:bg-white/10 transition-colors"
-                  title="Select all"
+                  title={t.cloud.selectAll}
                 >
                   <CheckCheck className="w-5 h-5" />
                 </button>
@@ -198,7 +205,7 @@ export default function CloudPage() {
                 className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-gray-400 hover:text-white hover:bg-white/10 text-sm transition-colors"
               >
                 <CheckSquare className="w-4 h-4" />
-                Select
+                {t.cloud.select}
               </button>
             )}
           </div>
@@ -212,35 +219,35 @@ export default function CloudPage() {
               className="flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-gradient-to-r from-pink-500 to-pink-600 text-white text-sm font-medium hover:from-pink-400 hover:to-pink-500 transition-all whitespace-nowrap flex-shrink-0"
             >
               <Zap className="w-4 h-4" />
-              Quick Drop
+              {t.cloud.quickDrop}
             </button>
             <button
               onClick={() => setShowTags(true)}
               className="flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-white/5 text-gray-300 hover:bg-white/10 text-sm transition-colors whitespace-nowrap flex-shrink-0"
             >
               <Tag className="w-4 h-4" />
-              Tags
+              {t.cloud.tags}
             </button>
             <button
               onClick={() => setShowScheduleDrops(true)}
               className="flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-white/5 text-gray-300 hover:bg-white/10 text-sm transition-colors whitespace-nowrap flex-shrink-0"
             >
               <Calendar className="w-4 h-4" />
-              Schedule
+              {t.cloud.schedule}
             </button>
             <button
               onClick={() => setShowLockedMessage(true)}
               className="flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-white/5 text-gray-300 hover:bg-white/10 text-sm transition-colors whitespace-nowrap flex-shrink-0"
             >
               <Send className="w-4 h-4" />
-              Send
+              {t.cloud.send}
             </button>
             <button
               onClick={() => setShowBulkActions(true)}
               className="flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-white/5 text-gray-300 hover:bg-white/10 text-sm transition-colors whitespace-nowrap flex-shrink-0"
             >
               <Eye className="w-4 h-4" />
-              Publish
+              {t.cloud.publish}
             </button>
           </div>
         )}
@@ -257,7 +264,7 @@ export default function CloudPage() {
                   : 'bg-white/5 text-gray-400 hover:bg-white/10 hover:text-gray-300'
               }`}
             >
-              All
+              {t.cloud.all}
             </button>
             {cloud.tags.map(tag => (
               <button
@@ -293,7 +300,7 @@ export default function CloudPage() {
               disabled={cloud.page <= 1}
               className="px-5 py-2.5 rounded-xl bg-white/5 text-gray-400 hover:bg-white/10 disabled:opacity-30 transition-colors text-sm font-medium"
             >
-              Previous
+              {t.cloud.previous}
             </button>
             <span className="text-gray-500 text-sm">
               {cloud.page} / {Math.ceil(cloud.total / 50)}
@@ -303,7 +310,7 @@ export default function CloudPage() {
               disabled={cloud.page >= Math.ceil(cloud.total / 50)}
               className="px-5 py-2.5 rounded-xl bg-white/5 text-gray-400 hover:bg-white/10 disabled:opacity-30 transition-colors text-sm font-medium"
             >
-              Next
+              {t.cloud.next}
             </button>
           </div>
         )}

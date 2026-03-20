@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
+import { useLanguage } from '@/context/LanguageContext';
 import { MobileHeader } from '@/components/layout/MobileHeader';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import {
@@ -84,10 +85,29 @@ const TIER_BADGES: Record<string, string> = {
 
 export default function CreatorAnalyticsPage() {
   const router = useRouter();
+  const { t } = useLanguage();
   const [data, setData] = useState<AnalyticsData | null>(null);
   const [loading, setLoading] = useState(true);
   const [period, setPeriod] = useState(30);
   const [showPeriodDropdown, setShowPeriodDropdown] = useState(false);
+
+  const translatedPeriods = [
+    { value: 7, label: t.analytics.days7 },
+    { value: 30, label: t.analytics.days30 },
+    { value: 90, label: t.analytics.days90 },
+    { value: 365, label: t.analytics.year1 },
+  ];
+
+  const translatedSourceLabels: Record<string, string> = {
+    streams: t.analytics.streamsAndTips,
+    calls: t.analytics.calls,
+    cloud: t.analytics.cloudContent,
+    subscriptions: t.analytics.subscriptions,
+    messages: t.analytics.messages,
+    collections: t.analytics.collections,
+    bookings: t.analytics.bookings,
+    other: t.analytics.other,
+  };
 
   const fetchAnalytics = useCallback(async (days: number) => {
     setLoading(true);
@@ -133,7 +153,7 @@ export default function CreatorAnalyticsPage() {
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-3">
             <BarChart3 className="w-6 h-6 text-green-400" />
-            <h1 className="text-2xl font-bold text-white">Analytics</h1>
+            <h1 className="text-2xl font-bold text-white">{t.analytics.analytics}</h1>
           </div>
 
           {/* Period Selector */}
@@ -142,14 +162,14 @@ export default function CreatorAnalyticsPage() {
               onClick={() => setShowPeriodDropdown(!showPeriodDropdown)}
               className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white/5 border border-white/10 hover:border-green-500/30 transition-all text-sm"
             >
-              <span className="text-gray-300">{PERIODS.find(p => p.value === period)?.label}</span>
+              <span className="text-gray-300">{translatedPeriods.find(p => p.value === period)?.label}</span>
               <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform ${showPeriodDropdown ? 'rotate-180' : ''}`} />
             </button>
             {showPeriodDropdown && (
               <>
                 <div className="fixed inset-0 z-40" onClick={() => setShowPeriodDropdown(false)} />
                 <div className="absolute right-0 top-full mt-2 py-1 bg-gray-900/95 backdrop-blur-xl border border-white/10 rounded-xl shadow-xl z-50 min-w-[120px]">
-                  {PERIODS.map(p => (
+                  {translatedPeriods.map(p => (
                     <button
                       key={p.value}
                       onClick={() => { setPeriod(p.value); setShowPeriodDropdown(false); }}
@@ -168,15 +188,15 @@ export default function CreatorAnalyticsPage() {
 
         {/* Summary Cards */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
-          <StatCard icon={DollarSign} label="Earnings" value={`${totalEarnings.toLocaleString()} coins`} subValue={`≈ $${(totalEarnings * 0.1).toFixed(0)}`} color="green" />
-          <StatCard icon={Users} label="New Followers" value={`+${totalNewFollowers}`} color="purple" />
-          <StatCard icon={Eye} label="Stream Views" value={data?.streams.totalViews.toLocaleString() || '0'} subValue={`${data?.streams.totalStreams || 0} streams`} color="red" />
-          <StatCard icon={Phone} label="Calls" value={`${data?.calls.totalCalls || 0}`} subValue={`${data?.calls.totalMinutes || 0} min`} color="blue" />
+          <StatCard icon={DollarSign} label={t.analytics.earnings} value={`${totalEarnings.toLocaleString()} coins`} subValue={`≈ $${(totalEarnings * 0.1).toFixed(0)}`} color="green" />
+          <StatCard icon={Users} label={t.analytics.newFollowers} value={`+${totalNewFollowers}`} color="purple" />
+          <StatCard icon={Eye} label={t.analytics.streamViews} value={data?.streams.totalViews.toLocaleString() || '0'} subValue={`${data?.streams.totalStreams || 0} streams`} color="red" />
+          <StatCard icon={Phone} label={t.analytics.calls} value={`${data?.calls.totalCalls || 0}`} subValue={`${data?.calls.totalMinutes || 0} min`} color="blue" />
         </div>
 
         {/* Earnings Chart */}
         <div className="mb-6 p-5 rounded-2xl bg-white/5 border border-white/10">
-          <h3 className="text-sm font-medium text-gray-400 mb-4">Earnings Over Time</h3>
+          <h3 className="text-sm font-medium text-gray-400 mb-4">{t.analytics.earningsOverTime}</h3>
           {data && data.dailyEarnings.length > 0 ? (
             <ResponsiveContainer width="100%" height={220}>
               <AreaChart data={data.dailyEarnings}>
@@ -191,13 +211,13 @@ export default function CreatorAnalyticsPage() {
                 <Tooltip
                   contentStyle={{ backgroundColor: '#1f2937', border: '1px solid #374151', borderRadius: 12, color: '#fff', fontSize: 13 }}
                   labelFormatter={(l) => new Date(l).toLocaleDateString()}
-                  formatter={(v: number) => [`${v.toLocaleString()} coins`, 'Earnings']}
+                  formatter={(v: number) => [`${v.toLocaleString()} coins`, t.analytics.earnings]}
                 />
                 <Area type="monotone" dataKey="earnings" stroke="#22c55e" fill="url(#earningsGrad)" strokeWidth={2} />
               </AreaChart>
             </ResponsiveContainer>
           ) : (
-            <div className="h-[220px] flex items-center justify-center text-gray-500 text-sm">No earnings data for this period</div>
+            <div className="h-[220px] flex items-center justify-center text-gray-500 text-sm">{t.analytics.noEarningsData}</div>
           )}
         </div>
 
@@ -205,7 +225,7 @@ export default function CreatorAnalyticsPage() {
         <div className="grid md:grid-cols-2 gap-4 mb-6">
           {/* Revenue by Source */}
           <div className="p-5 rounded-2xl bg-white/5 border border-white/10">
-            <h3 className="text-sm font-medium text-gray-400 mb-4">Revenue Breakdown</h3>
+            <h3 className="text-sm font-medium text-gray-400 mb-4">{t.analytics.revenueBreakdown}</h3>
             {data && data.revenueBySource.length > 0 ? (
               <div className="flex items-center gap-4">
                 <div className="w-[140px] h-[140px]">
@@ -231,7 +251,7 @@ export default function CreatorAnalyticsPage() {
                     <div key={r.source} className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
                         <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: SOURCE_COLORS[r.source] || '#6b7280' }} />
-                        <span className="text-xs text-gray-300">{SOURCE_LABELS[r.source] || r.source}</span>
+                        <span className="text-xs text-gray-300">{translatedSourceLabels[r.source] || r.source}</span>
                       </div>
                       <span className="text-xs font-medium text-white">{r.total.toLocaleString()}</span>
                     </div>
@@ -239,13 +259,13 @@ export default function CreatorAnalyticsPage() {
                 </div>
               </div>
             ) : (
-              <div className="h-[140px] flex items-center justify-center text-gray-500 text-sm">No revenue data</div>
+              <div className="h-[140px] flex items-center justify-center text-gray-500 text-sm">{t.analytics.noRevenueData}</div>
             )}
           </div>
 
           {/* Follower Growth */}
           <div className="p-5 rounded-2xl bg-white/5 border border-white/10">
-            <h3 className="text-sm font-medium text-gray-400 mb-4">Follower Growth</h3>
+            <h3 className="text-sm font-medium text-gray-400 mb-4">{t.analytics.followerGrowth}</h3>
             {data && data.followerGrowth.length > 0 ? (
               <ResponsiveContainer width="100%" height={140}>
                 <BarChart data={data.followerGrowth}>
@@ -253,13 +273,13 @@ export default function CreatorAnalyticsPage() {
                   <Tooltip
                     contentStyle={{ backgroundColor: '#1f2937', border: '1px solid #374151', borderRadius: 12, color: '#fff', fontSize: 13 }}
                     labelFormatter={(l) => new Date(l).toLocaleDateString()}
-                    formatter={(v: number) => [`+${v}`, 'New Followers']}
+                    formatter={(v: number) => [`+${v}`, t.analytics.newFollowers]}
                   />
                   <Bar dataKey="newFollowers" fill="#a855f7" radius={[4, 4, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             ) : (
-              <div className="h-[140px] flex items-center justify-center text-gray-500 text-sm">No follower data</div>
+              <div className="h-[140px] flex items-center justify-center text-gray-500 text-sm">{t.analytics.noFollowerData}</div>
             )}
           </div>
         </div>
@@ -270,24 +290,24 @@ export default function CreatorAnalyticsPage() {
           <div className="p-5 rounded-2xl bg-white/5 border border-white/10">
             <div className="flex items-center gap-2 mb-3">
               <Video className="w-4 h-4 text-red-400" />
-              <h3 className="text-sm font-medium text-gray-400">Streams</h3>
+              <h3 className="text-sm font-medium text-gray-400">{t.nav.streams}</h3>
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <p className="text-2xl font-bold text-white">{data?.streams.totalStreams || 0}</p>
-                <p className="text-xs text-gray-500">Total Streams</p>
+                <p className="text-xs text-gray-500">{t.analytics.totalStreams}</p>
               </div>
               <div>
                 <p className="text-2xl font-bold text-white">{(data?.streams.totalViews || 0).toLocaleString()}</p>
-                <p className="text-xs text-gray-500">Total Views</p>
+                <p className="text-xs text-gray-500">{t.analytics.totalViews}</p>
               </div>
               <div>
                 <p className="text-2xl font-bold text-white">{data?.streams.avgViewers || 0}</p>
-                <p className="text-xs text-gray-500">Avg Peak Viewers</p>
+                <p className="text-xs text-gray-500">{t.analytics.avgPeakViewers}</p>
               </div>
               <div>
                 <p className="text-2xl font-bold text-white">{data?.streams.totalHours || 0}h</p>
-                <p className="text-xs text-gray-500">Hours Streamed</p>
+                <p className="text-xs text-gray-500">{t.analytics.hoursStreamed}</p>
               </div>
             </div>
           </div>
@@ -296,26 +316,26 @@ export default function CreatorAnalyticsPage() {
           <div className="p-5 rounded-2xl bg-white/5 border border-white/10">
             <div className="flex items-center gap-2 mb-3">
               <Phone className="w-4 h-4 text-blue-400" />
-              <h3 className="text-sm font-medium text-gray-400">Calls</h3>
+              <h3 className="text-sm font-medium text-gray-400">{t.analytics.calls}</h3>
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <p className="text-2xl font-bold text-white">{data?.calls.totalCalls || 0}</p>
-                <p className="text-xs text-gray-500">Total Calls</p>
+                <p className="text-xs text-gray-500">{t.analytics.totalCalls}</p>
               </div>
               <div>
                 <p className="text-2xl font-bold text-white">{data?.calls.totalMinutes || 0}</p>
-                <p className="text-xs text-gray-500">Minutes</p>
+                <p className="text-xs text-gray-500">{t.analytics.minutes}</p>
               </div>
               <div>
                 <p className="text-2xl font-bold text-white">{(data?.calls.totalEarnings || 0).toLocaleString()}</p>
-                <p className="text-xs text-gray-500">Coins Earned</p>
+                <p className="text-xs text-gray-500">{t.analytics.coinsEarned}</p>
               </div>
               <div>
                 <p className="text-2xl font-bold text-white">
                   {data?.calls.avgRating ? `${data.calls.avgRating}` : '—'}
                 </p>
-                <p className="text-xs text-gray-500">Avg Rating</p>
+                <p className="text-xs text-gray-500">{t.analytics.avgRating}</p>
               </div>
             </div>
           </div>
@@ -327,7 +347,7 @@ export default function CreatorAnalyticsPage() {
           <div className="p-5 rounded-2xl bg-white/5 border border-white/10">
             <div className="flex items-center gap-2 mb-3">
               <Image className="w-4 h-4 text-cyan-400" />
-              <h3 className="text-sm font-medium text-gray-400">Top Cloud Content</h3>
+              <h3 className="text-sm font-medium text-gray-400">{t.analytics.topCloudContent}</h3>
             </div>
             {data && data.topContent.length > 0 ? (
               <div className="space-y-3">
@@ -352,7 +372,7 @@ export default function CreatorAnalyticsPage() {
                 ))}
               </div>
             ) : (
-              <p className="text-sm text-gray-500 py-4 text-center">No content yet</p>
+              <p className="text-sm text-gray-500 py-4 text-center">{t.analytics.noContentYet}</p>
             )}
           </div>
 
@@ -360,7 +380,7 @@ export default function CreatorAnalyticsPage() {
           <div className="p-5 rounded-2xl bg-white/5 border border-white/10">
             <div className="flex items-center gap-2 mb-3">
               <Play className="w-4 h-4 text-pink-400" />
-              <h3 className="text-sm font-medium text-gray-400">Top Clips</h3>
+              <h3 className="text-sm font-medium text-gray-400">{t.analytics.topClips}</h3>
             </div>
             {data && data.topClips.length > 0 ? (
               <div className="space-y-3">
@@ -388,7 +408,7 @@ export default function CreatorAnalyticsPage() {
                 ))}
               </div>
             ) : (
-              <p className="text-sm text-gray-500 py-4 text-center">No clips yet</p>
+              <p className="text-sm text-gray-500 py-4 text-center">{t.analytics.noClipsYet}</p>
             )}
           </div>
         </div>
@@ -398,13 +418,13 @@ export default function CreatorAnalyticsPage() {
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
               <Crown className="w-4 h-4 text-yellow-400" />
-              <h3 className="text-sm font-medium text-gray-400">Top Fans</h3>
+              <h3 className="text-sm font-medium text-gray-400">{t.analytics.topFans}</h3>
             </div>
             <button
               onClick={() => router.push('/creator/fans')}
               className="text-xs text-purple-400 hover:text-purple-300 flex items-center gap-1"
             >
-              View all <ArrowUpRight className="w-3 h-3" />
+              {t.analytics.viewAll} <ArrowUpRight className="w-3 h-3" />
             </button>
           </div>
           {data && data.topFans.length > 0 ? (
@@ -435,7 +455,7 @@ export default function CreatorAnalyticsPage() {
               ))}
             </div>
           ) : (
-            <p className="text-sm text-gray-500 py-4 text-center">No fan data yet — spend tracking starts with the next transaction</p>
+            <p className="text-sm text-gray-500 py-4 text-center">{t.analytics.noFanData}</p>
           )}
         </div>
       </div>

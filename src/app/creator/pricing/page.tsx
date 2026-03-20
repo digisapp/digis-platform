@@ -4,6 +4,7 @@ import { Suspense, useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { GlassCard, GlassButton, LoadingSpinner } from '@/components/ui';
 import { MobileHeader } from '@/components/layout/MobileHeader';
+import { useLanguage } from '@/context/LanguageContext';
 import {
   DollarSign, Video, Mic, MessageSquare, Star, Phone,
   ToggleLeft, ToggleRight, Plus, Trash2, Coins, X, CheckCircle, AlertCircle
@@ -48,6 +49,7 @@ export default function PricingPage() {
 function PricingPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { t } = useLanguage();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState('');
@@ -148,16 +150,16 @@ function PricingPageContent() {
       });
 
       if (response.ok) {
-        setMessage('Settings saved successfully!');
+        setMessage(t.pricing.settingsSaved);
         setTimeout(() => setMessage(''), 3000);
       } else {
         const data = await response.json();
-        setError(data.error || 'Failed to save settings');
+        setError(data.error || t.pricing.failedToSave);
         setTimeout(() => setError(''), 3000);
       }
     } catch (error) {
       console.error('Error saving settings:', error);
-      setError('Failed to save settings');
+      setError(t.pricing.failedToSave);
       setTimeout(() => setError(''), 3000);
     } finally {
       setSaving(false);
@@ -234,7 +236,7 @@ function PricingPageContent() {
         await fetchMenuItems();
         setShowAddModal(false);
         resetForm();
-        setMessage(editingItem ? 'Item updated!' : 'Item added!');
+        setMessage(editingItem ? t.pricing.itemUpdated : t.pricing.itemAdded);
         setTimeout(() => setMessage(''), 3000);
       }
     } catch (error) {
@@ -254,7 +256,7 @@ function PricingPageContent() {
       });
       if (response.ok) {
         setMenuItems(menuItems.filter(item => item.id !== deleteConfirmItem.id));
-        setMessage('Item deleted');
+        setMessage(t.pricing.itemDeleted);
         setTimeout(() => setMessage(''), 3000);
       }
     } catch (error) {
@@ -302,10 +304,10 @@ function PricingPageContent() {
           <div className="mb-6">
             <h1 className="text-2xl font-bold text-white flex items-center gap-2">
               <DollarSign className="w-7 h-7 text-green-400" />
-              Pricing
+              {t.pricing.pricing}
             </h1>
             <p className="text-gray-400 text-sm mt-1">
-              Set your rates for calls, messages, subscriptions, and menu
+              {t.pricing.pricingDesc}
             </p>
           </div>
 
@@ -334,7 +336,7 @@ function PricingPageContent() {
               }`}
             >
               <Phone className="w-4 h-4" />
-              <span className="hidden sm:inline">Calls</span>
+              <span className="hidden sm:inline">{t.pricing.callsTab}</span>
             </button>
             <button
               onClick={() => setActiveTab('messages')}
@@ -345,7 +347,7 @@ function PricingPageContent() {
               }`}
             >
               <MessageSquare className="w-4 h-4" />
-              <span className="hidden sm:inline">Messages</span>
+              <span className="hidden sm:inline">{t.pricing.messagesTab}</span>
             </button>
             <button
               onClick={() => setActiveTab('menu')}
@@ -356,7 +358,7 @@ function PricingPageContent() {
               }`}
             >
               <Coins className="w-4 h-4" />
-              <span className="hidden sm:inline">Menu</span>
+              <span className="hidden sm:inline">{t.pricing.menuTab}</span>
             </button>
             <button
               onClick={() => setActiveTab('subscriptions')}
@@ -367,7 +369,7 @@ function PricingPageContent() {
               }`}
             >
               <Star className="w-4 h-4" />
-              <span className="hidden sm:inline">Subs</span>
+              <span className="hidden sm:inline">{t.pricing.subsTab}</span>
             </button>
           </div>
 
@@ -381,8 +383,8 @@ function PricingPageContent() {
                     <Video className="w-5 h-5 text-cyan-400" />
                   </div>
                   <div className="flex-1">
-                    <h3 className="font-bold text-white">Video Calls</h3>
-                    <p className="text-xs text-gray-400">1-on-1 video calls with fans</p>
+                    <h3 className="font-bold text-white">{t.pricing.videoCalls}</h3>
+                    <p className="text-xs text-gray-400">{t.pricing.videoCallsDesc}</p>
                   </div>
                   <button
                     type="button"
@@ -398,7 +400,7 @@ function PricingPageContent() {
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-xs font-medium text-gray-400 mb-1">Rate per minute</label>
+                    <label className="block text-xs font-medium text-gray-400 mb-1">{t.pricing.ratePerMinute}</label>
                     <div className="flex items-center gap-2">
                       <input
                         type="number"
@@ -415,7 +417,7 @@ function PricingPageContent() {
                     <p className="text-xs text-green-400 mt-1">{formatCoinsToUSD(callSettings.callRatePerMinute)}/min</p>
                   </div>
                   <div>
-                    <label className="block text-xs font-medium text-gray-400 mb-1">Minimum duration</label>
+                    <label className="block text-xs font-medium text-gray-400 mb-1">{t.pricing.minDuration}</label>
                     <div className="flex items-center gap-2">
                       <input
                         type="number"
@@ -441,8 +443,8 @@ function PricingPageContent() {
                     <Mic className="w-5 h-5 text-blue-400" />
                   </div>
                   <div className="flex-1">
-                    <h3 className="font-bold text-white">Voice Calls</h3>
-                    <p className="text-xs text-gray-400">Audio-only calls with fans</p>
+                    <h3 className="font-bold text-white">{t.pricing.voiceCalls}</h3>
+                    <p className="text-xs text-gray-400">{t.pricing.voiceCallsDesc}</p>
                   </div>
                   <button
                     type="button"
@@ -458,7 +460,7 @@ function PricingPageContent() {
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-xs font-medium text-gray-400 mb-1">Rate per minute</label>
+                    <label className="block text-xs font-medium text-gray-400 mb-1">{t.pricing.ratePerMinute}</label>
                     <div className="flex items-center gap-2">
                       <input
                         type="number"
@@ -475,7 +477,7 @@ function PricingPageContent() {
                     <p className="text-xs text-green-400 mt-1">{formatCoinsToUSD(callSettings.voiceCallRatePerMinute)}/min</p>
                   </div>
                   <div>
-                    <label className="block text-xs font-medium text-gray-400 mb-1">Minimum duration</label>
+                    <label className="block text-xs font-medium text-gray-400 mb-1">{t.pricing.minDuration}</label>
                     <div className="flex items-center gap-2">
                       <input
                         type="number"
@@ -500,7 +502,7 @@ function PricingPageContent() {
                 disabled={saving}
                 className="w-full"
               >
-                {saving ? <LoadingSpinner size="sm" /> : 'Save Call Settings'}
+                {saving ? <LoadingSpinner size="sm" /> : `${t.common.save} ${t.pricing.callsTab}`}
               </GlassButton>
             </div>
           )}
@@ -514,13 +516,13 @@ function PricingPageContent() {
                     <MessageSquare className="w-5 h-5 text-pink-400" />
                   </div>
                   <div>
-                    <h3 className="font-bold text-white">Message Rate</h3>
-                    <p className="text-xs text-gray-400">Set to 0 for free messages</p>
+                    <h3 className="font-bold text-white">{t.pricing.messageRate}</h3>
+                    <p className="text-xs text-gray-400">{t.pricing.freeMessages}</p>
                   </div>
                 </div>
 
                 <div className="max-w-xs">
-                  <label className="block text-xs font-medium text-gray-400 mb-1">Cost per message</label>
+                  <label className="block text-xs font-medium text-gray-400 mb-1">{t.pricing.costPerMessage}</label>
                   <div className="flex items-center gap-2">
                     <input
                       type="number"
@@ -535,7 +537,7 @@ function PricingPageContent() {
                     <span className="text-xs text-gray-400">coins</span>
                   </div>
                   <p className="text-xs text-green-400 mt-1">
-                    {callSettings.messageRate === 0 ? 'Free' : `${formatCoinsToUSD(callSettings.messageRate)}/message`}
+                    {callSettings.messageRate === 0 ? t.pricing.free : `${formatCoinsToUSD(callSettings.messageRate)}/message`}
                   </p>
                 </div>
               </GlassCard>
@@ -546,7 +548,7 @@ function PricingPageContent() {
                 disabled={saving}
                 className="w-full"
               >
-                {saving ? <LoadingSpinner size="sm" /> : 'Save Message Settings'}
+                {saving ? <LoadingSpinner size="sm" /> : `${t.common.save} ${t.pricing.messagesTab}`}
               </GlassButton>
             </div>
           )}
@@ -556,15 +558,15 @@ function PricingPageContent() {
             <div className="space-y-6">
               {/* What Subscribers Get */}
               <div className="p-4 bg-gradient-to-r from-purple-500/10 to-pink-500/10 border border-purple-500/30 rounded-xl">
-                <h4 className="text-sm font-semibold text-purple-300 mb-2">What Subscribers Get</h4>
+                <h4 className="text-sm font-semibold text-purple-300 mb-2">{t.pricing.whatSubsGet}</h4>
                 <div className="flex flex-wrap gap-3">
                   <div className="flex items-center gap-2 text-white text-sm">
                     <span className="text-lg">🔴</span>
-                    <span>Subs Only Streams</span>
+                    <span>{t.pricing.subsOnlyStreams}</span>
                   </div>
                   <div className="flex items-center gap-2 text-white text-sm">
                     <span className="text-lg">💬</span>
-                    <span>Free Chats</span>
+                    <span>{t.pricing.freeChats}</span>
                   </div>
                 </div>
               </div>
@@ -575,8 +577,8 @@ function PricingPageContent() {
                     <Star className="w-5 h-5 text-purple-400" />
                   </div>
                   <div className="flex-1">
-                    <h3 className="font-bold text-white">Enable Subscriptions</h3>
-                    <p className="text-xs text-gray-400">Allow fans to subscribe monthly</p>
+                    <h3 className="font-bold text-white">{t.pricing.enableSubs}</h3>
+                    <p className="text-xs text-gray-400">{t.pricing.allowSubsMonthly}</p>
                   </div>
                   <button
                     type="button"
@@ -593,7 +595,7 @@ function PricingPageContent() {
                 {subscriptionSettings.enabled && (
                   <div className="space-y-4 pt-4 border-t border-white/10">
                     <div>
-                      <label className="block text-xs font-medium text-gray-400 mb-1">Subscription name</label>
+                      <label className="block text-xs font-medium text-gray-400 mb-1">{t.pricing.subName}</label>
                       <input
                         type="text"
                         value={subscriptionSettings.subscriptionName}
@@ -603,7 +605,7 @@ function PricingPageContent() {
                       />
                     </div>
                     <div className="max-w-xs">
-                      <label className="block text-xs font-medium text-gray-400 mb-1">Monthly price</label>
+                      <label className="block text-xs font-medium text-gray-400 mb-1">{t.pricing.monthlyPrice}</label>
                       <div className="flex items-center gap-2">
                         <input
                           type="number"
@@ -615,7 +617,7 @@ function PricingPageContent() {
                           }}
                           className="w-full px-3 py-2 bg-black/40 border border-purple-500/30 rounded-lg text-white font-semibold text-center focus:outline-none focus:border-purple-500"
                         />
-                        <span className="text-xs text-gray-400">coins/mo</span>
+                        <span className="text-xs text-gray-400">{t.pricing.coinsPerMonth}</span>
                       </div>
                       <p className="text-xs text-green-400 mt-1">{formatCoinsToUSD(subscriptionSettings.monthlyPrice)}/month</p>
                     </div>
@@ -629,7 +631,7 @@ function PricingPageContent() {
                 disabled={saving}
                 className="w-full"
               >
-                {saving ? <LoadingSpinner size="sm" /> : 'Save Subscription Settings'}
+                {saving ? <LoadingSpinner size="sm" /> : `${t.common.save} ${t.pricing.subsTab}`}
               </GlassButton>
             </div>
           )}
@@ -655,13 +657,13 @@ function PricingPageContent() {
               {menuItems.length === 0 ? (
                 <GlassCard className="p-8 text-center">
                   <Coins className="w-12 h-12 text-yellow-400 mx-auto mb-4" />
-                  <h3 className="text-lg font-semibold text-white mb-2">No menu items yet</h3>
+                  <h3 className="text-lg font-semibold text-white mb-2">{t.pricing.noMenuItems}</h3>
                   <p className="text-gray-400 mb-4">
-                    Add items that fans can purchase during your live streams
+                    {t.pricing.addMenuDesc}
                   </p>
                   <GlassButton onClick={openAddModal} variant="gradient">
                     <Plus className="w-4 h-4 mr-2" />
-                    Create Your First Item
+                    {t.pricing.createFirstItem}
                   </GlassButton>
                 </GlassCard>
               ) : (
@@ -734,7 +736,7 @@ function PricingPageContent() {
               {/* Emoji Picker */}
               <div>
                 <label className="block text-sm font-medium text-gray-300 mb-2">
-                  Icon (optional)
+                  {t.settings.iconOptional}
                 </label>
                 <div className="flex flex-wrap gap-2">
                   {EMOJI_OPTIONS.map((emoji) => (
@@ -757,7 +759,7 @@ function PricingPageContent() {
               {/* Label */}
               <div>
                 <label className="block text-sm font-medium text-gray-300 mb-2">
-                  Label *
+                  {t.pricing.label}
                 </label>
                 <input
                   type="text"
@@ -772,7 +774,7 @@ function PricingPageContent() {
               {/* Price */}
               <div>
                 <label className="block text-sm font-medium text-gray-300 mb-2">
-                  Price (coins) *
+                  {t.pricing.priceCoins}
                 </label>
                 <div className="relative">
                   <Coins className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-yellow-400" />
@@ -794,7 +796,7 @@ function PricingPageContent() {
               {/* Description */}
               <div>
                 <label className="block text-sm font-medium text-gray-300 mb-2">
-                  Description (optional)
+                  {t.pricing.descriptionOptional}
                 </label>
                 <input
                   type="text"
@@ -811,32 +813,32 @@ function PricingPageContent() {
                 {/* Category */}
                 <div>
                   <label className="block text-sm font-medium text-gray-300 mb-2">
-                    Category
+                    {t.pricing.category}
                   </label>
                   <select
                     value={formCategory}
                     onChange={(e) => setFormCategory(e.target.value as 'interaction' | 'product' | 'service')}
                     className="w-full px-3 py-3 bg-white/5 border border-white/10 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-cyan-500"
                   >
-                    <option value="interaction" className="bg-gray-900">⚡ Interaction</option>
-                    <option value="product" className="bg-gray-900">📦 Product</option>
-                    <option value="service" className="bg-gray-900">🎯 Service</option>
+                    <option value="interaction" className="bg-gray-900">{t.pricing.interaction}</option>
+                    <option value="product" className="bg-gray-900">{t.pricing.product}</option>
+                    <option value="service" className="bg-gray-900">{t.pricing.service}</option>
                   </select>
                 </div>
 
                 {/* Fulfillment Type */}
                 <div>
                   <label className="block text-sm font-medium text-gray-300 mb-2">
-                    Delivery
+                    {t.pricing.delivery}
                   </label>
                   <select
                     value={formFulfillment}
                     onChange={(e) => setFormFulfillment(e.target.value as 'instant' | 'digital' | 'manual')}
                     className="w-full px-3 py-3 bg-white/5 border border-white/10 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-cyan-500"
                   >
-                    <option value="instant" className="bg-gray-900">⚡ Instant</option>
-                    <option value="digital" className="bg-gray-900">📥 Digital Download</option>
-                    <option value="manual" className="bg-gray-900">✋ Manual Fulfillment</option>
+                    <option value="instant" className="bg-gray-900">{t.pricing.instant}</option>
+                    <option value="digital" className="bg-gray-900">{t.pricing.digitalDownload}</option>
+                    <option value="manual" className="bg-gray-900">{t.pricing.manualFulfillment}</option>
                   </select>
                 </div>
               </div>
@@ -845,7 +847,7 @@ function PricingPageContent() {
               {formFulfillment === 'digital' && (
                 <div>
                   <label className="block text-sm font-medium text-gray-300 mb-2">
-                    Download URL *
+                    {t.pricing.downloadUrl}
                   </label>
                   <input
                     type="url"
@@ -855,7 +857,7 @@ function PricingPageContent() {
                     className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-500"
                   />
                   <p className="text-xs text-gray-400 mt-1">
-                    Buyers will get this link immediately after purchase
+                    {t.pricing.buyersGetLink}
                   </p>
                 </div>
               )}
@@ -864,7 +866,7 @@ function PricingPageContent() {
               {formFulfillment === 'manual' && (
                 <div className="p-3 bg-yellow-500/10 border border-yellow-500/30 rounded-lg">
                   <p className="text-sm text-yellow-300">
-                    You'll need to manually fulfill this item. Orders will appear in your pending orders.
+                    {t.pricing.manualFulfillNote}
                   </p>
                 </div>
               )}
@@ -879,7 +881,7 @@ function PricingPageContent() {
                   variant="ghost"
                   className="flex-1"
                 >
-                  Cancel
+                  {t.common.cancel}
                 </GlassButton>
                 <GlassButton
                   onClick={handleSaveItem}
@@ -887,7 +889,7 @@ function PricingPageContent() {
                   className="flex-1"
                   disabled={!formLabel.trim() || !formPrice || savingItem}
                 >
-                  {savingItem ? <LoadingSpinner size="sm" /> : editingItem ? 'Save Changes' : 'Add Item'}
+                  {savingItem ? <LoadingSpinner size="sm" /> : t.common.save}
                 </GlassButton>
               </div>
             </div>
@@ -903,9 +905,9 @@ function PricingPageContent() {
               <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-red-500/20 flex items-center justify-center">
                 <Trash2 className="w-8 h-8 text-red-400" />
               </div>
-              <h3 className="text-xl font-bold text-white mb-2">Delete Item?</h3>
+              <h3 className="text-xl font-bold text-white mb-2">{t.pricing.deleteItem}</h3>
               <p className="text-gray-400 mb-6">
-                Are you sure you want to delete <span className="text-white font-medium">"{deleteConfirmItem.label}"</span>? This action cannot be undone.
+                {t.pricing.deleteItemConfirm.replace('{label}', deleteConfirmItem.label)}
               </p>
               <div className="flex gap-3">
                 <GlassButton
@@ -914,7 +916,7 @@ function PricingPageContent() {
                   className="flex-1"
                   disabled={deleting}
                 >
-                  Cancel
+                  {t.common.cancel}
                 </GlassButton>
                 <button
                   onClick={handleDeleteItem}

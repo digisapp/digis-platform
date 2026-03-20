@@ -8,6 +8,7 @@ import { useToastContext } from '@/context/ToastContext';
 import { Plus, Edit, Trash2, Eye, ShoppingCart, Coins, Heart, Play, Film, Scissors, Image as ImageIcon } from 'lucide-react';
 import { MobileHeader } from '@/components/layout/MobileHeader';
 import { MediaThumbnail } from '@/components/ui/MediaThumbnail';
+import { useLanguage } from '@/context/LanguageContext';
 import { EditVODModal } from '@/components/vods/EditVODModal';
 import Link from 'next/link';
 
@@ -65,6 +66,13 @@ export default function CreatorContentPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { showError } = useToastContext();
+  const { t } = useLanguage();
+
+  const translatedTabs = [
+    { id: 'digitals', label: t.creatorContent.drops, icon: ImageIcon },
+    { id: 'clips', label: t.creatorContent.clips, icon: Scissors },
+    { id: 'vods', label: t.creatorContent.vods, icon: Film },
+  ];
 
   const initialTab = searchParams.get('tab') || 'digitals';
   const [activeTab, setActiveTab] = useState(TABS.some(t => t.id === initialTab) ? initialTab : 'digitals');
@@ -216,9 +224,9 @@ export default function CreatorContentPage() {
   };
 
   const getAccessBadge = (vod: VOD) => {
-    if (vod.isPublic) return { label: 'Public', color: 'bg-green-500/80' };
-    if (vod.subscribersOnly) return { label: 'Subscribers', color: 'bg-purple-500/80' };
-    return { label: `${vod.priceCoins} coins`, color: 'bg-cyan-500/80' };
+    if (vod.isPublic) return { label: t.creatorContent.publicAccess, color: 'bg-green-500/80' };
+    if (vod.subscribersOnly) return { label: t.creatorContent.subscribersOnly, color: 'bg-purple-500/80' };
+    return { label: `${vod.priceCoins} ${t.common.coins}`, color: 'bg-cyan-500/80' };
   };
 
   if (loading) {
@@ -236,7 +244,7 @@ export default function CreatorContentPage() {
       <div className="container mx-auto px-4 pt-20 md:pt-10 pb-24 md:pb-8 max-w-7xl">
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
-          <h1 className="text-2xl font-bold text-white">Content</h1>
+          <h1 className="text-2xl font-bold text-white">{t.creatorContent.content}</h1>
           {activeTab === 'digitals' && (
             <GlassButton
               variant="gradient"
@@ -244,14 +252,14 @@ export default function CreatorContentPage() {
               className="flex items-center gap-2"
             >
               <Plus className="w-4 h-4" />
-              Cloud
+              {t.nav.cloud}
             </GlassButton>
           )}
         </div>
 
         {/* Tabs */}
         <div className="mb-6">
-          <Tabs tabs={TABS} activeTab={activeTab} onChange={setActiveTab} ariaLabel="Content type tabs" />
+          <Tabs tabs={translatedTabs} activeTab={activeTab} onChange={setActiveTab} ariaLabel="Content type tabs" />
         </div>
 
         {/* ── Digitals Tab ── */}
@@ -259,8 +267,8 @@ export default function CreatorContentPage() {
           content.length === 0 ? (
             <GlassCard className="p-16 text-center">
               <div className="text-6xl mb-4">📸</div>
-              <h3 className="text-2xl font-bold text-white mb-2">No content yet</h3>
-              <p className="text-gray-400 text-lg mb-6">Create your first exclusive content to start earning!</p>
+              <h3 className="text-2xl font-bold text-white mb-2">{t.creatorContent.noContentYet}</h3>
+              <p className="text-gray-400 text-lg mb-6">{t.creatorContent.createFirstContent}</p>
               <GlassButton
                 variant="gradient"
                 size="lg"
@@ -269,7 +277,7 @@ export default function CreatorContentPage() {
                 shimmer
               >
                 <Plus className="w-5 h-5" />
-                Cloud
+                {t.nav.cloud}
               </GlassButton>
             </GlassCard>
           ) : (
@@ -286,20 +294,20 @@ export default function CreatorContentPage() {
                     />
                     <div className="absolute top-2 left-2">
                       <span className="px-2 py-1 rounded-md text-[10px] font-medium bg-black/60 text-white capitalize backdrop-blur-sm">
-                        {item.contentType === 'video' ? 'Video' : item.contentType === 'gallery' ? 'Gallery' : 'Photo'}
+                        {item.contentType === 'video' ? t.creatorContent.videoType : item.contentType === 'gallery' ? t.creatorContent.galleryType : t.creatorContent.photoType}
                       </span>
                     </div>
                     <div className="absolute top-2 right-2">
                       <span className={`px-2 py-1 rounded-md text-[10px] font-bold backdrop-blur-sm ${
                         item.isFree ? 'bg-green-500/80 text-white' : 'bg-amber-500/80 text-white'
                       }`}>
-                        {item.isFree ? 'FREE' : `${item.unlockPrice} coins`}
+                        {item.isFree ? t.common.free : `${item.unlockPrice} ${t.common.coins}`}
                       </span>
                     </div>
                     {!item.isPublished && (
                       <div className="absolute bottom-2 left-2">
                         <span className="px-2 py-1 rounded-md text-[10px] font-medium bg-gray-500/80 text-white backdrop-blur-sm">
-                          Draft
+                          {t.creatorContent.draft}
                         </span>
                       </div>
                     )}
@@ -334,8 +342,8 @@ export default function CreatorContentPage() {
           clips.length === 0 ? (
             <GlassCard className="p-12 text-center">
               <Scissors className="w-12 h-12 text-gray-600 mx-auto mb-3" />
-              <h3 className="text-lg font-bold text-white mb-2">No clips yet</h3>
-              <p className="text-gray-400 text-sm">Clip your live streams to create short-form content.</p>
+              <h3 className="text-lg font-bold text-white mb-2">{t.creatorContent.noClipsYet}</h3>
+              <p className="text-gray-400 text-sm">{t.creatorContent.clipStreams}</p>
             </GlassCard>
           ) : (
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
@@ -381,8 +389,8 @@ export default function CreatorContentPage() {
           vods.length === 0 ? (
             <GlassCard className="p-12 text-center">
               <Film className="w-12 h-12 text-gray-600 mx-auto mb-3" />
-              <h3 className="text-lg font-bold text-white mb-2">No recordings yet</h3>
-              <p className="text-gray-400 text-sm">Save your next stream to see it here.</p>
+              <h3 className="text-lg font-bold text-white mb-2">{t.creatorContent.noRecordingsYet}</h3>
+              <p className="text-gray-400 text-sm">{t.creatorContent.saveNextStream}</p>
             </GlassCard>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -404,7 +412,7 @@ export default function CreatorContentPage() {
                         </div>
                       )}
                       <div className="absolute top-2 left-2 flex gap-1">
-                        {vod.isDraft && <span className="px-2 py-0.5 rounded text-[10px] font-bold text-white bg-gray-500/80">Draft</span>}
+                        {vod.isDraft && <span className="px-2 py-0.5 rounded text-[10px] font-bold text-white bg-gray-500/80">{t.creatorContent.draft}</span>}
                         <span className={`px-2 py-0.5 rounded text-[10px] font-bold text-white ${badge.color}`}>{badge.label}</span>
                       </div>
                       <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
@@ -439,7 +447,7 @@ export default function CreatorContentPage() {
       {selectedContent && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <GlassCard className="p-6 max-w-lg w-full">
-            <h2 className="text-2xl font-bold text-white mb-6">Edit Content</h2>
+            <h2 className="text-2xl font-bold text-white mb-6">{t.creatorContent.editContent}</h2>
             {selectedContent.thumbnailUrl && (
               <div className="mb-6 rounded-lg overflow-hidden bg-black relative h-64">
                 <MediaThumbnail src={selectedContent.thumbnailUrl} alt={selectedContent.title} fill sizes="500px" className="object-contain" />
@@ -447,7 +455,7 @@ export default function CreatorContentPage() {
             )}
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">Title</label>
+                <label className="block text-sm font-medium text-gray-300 mb-2">{t.settings.title}</label>
                 <input
                   type="text"
                   value={editForm.title}
@@ -457,7 +465,7 @@ export default function CreatorContentPage() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">Unlock Price (coins)</label>
+                <label className="block text-sm font-medium text-gray-300 mb-2">{t.creatorContent.unlockPrice}</label>
                 <input
                   type="text"
                   inputMode="numeric"
@@ -474,9 +482,9 @@ export default function CreatorContentPage() {
               </div>
             </div>
             <div className="flex gap-3 mt-6">
-              <GlassButton variant="ghost" onClick={() => setSelectedContent(null)} className="flex-1" disabled={saving}>Cancel</GlassButton>
+              <GlassButton variant="ghost" onClick={() => setSelectedContent(null)} className="flex-1" disabled={saving}>{t.common.cancel}</GlassButton>
               <GlassButton variant="gradient" onClick={handleSaveEdit} className="flex-1" disabled={saving || !editForm.title.trim()}>
-                {saving ? <LoadingSpinner size="sm" /> : 'Save Changes'}
+                {saving ? <LoadingSpinner size="sm" /> : t.creatorContent.saveChanges}
               </GlassButton>
             </div>
           </GlassCard>
