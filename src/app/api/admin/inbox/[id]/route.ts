@@ -32,7 +32,7 @@ export const PATCH = withAdminParams<{ id: string }>(async ({ params, request })
     await AdminInboxService.markRead(id, body.isRead);
   }
   if (body.isStarred !== undefined) {
-    await AdminInboxService.toggleStar(id);
+    await AdminInboxService.setStar(id, body.isStarred);
   }
   if (body.isSpam !== undefined) {
     await AdminInboxService.markSpam(id, body.isSpam);

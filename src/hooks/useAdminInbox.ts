@@ -2,45 +2,7 @@
 
 import { useEffect, useState, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-
-interface EmailListItem {
-  id: string;
-  direction: 'inbound' | 'outbound';
-  threadId: string | null;
-  fromAddress: string;
-  fromName: string | null;
-  toAddress: string;
-  toName: string | null;
-  subject: string;
-  bodyText: string | null;
-  isRead: boolean;
-  isSpam: boolean;
-  isStarred: boolean;
-  linkedUserId: string | null;
-  createdAt: string;
-}
-
-interface EmailDetail {
-  id: string;
-  direction: 'inbound' | 'outbound';
-  threadId: string | null;
-  resendEmailId: string | null;
-  messageId: string | null;
-  fromAddress: string;
-  fromName: string | null;
-  toAddress: string;
-  toName: string | null;
-  subject: string;
-  bodyText: string | null;
-  bodyHtml: string | null;
-  isRead: boolean;
-  isSpam: boolean;
-  isStarred: boolean;
-  linkedUserId: string | null;
-  inReplyToEmailId: string | null;
-  metadata: string | null;
-  createdAt: string;
-}
+import type { EmailListItem, EmailDetail } from '@/components/admin-inbox/types';
 
 export interface ComposeData {
   to: string;
@@ -172,20 +134,31 @@ export function useAdminInbox() {
 
   // Toggle star
   const toggleStar = useCallback(async (id: string) => {
+    // Determine new value from current state
+    const current = emails.find(e => e.id === id);
+    const newStarred = !(current?.isStarred ?? false);
+
+    // Optimistic update
+    setEmails(prev => prev.map(e => e.id === id ? { ...e, isStarred: newStarred } : e));
+    if (selectedEmail?.id === id) {
+      setSelectedEmail(prev => prev ? { ...prev, isStarred: newStarred } : prev);
+    }
+
     try {
       await fetch(`/api/admin/inbox/${id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ isStarred: true }),
+        body: JSON.stringify({ isStarred: newStarred }),
       });
-      setEmails(prev => prev.map(e => e.id === id ? { ...e, isStarred: !e.isStarred } : e));
-      if (selectedEmail?.id === id) {
-        setSelectedEmail(prev => prev ? { ...prev, isStarred: !prev.isStarred } : prev);
-      }
     } catch (err) {
+      // Revert on failure
+      setEmails(prev => prev.map(e => e.id === id ? { ...e, isStarred: !newStarred } : e));
+      if (selectedEmail?.id === id) {
+        setSelectedEmail(prev => prev ? { ...prev, isStarred: !newStarred } : prev);
+      }
       console.error('Failed to toggle star:', err);
     }
-  }, [selectedEmail?.id]);
+  }, [emails, selectedEmail?.id]);
 
   // Mark as spam
   const markSpam = useCallback(async (id: string) => {

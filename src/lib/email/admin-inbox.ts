@@ -1,6 +1,6 @@
 import { db } from '@/lib/data/system';
 import { adminEmails, users } from '@/db/schema';
-import { eq, desc, and, or, ilike, sql, count } from 'drizzle-orm';
+import { eq, desc, and, or, ilike, count } from 'drizzle-orm';
 import { sendEmail } from './resend';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -131,15 +131,8 @@ export const AdminInboxService = {
       .where(and(eq(adminEmails.threadId, threadId), eq(adminEmails.isRead, false)));
   },
 
-  async toggleStar(id: string) {
-    const [email] = await db
-      .select({ isStarred: adminEmails.isStarred })
-      .from(adminEmails)
-      .where(eq(adminEmails.id, id))
-      .limit(1);
-    if (email) {
-      await db.update(adminEmails).set({ isStarred: !email.isStarred }).where(eq(adminEmails.id, id));
-    }
+  async setStar(id: string, isStarred: boolean) {
+    await db.update(adminEmails).set({ isStarred }).where(eq(adminEmails.id, id));
   },
 
   async getUnreadCount() {
