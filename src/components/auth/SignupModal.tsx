@@ -70,10 +70,10 @@ export function SignupModal({ isOpen, onClose, onSwitchToLogin, redirectTo }: Si
         throw resendError;
       }
 
-      showSuccess('Confirmation email resent! Check your inbox.');
+      showSuccess(t.auth.confirmationResent);
     } catch (err: any) {
       console.error('Resend error:', err);
-      showError(err.message || 'Failed to resend email');
+      showError(err.message || t.auth.failedResend);
     } finally {
       setResendLoading(false);
     }
@@ -154,7 +154,7 @@ export function SignupModal({ isOpen, onClose, onSwitchToLogin, redirectTo }: Si
       if (err.message?.includes('already registered') || err.message?.includes('already exists')) {
         setError(t.auth.emailAlreadyRegistered);
       } else {
-        setError(err.message || 'An error occurred during signup');
+        setError(err.message || t.auth.errorOccurred);
       }
     } finally {
       setLoading(false);
@@ -255,8 +255,8 @@ export function SignupModal({ isOpen, onClose, onSwitchToLogin, redirectTo }: Si
               </h2>
               <p className="text-xs text-gray-500">
                 {selectedRole === 'creator'
-                  ? 'You\'ll apply for creator access after signup'
-                  : 'Start watching and connecting with creators'}
+                  ? t.auth.creatorApplyNote
+                  : t.auth.fanStartNote}
               </p>
             </div>
           </div>
@@ -348,16 +348,16 @@ export function SignupModal({ isOpen, onClose, onSwitchToLogin, redirectTo }: Si
               {t.auth.checkYourEmail}
             </h3>
             <p className="text-lg text-white font-semibold">
-              We sent a confirmation link to{' '}
+              {t.auth.weSentLink}{' '}
               <span className="text-digis-cyan">{signupEmail}</span>
             </p>
             {selectedRole === 'creator' && (
               <p className="text-sm text-purple-300 bg-purple-500/10 border border-purple-500/20 rounded-xl px-4 py-3">
-                After verifying your email, you'll set your username and then submit your creator application.
+                {t.auth.afterVerifying}
               </p>
             )}
             <p className="text-sm text-gray-400 max-w-sm mx-auto">
-              Click the link in your email to verify your account and get started!
+              {t.auth.clickLink}
             </p>
           </div>
 
@@ -386,7 +386,7 @@ export function SignupModal({ isOpen, onClose, onSwitchToLogin, redirectTo }: Si
           </div>
 
           <p className="text-xs text-gray-500 pt-2">
-            Didn't receive the email? Check your spam folder or click resend above.
+            {t.auth.didntReceive}
           </p>
         </div>
       )}

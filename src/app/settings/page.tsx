@@ -136,12 +136,12 @@ export default function SettingsPage() {
             {hasUnsavedChanges ? (
               <span className="text-yellow-400 text-sm flex items-center gap-1.5 px-3 py-1.5 bg-yellow-500/10 rounded-lg border border-yellow-500/20">
                 <Circle className="w-2 h-2 fill-current" />
-                Unsaved changes
+                {t.settings.unsavedChanges}
               </span>
             ) : lastSaved ? (
               <span className="text-green-400 text-sm flex items-center gap-1.5 px-3 py-1.5 bg-green-500/10 rounded-lg border border-green-500/20">
                 <CheckCircle className="w-3 h-3" />
-                Saved
+                {t.settings.saved}
               </span>
             ) : null}
           </div>
@@ -177,7 +177,7 @@ export default function SettingsPage() {
               disabled={saving}
               className="w-full md:w-auto"
             >
-              {saving ? <LoadingSpinner size="sm" /> : t.common.save}
+              {saving ? <LoadingSpinner size="sm" /> : t.settings.saveProfile}
             </GlassButton>
           </div>
         </form>
@@ -203,7 +203,7 @@ export default function SettingsPage() {
           onCancel={handleAvatarCropCancel}
           cropShape="round"
           aspectRatio={1}
-          title="Adjust Profile Photo"
+          title={t.settings.adjustProfilePhoto}
         />
       )}
     </div>

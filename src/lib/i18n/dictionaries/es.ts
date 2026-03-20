@@ -87,6 +87,9 @@ export const es: Dictionary = {
     resendEmail: 'Reenviar Correo',
     didntReceive: '¿No recibiste el correo? Revisa tu carpeta de spam o haz clic en reenviar.',
     confirmationResent: '¡Correo de confirmación reenviado! Revisa tu bandeja de entrada.',
+    failedResend: 'Error al reenviar correo',
+    errorOccurred: 'Ocurrió un error durante el registro',
+    weSentLink: 'Enviamos un enlace de confirmación a',
     sendResetLink: 'Enviar Enlace',
     sending: 'Enviando...',
     backToSignIn: 'Volver a Iniciar Sesión',
@@ -316,6 +319,10 @@ export const es: Dictionary = {
     ratesDesc: 'Configura tus tarifas para videollamadas, llamadas de voz y mensajes.',
     manageRates: 'Administrar Tarifas y Llamadas',
     shareYourDigis: 'Comparte Tu Digis',
+    unsavedChanges: 'Cambios sin guardar',
+    saved: 'Guardado',
+    saveProfile: 'Guardar Perfil',
+    adjustProfilePhoto: 'Ajustar Foto de Perfil',
   },
 
   // Milestones
@@ -550,6 +557,13 @@ export const es: Dictionary = {
     itemDeleted: 'Elemento eliminado',
     category: 'Categoría',
     delivery: 'Entrega',
+    digitalUrlRequired: 'Los productos digitales requieren una URL de descarga',
+    sellInteractions: 'Vende interacciones, productos digitales o servicios personalizados durante transmisiones',
+    addItem: 'Agregar Elemento',
+    editItem: 'Editar Elemento',
+    addMenuItem: 'Agregar Elemento al Menú',
+    edit: 'Editar',
+    delete: 'Eliminar',
   },
 
   // AI Twin

@@ -85,6 +85,9 @@ export const en = {
     resendEmail: 'Resend Email',
     didntReceive: "Didn't receive the email? Check your spam folder or click resend above.",
     confirmationResent: 'Confirmation email resent! Check your inbox.',
+    failedResend: 'Failed to resend email',
+    errorOccurred: 'An error occurred during signup',
+    weSentLink: 'We sent a confirmation link to',
     sendResetLink: 'Send Reset Link',
     sending: 'Sending...',
     backToSignIn: 'Back to Sign In',
@@ -314,6 +317,10 @@ export const en = {
     ratesDesc: 'Set your rates for video calls, voice calls, and messages. Toggle call availability on or off.',
     manageRates: 'Manage Rates & Call Settings',
     shareYourDigis: 'Share Your Digis',
+    unsavedChanges: 'Unsaved changes',
+    saved: 'Saved',
+    saveProfile: 'Save Profile',
+    adjustProfilePhoto: 'Adjust Profile Photo',
   },
 
   // Milestones
@@ -548,6 +555,13 @@ export const en = {
     itemDeleted: 'Item deleted',
     category: 'Category',
     delivery: 'Delivery',
+    digitalUrlRequired: 'Digital products require a download URL',
+    sellInteractions: 'Sell interactions, digital products, or custom services during streams',
+    addItem: 'Add Item',
+    editItem: 'Edit Item',
+    addMenuItem: 'Add Menu Item',
+    edit: 'Edit',
+    delete: 'Delete',
   },
 
   // AI Twin

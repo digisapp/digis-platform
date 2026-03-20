@@ -601,7 +601,7 @@ export default function WalletPage() {
                         setActiveTab('banking');
                         return;
                       }
-                      if (confirm(`Request payout of ${balance} coins?`)) {
+                      if (confirm(t.wallet.confirmPayout.replace('{amount}', String(balance)))) {
                         try {
                           const response = await fetch('/api/wallet/payouts/request', {
                             method: 'POST',
@@ -646,7 +646,7 @@ export default function WalletPage() {
                     <DollarSign className="w-16 h-16 text-gray-400" />
                   </div>
                   <p className="text-white text-lg font-medium mb-2">{t.wallet.noPayouts}</p>
-                  <p className="text-gray-400">Your payout requests will appear here</p>
+                  <p className="text-gray-400">{t.wallet.payoutsAppear}</p>
                 </div>
               ) : (
                 <div className="space-y-3">
@@ -713,7 +713,7 @@ export default function WalletPage() {
                   <div className="bg-green-500/10 border border-green-300 rounded-xl p-4 flex items-center gap-3">
                     <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0" />
                     <p className="text-green-800 font-medium">
-                      Banking information {bankingInfo.isVerified ? 'verified and active' : 'added successfully'}
+                      {bankingInfo.isVerified ? t.wallet.verifiedActive : t.wallet.addedSuccessfully}
                     </p>
                   </div>
 

@@ -200,7 +200,7 @@ function PricingPageContent() {
 
     // Validate digital URL if fulfillment type is digital
     if (formFulfillment === 'digital' && !formDigitalUrl.trim()) {
-      setError('Digital products require a download URL');
+      setError(t.pricing.digitalUrlRequired);
       setTimeout(() => setError(''), 3000);
       return;
     }
@@ -641,7 +641,7 @@ function PricingPageContent() {
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <p className="text-sm text-gray-400">
-                  Sell interactions, digital products, or custom services during streams
+                  {t.pricing.sellInteractions}
                 </p>
                 <GlassButton
                   onClick={openAddModal}
@@ -650,7 +650,7 @@ function PricingPageContent() {
                   className="flex items-center gap-2"
                 >
                   <Plus className="w-4 h-4" />
-                  Add Item
+                  {t.pricing.addItem}
                 </GlassButton>
               </div>
 
@@ -719,7 +719,7 @@ function PricingPageContent() {
           <GlassCard className="w-full max-w-md p-6">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-xl font-bold text-white">
-                {editingItem ? 'Edit Item' : 'Add Menu Item'}
+                {editingItem ? t.pricing.editItem : t.pricing.addMenuItem}
               </h2>
               <button
                 onClick={() => {
@@ -923,7 +923,7 @@ function PricingPageContent() {
                   disabled={deleting}
                   className="flex-1 px-4 py-3 bg-red-500 hover:bg-red-600 text-white rounded-xl font-semibold transition-colors disabled:opacity-50"
                 >
-                  {deleting ? <LoadingSpinner size="sm" /> : 'Delete'}
+                  {deleting ? <LoadingSpinner size="sm" /> : t.pricing.delete}
                 </button>
               </div>
             </div>
