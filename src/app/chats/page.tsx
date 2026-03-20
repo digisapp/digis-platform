@@ -3,9 +3,11 @@
 import { MessageCircle } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { ChatsSidebar } from '@/components/chats/ChatsSidebar';
+import { useLanguage } from '@/context/LanguageContext';
 
 export default function ChatsPage() {
   const router = useRouter();
+  const { t } = useLanguage();
 
   return (
     <>
@@ -20,10 +22,10 @@ export default function ChatsPage() {
           <div className="text-center max-w-md">
             <MessageCircle className="w-24 h-24 mx-auto mb-6 text-cyan-400" />
             <h2 className="text-3xl font-bold bg-gradient-to-r from-white via-cyan-100 to-white bg-clip-text text-transparent mb-4">
-              Your Messages
+              {t.chat.yourMessages}
             </h2>
-            <p className="text-gray-400 mb-4">Message creators directly, send tips, and request video calls.</p>
-            <p className="text-gray-500 text-sm">Select a conversation or find a creator to start chatting.</p>
+            <p className="text-gray-400 mb-4">{t.chat.messagesDesc}</p>
+            <p className="text-gray-500 text-sm">{t.chat.selectConversation}</p>
           </div>
         </div>
       </div>

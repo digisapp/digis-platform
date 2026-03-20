@@ -6,6 +6,7 @@ import { useRouter, usePathname } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { Search, X, Pin, Archive, MoreVertical, Users, MessageCircle, Inbox, Plus } from 'lucide-react';
+import { useLanguage } from '@/context/LanguageContext';
 
 type SuggestedCreator = {
   id: string;
@@ -37,6 +38,7 @@ type ConversationWithOtherUser = {
 export function ChatsSidebar() {
   const router = useRouter();
   const pathname = usePathname();
+  const { t } = useLanguage();
   const [loading, setLoading] = useState(true);
   const [conversations, setConversations] = useState<ConversationWithOtherUser[]>([]);
   const [filter, setFilter] = useState<'all' | 'unread'>('all');
@@ -327,19 +329,19 @@ export function ChatsSidebar() {
           <div className="backdrop-blur-2xl bg-gradient-to-br from-black/40 via-gray-900/60 to-black/40 rounded-xl border-2 border-cyan-500/30 p-8 text-center shadow-[0_0_30px_rgba(34,211,238,0.2)]">
             <Inbox className="w-16 h-16 mx-auto mb-4 text-cyan-400" />
             <h3 className="text-xl font-bold mb-2 text-white">
-              {filter === 'unread' ? 'No unread chats' : 'No chats yet'}
+              {filter === 'unread' ? t.chat.noUnreadChats : t.chat.noChatsYet}
             </h3>
             <p className="text-gray-400 mb-4">
               {filter === 'unread'
-                ? 'You\'re all caught up!'
-                : 'Message creators to chat, send tips, or request calls'}
+                ? t.chat.allCaughtUp
+                : t.chat.startConversation}
             </p>
             <button
               onClick={handleStartNewChat}
               className="px-5 py-2.5 bg-gradient-to-r from-cyan-600 to-purple-600 text-white rounded-xl font-semibold hover:scale-105 transition-transform flex items-center gap-2 mx-auto"
             >
               <Plus className="w-4 h-4" />
-              Find Creators
+              {t.chat.findCreators}
             </button>
           </div>
         ) : showNewMessage ? (

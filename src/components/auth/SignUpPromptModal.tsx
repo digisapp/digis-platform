@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { createPortal } from 'react-dom';
 import { X, Gift, Video, MessageCircle, Radio } from 'lucide-react';
+import { useLanguage } from '@/context/LanguageContext';
 
 interface SignUpPromptModalProps {
   isOpen: boolean;
@@ -16,6 +17,7 @@ interface SignUpPromptModalProps {
 
 export function SignUpPromptModal({ isOpen, onClose, action: _action, creatorName: _creatorName, onSignIn, onSignUp }: SignUpPromptModalProps) {
   const router = useRouter();
+  const { t } = useLanguage();
   const [isClosing, setIsClosing] = useState(false);
   const [mounted, setMounted] = useState(false);
 
@@ -79,7 +81,7 @@ export function SignUpPromptModal({ isOpen, onClose, action: _action, creatorNam
         {/* Header */}
         <div className="text-center mb-6">
           <h2 className="text-2xl font-bold bg-gradient-to-r from-cyan-400 via-white to-cyan-400 bg-clip-text text-transparent">
-            Create Account to continue
+            {t.auth.createAccountToContinue}
           </h2>
         </div>
 
@@ -90,8 +92,8 @@ export function SignUpPromptModal({ isOpen, onClose, action: _action, creatorNam
               <Radio className="w-5 h-5 text-red-400" />
             </div>
             <div>
-              <p className="text-white font-medium">Watch Creator's Stream</p>
-              <p className="text-sm text-gray-400">Watch live and recorded streams</p>
+              <p className="text-white font-medium">{t.auth.watchStreams}</p>
+              <p className="text-sm text-gray-400">{t.auth.watchLiveRecorded}</p>
             </div>
           </div>
           <div className="flex items-center gap-3 p-3 bg-white/5 rounded-xl border border-cyan-500/30 hover:border-cyan-500/50 transition-colors">
@@ -99,8 +101,8 @@ export function SignUpPromptModal({ isOpen, onClose, action: _action, creatorNam
               <Video className="w-5 h-5 text-cyan-400" />
             </div>
             <div>
-              <p className="text-white font-medium">Video & Voice Calls</p>
-              <p className="text-sm text-gray-400">Connect 1-on-1 with creators</p>
+              <p className="text-white font-medium">{t.auth.videoVoiceCalls}</p>
+              <p className="text-sm text-gray-400">{t.auth.connect1on1}</p>
             </div>
           </div>
           <div className="flex items-center gap-3 p-3 bg-white/5 rounded-xl border border-pink-500/30 hover:border-pink-500/50 transition-colors">
@@ -108,8 +110,8 @@ export function SignUpPromptModal({ isOpen, onClose, action: _action, creatorNam
               <Gift className="w-5 h-5 text-pink-400" />
             </div>
             <div>
-              <p className="text-white font-medium">Send Gifts</p>
-              <p className="text-sm text-gray-400">Support your favorite creators</p>
+              <p className="text-white font-medium">{t.auth.sendGifts}</p>
+              <p className="text-sm text-gray-400">{t.auth.supportFavorite}</p>
             </div>
           </div>
           <div className="flex items-center gap-3 p-3 bg-white/5 rounded-xl border border-purple-500/30 hover:border-purple-500/50 transition-colors">
@@ -117,8 +119,8 @@ export function SignUpPromptModal({ isOpen, onClose, action: _action, creatorNam
               <MessageCircle className="w-5 h-5 text-purple-400" />
             </div>
             <div>
-              <p className="text-white font-medium">Chats</p>
-              <p className="text-sm text-gray-400">Chat privately with creators</p>
+              <p className="text-white font-medium">{t.nav.chats}</p>
+              <p className="text-sm text-gray-400">{t.auth.chatPrivately}</p>
             </div>
           </div>
         </div>
@@ -129,13 +131,13 @@ export function SignUpPromptModal({ isOpen, onClose, action: _action, creatorNam
             onClick={handleSignUp}
             className="w-full py-4 px-6 bg-gradient-to-r from-cyan-500 to-purple-500 hover:from-cyan-400 hover:to-purple-400 rounded-xl text-white font-bold text-lg transition-all hover:scale-[1.02] shadow-[0_0_30px_rgba(34,211,238,0.4)]"
           >
-            Create Free Account
+            {t.auth.createFreeAccount}
           </button>
           <button
             onClick={handleSignIn}
             className="w-full py-3 px-6 bg-transparent hover:bg-cyan-500/10 border-2 border-cyan-500/50 hover:border-cyan-500 rounded-xl text-cyan-400 font-semibold transition-all"
           >
-            Sign In
+            {t.auth.signIn}
           </button>
         </div>
       </div>

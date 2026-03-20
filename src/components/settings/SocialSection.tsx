@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { LoadingSpinner } from '@/components/ui';
 import { Share2, Instagram, Youtube, Link2, ExternalLink, Twitch, ShoppingBag, Plus, Pencil, Trash2, ChevronUp, ChevronDown } from 'lucide-react';
+import { useLanguage } from '@/context/LanguageContext';
 import { extractInstagramHandle, extractTiktokHandle, extractTwitterHandle, extractSnapchatHandle, extractYoutubeHandle } from '@/lib/utils/social-handles';
 import type { SettingsFormState } from '@/hooks/useSettingsForm';
 import type { CreatorLink } from './types';
@@ -26,6 +27,7 @@ export function SocialSection({
   handleOpenLinkModal, handleDeleteLink, handleToggleLinkActive, moveLink,
 }: SocialSectionProps) {
   const router = useRouter();
+  const { t } = useLanguage();
   const [showAllSocials, setShowAllSocials] = useState(false);
 
   const { instagramHandle, tiktokHandle, youtubeHandle, twitterHandle,
@@ -35,12 +37,12 @@ export function SocialSection({
     return (
       <div className="text-center py-8 text-gray-400">
         <Share2 className="w-8 h-8 mx-auto mb-2 opacity-50" />
-        <p>Social media settings are only available for creators.</p>
+        <p>{t.settings.socialMediaCreators}</p>
         <button
           onClick={() => router.push('/creator/apply')}
           className="mt-4 px-4 py-2 bg-gradient-to-r from-digis-cyan to-digis-pink rounded-lg text-white font-medium text-sm hover:opacity-90 transition-opacity"
         >
-          Become a Creator
+          {t.settings.becomeCreator}
         </button>
       </div>
     );

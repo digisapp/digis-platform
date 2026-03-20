@@ -14,18 +14,20 @@ import {
 import { CreatorCard, SkeletonCard } from './CreatorCards';
 import { FanOnboardingModal } from './FanOnboardingModal';
 import { useAuth } from '@/context/AuthContext';
+import { useLanguage } from '@/context/LanguageContext';
 import type { Creator, HomepageData } from './types';
-
-const FILTERS = [
-  { key: 'all', label: 'All' },
-  { key: 'live', label: 'Live' },
-  { key: 'online', label: 'Online' },
-  { key: 'new', label: 'New' },
-];
 
 export function FanDashboard() {
   const router = useRouter();
   const { user } = useAuth();
+  const { t } = useLanguage();
+
+  const FILTERS = [
+    { key: 'all', label: t.dashboard.all },
+    { key: 'live', label: t.dashboard.live },
+    { key: 'online', label: t.dashboard.online },
+    { key: 'new', label: t.dashboard.new },
+  ];
   const [dashboardData, setDashboardData] = useState<HomepageData | null>(null);
   const [dashboardLoading, setDashboardLoading] = useState(true);
 
@@ -195,7 +197,7 @@ export function FanDashboard() {
                     <Radio className="w-5 h-5 text-red-500" />
                     <span className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-red-500 rounded-full animate-ping" />
                   </div>
-                  <h2 className="text-xl font-bold text-white">Live Now</h2>
+                  <h2 className="text-xl font-bold text-white">{t.dashboard.liveNow}</h2>
                   <span className="px-2 py-0.5 bg-red-500/20 text-red-400 text-xs font-bold rounded-full">
                     {dashboardData!.liveStreams.length}
                   </span>
@@ -204,7 +206,7 @@ export function FanDashboard() {
                   href="/streams"
                   className="flex items-center gap-1 text-sm text-gray-400 hover:text-white transition-colors"
                 >
-                  See All <ChevronRight className="w-4 h-4" />
+                  {t.common.seeAll} <ChevronRight className="w-4 h-4" />
                 </Link>
               </div>
 
@@ -230,7 +232,7 @@ export function FanDashboard() {
                       )}
                       <div className="absolute top-2 left-2 flex items-center gap-1.5 px-2 py-1 bg-red-500 rounded-md">
                         <span className="w-1.5 h-1.5 bg-white rounded-full animate-pulse" />
-                        <span className="text-xs font-bold text-white">LIVE</span>
+                        <span className="text-xs font-bold text-white">{t.common.live}</span>
                       </div>
                     </div>
                     <div className="p-3">
@@ -303,7 +305,7 @@ export function FanDashboard() {
                       </div>
                       {creator.isLive && (
                         <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 px-1.5 py-0.5 bg-red-500 text-[10px] font-bold text-white rounded-sm">
-                          LIVE
+                          {t.common.live}
                         </span>
                       )}
                     </div>
@@ -328,7 +330,7 @@ export function FanDashboard() {
                     setSearchTerm(e.target.value);
                     setSearching(true);
                   }}
-                  placeholder="Search creators..."
+                  placeholder={t.dashboard.searchCreators}
                   className="w-full pl-12 pr-10 py-3 bg-white/5 border border-white/10 rounded-2xl text-white placeholder-gray-500 focus:outline-none focus:border-cyan-500/50 transition-colors"
                 />
                 {searchTerm ? (
@@ -372,10 +374,10 @@ export function FanDashboard() {
               <div className="py-16 text-center">
                 <UserCircle className="w-16 h-16 text-gray-600 mx-auto mb-4" />
                 <h3 className="text-xl font-semibold text-white mb-2">
-                  {searchTerm ? 'No results found' : 'No creators found'}
+                  {searchTerm ? t.common.noResults : t.dashboard.noCreators}
                 </h3>
                 <p className="text-gray-400">
-                  {searchTerm ? 'Try a different search term' : 'Check back later for new creators'}
+                  {searchTerm ? t.dashboard.tryDifferentSearch : t.dashboard.checkBackLater}
                 </p>
               </div>
             ) : (

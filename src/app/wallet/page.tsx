@@ -9,6 +9,7 @@ import { BuyCoinsModal } from '@/components/wallet/BuyCoinsModal';
 import { BankingInfoModal } from '@/components/wallet/BankingInfoModal';
 import { DollarSign, History, Building2, Coins, Sparkles, TrendingUp, ArrowUpRight, ArrowDownLeft, Gift, Phone, Star, Lock, CheckCircle, Clock, XCircle, Ticket, MessageCircle, CreditCard } from 'lucide-react';
 import { useToastContext } from '@/context/ToastContext';
+import { useLanguage } from '@/context/LanguageContext';
 
 interface Transaction {
   id: string;
@@ -43,6 +44,7 @@ type TabType = 'balance' | 'payouts' | 'banking';
 export default function WalletPage() {
   const router = useRouter();
   const { showSuccess, showError, showInfo } = useToastContext();
+  const { t } = useLanguage();
   const [balance, setBalance] = useState<number>(0);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [payouts, setPayouts] = useState<PayoutRequest[]>([]);
@@ -299,22 +301,22 @@ export default function WalletPage() {
       case 'completed':
         return <span className="flex items-center gap-1 px-2 py-1 bg-green-500/20 rounded-full text-xs font-semibold text-green-300">
           <CheckCircle className="w-3 h-3" />
-          Completed
+          {t.wallet.statusCompleted}
         </span>;
       case 'processing':
         return <span className="flex items-center gap-1 px-2 py-1 bg-yellow-500/20 rounded-full text-xs font-semibold text-yellow-300">
           <Clock className="w-3 h-3" />
-          Processing
+          {t.wallet.statusProcessing}
         </span>;
       case 'failed':
         return <span className="flex items-center gap-1 px-2 py-1 bg-red-500/20 rounded-full text-xs font-semibold text-red-300">
           <XCircle className="w-3 h-3" />
-          Failed
+          {t.wallet.statusFailed}
         </span>;
       case 'cancelled':
         return <span className="flex items-center gap-1 px-2 py-1 bg-gray-500/20 rounded-full text-xs font-semibold text-white">
           <XCircle className="w-3 h-3" />
-          Cancelled
+          {t.wallet.statusCancelled}
         </span>;
       default:
         return <span className="px-2 py-1 bg-blue-500/20 rounded-full text-xs font-semibold text-blue-700">
@@ -369,7 +371,7 @@ export default function WalletPage() {
                 : 'backdrop-blur-xl bg-white/10 border border-white/20 text-white hover:border-green-500/50'
             }`}
           >
-            Balance
+            {t.wallet.balance}
           </button>
           {isCreator && (
             <>
@@ -381,7 +383,7 @@ export default function WalletPage() {
                     : 'backdrop-blur-xl bg-white/10 border border-white/20 text-white hover:border-green-500/50'
                 }`}
               >
-                Payouts
+                {t.wallet.payouts}
               </button>
               <button
                 onClick={() => setActiveTab('banking')}
@@ -391,7 +393,7 @@ export default function WalletPage() {
                     : 'backdrop-blur-xl bg-white/10 border border-white/20 text-white hover:border-green-500/50'
                 }`}
               >
-                Banking
+                {t.wallet.banking}
               </button>
             </>
           )}
@@ -406,10 +408,10 @@ export default function WalletPage() {
                 <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-6">
                   <div className="flex gap-2 backdrop-blur-xl bg-white/10 rounded-lg p-1">
                     {[
-                      { value: '24h', label: '24 Hours' },
-                      { value: '1w', label: '1 Week' },
-                      { value: '1m', label: '1 Month' },
-                      { value: 'total', label: 'All Time' },
+                      { value: '24h', label: t.wallet.hours24 },
+                      { value: '1w', label: t.wallet.week1 },
+                      { value: '1m', label: t.wallet.month1 },
+                      { value: 'total', label: t.wallet.allTime },
                     ].map((period) => (
                       <button
                         key={period.value}
@@ -429,7 +431,7 @@ export default function WalletPage() {
                 <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 sm:gap-6">
                   <div className="flex items-baseline gap-2 sm:gap-3">
                     <span className="text-3xl sm:text-4xl md:text-5xl font-bold text-green-400">{earnings.toLocaleString()}</span>
-                    <span className="text-lg sm:text-xl md:text-2xl text-gray-300">coins</span>
+                    <span className="text-lg sm:text-xl md:text-2xl text-gray-300">{t.common.coins}</span>
                   </div>
 
                   <GlassButton
@@ -439,7 +441,7 @@ export default function WalletPage() {
                     shimmer
                     className="whitespace-nowrap"
                   >
-                    Buy Coins
+                    {t.wallet.buyCoins}
                   </GlassButton>
                 </div>
               </div>
@@ -454,7 +456,7 @@ export default function WalletPage() {
                     <div className="flex-1 w-full">
                       <div className="flex items-center gap-2 mb-4">
                         <Sparkles className="w-5 h-5 text-green-600" />
-                        <p className="text-sm font-semibold text-gray-400 uppercase tracking-wider">Your Balance</p>
+                        <p className="text-sm font-semibold text-gray-400 uppercase tracking-wider">{t.wallet.yourBalance}</p>
                       </div>
 
                       <div className="flex items-center gap-6 mb-6">
@@ -471,11 +473,11 @@ export default function WalletPage() {
                               <TrendingUp className="w-6 h-6 sm:w-8 sm:h-8 text-green-600" />
                             )}
                           </div>
-                          <p className="text-lg sm:text-xl font-bold text-white">Digis Coins</p>
+                          <p className="text-lg sm:text-xl font-bold text-white">{t.wallet.digisCoins}</p>
                           {balance > 0 && (
                             <p className="text-sm text-gray-400 mt-2 flex items-center gap-1">
                               <Sparkles className="w-4 h-4 text-green-600" />
-                              Keep earning and growing!
+                              {t.wallet.keepEarning}
                             </p>
                           )}
                         </div>
@@ -490,7 +492,7 @@ export default function WalletPage() {
                         shimmer
                         className="whitespace-nowrap"
                       >
-                        Buy Coins
+                        {t.wallet.buyCoins}
                       </GlassButton>
                     </div>
                   </div>
@@ -505,10 +507,10 @@ export default function WalletPage() {
                   <div className="p-2 bg-gradient-to-br from-blue-500/20 to-cyan-500/20 rounded-lg">
                     <History className="w-6 h-6 text-blue-600" />
                   </div>
-                  <h2 className="text-2xl font-bold text-white">Transaction History</h2>
+                  <h2 className="text-2xl font-bold text-white">{t.wallet.transactionHistory}</h2>
                 </div>
                 {transactions.length > 0 && (
-                  <span className="text-sm text-gray-400">{transactions.length} transactions</span>
+                  <span className="text-sm text-gray-400">{transactions.length} {t.wallet.transactions}</span>
                 )}
               </div>
 
@@ -517,8 +519,8 @@ export default function WalletPage() {
                   <div className="p-6 bg-gradient-to-br from-gray-400/20 to-gray-500/20 rounded-2xl w-fit mx-auto mb-4">
                     <History className="w-16 h-16 text-gray-400" />
                   </div>
-                  <p className="text-white mb-4 text-lg font-medium">No transactions yet</p>
-                  <p className="text-gray-400">Your transactions will appear here</p>
+                  <p className="text-white mb-4 text-lg font-medium">{t.wallet.noTransactions}</p>
+                  <p className="text-gray-400">{t.wallet.transactionsAppear}</p>
                 </div>
               ) : (
                 <div className="space-y-3 max-h-[500px] overflow-y-auto pr-1">
@@ -548,7 +550,7 @@ export default function WalletPage() {
                           <p className={`text-xl sm:text-2xl font-bold ${tx.amount > 0 ? 'text-green-400' : 'text-red-400'}`}>
                             {tx.amount > 0 ? '+' : ''}{tx.amount}
                           </p>
-                          <p className="text-xs text-gray-400">coins</p>
+                          <p className="text-xs text-gray-400">{t.common.coins}</p>
                         </div>
                       </div>
                     </div>
@@ -570,7 +572,7 @@ export default function WalletPage() {
                   <div className="p-2 bg-gradient-to-br from-green-500 to-emerald-600 rounded-lg">
                     <DollarSign className="w-6 h-6 text-white" />
                   </div>
-                  <h2 className="text-2xl font-bold text-white">Request Payout</h2>
+                  <h2 className="text-2xl font-bold text-white">{t.wallet.requestPayout}</h2>
                 </div>
 
                 <div className="flex flex-col md:flex-row items-center justify-between gap-6 backdrop-blur-xl bg-white/5 rounded-xl p-6 border border-green-200">
@@ -579,11 +581,11 @@ export default function WalletPage() {
                       <Coins className="w-10 h-10 text-white" />
                     </div>
                     <div>
-                      <p className="text-sm text-gray-400 mb-1">Available for Payout</p>
+                      <p className="text-sm text-gray-400 mb-1">{t.wallet.availableForPayout}</p>
                       <p className="text-4xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">
                         {balance.toLocaleString()}
                       </p>
-                      <p className="text-sm text-gray-400">coins</p>
+                      <p className="text-sm text-gray-400">{t.common.coins}</p>
                     </div>
                   </div>
                   <GlassButton
@@ -591,11 +593,11 @@ export default function WalletPage() {
                     size="lg"
                     onClick={async () => {
                       if (balance < 1000) {
-                        showInfo('Minimum 1,000 coins required for payout');
+                        showInfo(t.wallet.minPayout);
                         return;
                       }
                       if (!bankingInfo) {
-                        showInfo('Please add banking information first');
+                        showInfo(t.wallet.addBankingFirst);
                         setActiveTab('banking');
                         return;
                       }
@@ -607,14 +609,14 @@ export default function WalletPage() {
                             body: JSON.stringify({ amount: balance }),
                           });
                           if (response.ok) {
-                            showSuccess('Payout requested successfully!');
+                            showSuccess(t.wallet.payoutRequested);
                             await handleRefresh();
                           } else {
                             const error = await response.json();
                             showError(`Error: ${error.error}`);
                           }
                         } catch  {
-                          showError('Failed to request payout');
+                          showError(t.wallet.payoutFailed);
                         }
                       }
                     }}
@@ -623,7 +625,7 @@ export default function WalletPage() {
                     className="whitespace-nowrap"
                   >
                     <DollarSign className="w-5 h-5 mr-2" />
-                    Request Payout
+                    {t.wallet.requestPayout}
                   </GlassButton>
                 </div>
               </div>
@@ -635,7 +637,7 @@ export default function WalletPage() {
                 <div className="p-2 bg-gradient-to-br from-purple-500/20 to-pink-500/20 rounded-lg">
                   <History className="w-6 h-6 text-purple-600" />
                 </div>
-                <h2 className="text-2xl font-bold text-white">Payout History</h2>
+                <h2 className="text-2xl font-bold text-white">{t.wallet.payoutHistory}</h2>
               </div>
 
               {payouts.length === 0 ? (
@@ -643,7 +645,7 @@ export default function WalletPage() {
                   <div className="p-6 bg-gradient-to-br from-gray-400/20 to-gray-500/20 rounded-2xl w-fit mx-auto mb-4">
                     <DollarSign className="w-16 h-16 text-gray-400" />
                   </div>
-                  <p className="text-white text-lg font-medium mb-2">No payouts yet</p>
+                  <p className="text-white text-lg font-medium mb-2">{t.wallet.noPayouts}</p>
                   <p className="text-gray-400">Your payout requests will appear here</p>
                 </div>
               ) : (
@@ -660,17 +662,17 @@ export default function WalletPage() {
                           </div>
                           <div className="flex-1">
                             <p className="text-white font-bold text-lg mb-1">
-                              {payout.amount.toLocaleString()} coins
+                              {payout.amount.toLocaleString()} {t.common.coins}
                             </p>
                             <div className="space-y-1">
                               <p className="text-xs text-gray-400 flex items-center gap-1">
                                 <Clock className="w-3 h-3" />
-                                Requested: {new Date(payout.requestedAt).toLocaleDateString()}
+                                {t.wallet.requested} {new Date(payout.requestedAt).toLocaleDateString()}
                               </p>
                               {payout.completedAt && (
                                 <p className="text-xs text-green-700 flex items-center gap-1">
                                   <CheckCircle className="w-3 h-3" />
-                                  Completed: {new Date(payout.completedAt).toLocaleDateString()}
+                                  {t.wallet.completed} {new Date(payout.completedAt).toLocaleDateString()}
                                 </p>
                               )}
                               {payout.failureReason && (
@@ -703,7 +705,7 @@ export default function WalletPage() {
                 <div className="p-2 bg-gradient-to-br from-blue-500 to-cyan-600 rounded-lg">
                   <Building2 className="w-6 h-6 text-white" />
                 </div>
-                <h2 className="text-2xl font-bold text-white">Banking Information</h2>
+                <h2 className="text-2xl font-bold text-white">{t.wallet.bankingInfo}</h2>
               </div>
 
               {bankingInfo ? (
@@ -719,28 +721,28 @@ export default function WalletPage() {
                     <div className="backdrop-blur-xl bg-white/5 rounded-xl p-4 border border-blue-200">
                       <p className="text-sm text-gray-400 mb-2 flex items-center gap-1">
                         <DollarSign className="w-4 h-4" />
-                        Account Holder
+                        {t.wallet.accountHolder}
                       </p>
                       <p className="text-white font-semibold text-lg">{bankingInfo.accountHolderName}</p>
                     </div>
                     <div className="backdrop-blur-xl bg-white/5 rounded-xl p-4 border border-blue-200">
                       <p className="text-sm text-gray-400 mb-2 flex items-center gap-1">
                         <Building2 className="w-4 h-4" />
-                        Account Type
+                        {t.wallet.accountType}
                       </p>
                       <p className="text-white font-semibold text-lg capitalize">{bankingInfo.accountType}</p>
                     </div>
                     <div className="backdrop-blur-xl bg-white/5 rounded-xl p-4 border border-blue-200">
                       <p className="text-sm text-gray-400 mb-2 flex items-center gap-1">
                         <Building2 className="w-4 h-4" />
-                        Bank Name
+                        {t.wallet.bankName}
                       </p>
-                      <p className="text-white font-semibold text-lg">{bankingInfo.bankName || 'Not specified'}</p>
+                      <p className="text-white font-semibold text-lg">{bankingInfo.bankName || t.wallet.notSpecified}</p>
                     </div>
                     <div className="backdrop-blur-xl bg-white/5 rounded-xl p-4 border border-blue-200">
                       <p className="text-sm text-gray-400 mb-2 flex items-center gap-1">
                         <Lock className="w-4 h-4" />
-                        Account Number
+                        {t.wallet.accountNumber}
                       </p>
                       <p className="text-white font-semibold text-lg font-mono">••••{bankingInfo.lastFourDigits}</p>
                     </div>
@@ -751,7 +753,7 @@ export default function WalletPage() {
                     onClick={() => setShowBankingModal(true)}
                     className="w-full md:w-auto"
                   >
-                    Update Banking Information
+                    {t.wallet.updateBanking}
                   </GlassButton>
                 </div>
               ) : (
@@ -759,15 +761,15 @@ export default function WalletPage() {
                   <div className="p-6 bg-gradient-to-br from-blue-500/20 to-cyan-500/20 rounded-2xl w-fit mx-auto mb-4">
                     <Building2 className="w-16 h-16 text-blue-600" />
                   </div>
-                  <p className="text-white text-lg font-semibold mb-2">No Banking Information</p>
-                  <p className="text-gray-400 mb-6">Add your banking information to start receiving payouts</p>
+                  <p className="text-white text-lg font-semibold mb-2">{t.wallet.noBanking}</p>
+                  <p className="text-gray-400 mb-6">{t.wallet.addBankingDesc}</p>
                   <GlassButton
                     variant="gradient"
                     size="lg"
                     onClick={() => setShowBankingModal(true)}
                     shimmer
                   >
-                    Add Banking
+                    {t.wallet.addBanking}
                   </GlassButton>
                 </div>
               )}

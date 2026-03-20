@@ -21,6 +21,7 @@ import {
 import { BuyCoinsModal } from '@/components/wallet/BuyCoinsModal';
 import { useRef } from 'react';
 import { useToastContext } from '@/context/ToastContext';
+import { useLanguage } from '@/context/LanguageContext';
 
 // Format large coin numbers (1000 -> 1k, 2500 -> 2.5k, 1000000 -> 1M)
 const formatCoinBalance = (coins: number | null): string => {
@@ -40,6 +41,7 @@ export function Navigation() {
   const router = useRouter();
   const pathname = usePathname();
   const { showError } = useToastContext();
+  const { t } = useLanguage();
   const { user: authUser, session, loading: authLoading, isCreator, isAdmin, signOut } = useAuth();
   const [userProfile, setUserProfile] = useState<any>(null);
   const [balance, setBalance] = useState<number | null>(null);
@@ -275,13 +277,13 @@ export function Navigation() {
 
     // Validate file type
     if (!file.type.startsWith('image/')) {
-      showError('Please select an image file');
+      showError(t.errors.selectImageFile);
       return;
     }
 
     // Validate file size (max 5MB)
     if (file.size > 5 * 1024 * 1024) {
-      showError('Image must be less than 5MB');
+      showError(t.errors.imageTooLarge);
       return;
     }
 
@@ -302,11 +304,11 @@ export function Navigation() {
         // Update local state immediately
         setUserProfile((prev: any) => ({ ...prev, avatarUrl: data.avatarUrl }));
       } else {
-        showError(data.error || 'Failed to upload avatar');
+        showError(data.error || t.errors.failedUploadAvatar);
       }
     } catch (err) {
       console.error('Error uploading avatar:', err);
-      showError('Failed to upload avatar');
+      showError(t.errors.failedUploadAvatar);
     } finally {
       setUploadingAvatar(false);
       // Reset the input
@@ -321,31 +323,31 @@ export function Navigation() {
   // Fans: Home, Streams, Chats (Home now includes Explore/Discovery)
   const navItems = userRole === 'creator' ? [
     {
-      label: 'Home',
+      label: t.nav.home,
       icon: Home,
       path: '/creator/dashboard',
       active: isActive('/creator/dashboard'),
     },
     {
-      label: 'Go Live',
+      label: t.nav.goLive,
       icon: Radio,
       path: '/creator/go-live',
       active: isActive('/creator/go-live'),
     },
     {
-      label: 'Cloud',
+      label: t.nav.cloud,
       icon: LayoutGrid,
       path: '/cloud',
       active: isActive('/cloud') || pathname?.startsWith('/cloud'),
     },
     {
-      label: 'Chats',
+      label: t.nav.chats,
       icon: MessageCircle,
       path: '/chats',
       active: isActive('/chats') || pathname?.startsWith('/chats'),
     },
     {
-      label: 'Analytics',
+      label: t.nav.analytics,
       icon: BarChart3,
       path: '/creator/analytics',
       active: isActive('/creator/analytics'),
@@ -354,35 +356,35 @@ export function Navigation() {
   ] : [
     // Home — fans land on Explore, admins on Admin dashboard
     {
-      label: 'Home',
+      label: t.nav.home,
       icon: Home,
       path: userRole === 'admin' ? '/admin' : '/explore',
       active: isActive('/') || isActive('/explore') || isActive('/dashboard') || isActive('/admin'),
     },
     // For You: Short-form clip/content feed
     {
-      label: 'For You',
+      label: t.nav.forYou,
       icon: Compass,
       path: '/for-you',
       active: isActive('/for-you'),
     },
     // Watch: All live streams, schedule, and replays
     ...(showStreams ? [{
-      label: 'Streams',
+      label: t.nav.streams,
       icon: Video,
       path: '/streams',
       active: isActive('/streams') || isActive('/live') || isActive('/watch'),
     }] : []),
     // Chats is always shown
     {
-      label: 'Chats',
+      label: t.nav.chats,
       icon: MessageCircle,
       path: '/chats',
       active: isActive('/chats') || pathname?.startsWith('/chats'),
     },
     // Profile for fans (shown as regular nav item)
     {
-      label: 'Profile',
+      label: t.nav.profile,
       icon: User,
       path: '/settings',
       active: isActive('/settings'),
@@ -425,7 +427,7 @@ export function Navigation() {
                   onClick={() => avatarInputRef.current?.click()}
                   disabled={uploadingAvatar}
                   className="relative flex-shrink-0 group"
-                  title="Change profile picture"
+                  title={t.nav.changeProfilePicture}
                 >
                   <div className="w-20 h-20 md:w-14 md:h-14 rounded-full bg-gradient-to-br from-digis-cyan via-purple-500 to-digis-pink p-[3px] md:p-[2px]">
                     <div className="w-full h-full rounded-full bg-white p-[2px]">
@@ -484,7 +486,7 @@ export function Navigation() {
                   <svg className="w-6 h-6 md:w-5 md:h-5 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                   </svg>
-                  <span className="text-base md:text-sm text-white font-semibold">View Profile</span>
+                  <span className="text-base md:text-sm text-white font-semibold">{t.common.viewProfile}</span>
                 </button>
               )}
 
@@ -501,7 +503,7 @@ export function Navigation() {
                     <svg className="w-6 h-6 md:w-5 md:h-5 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
                     </svg>
-                    <span className="text-base md:text-sm text-white font-semibold">Content</span>
+                    <span className="text-base md:text-sm text-white font-semibold">{t.nav.content}</span>
                   </button>
 
                   <button
@@ -515,7 +517,7 @@ export function Navigation() {
                     <svg className="w-6 h-6 md:w-5 md:h-5 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.455 2.456L21.75 6l-1.036.259a3.375 3.375 0 00-2.455 2.456z" />
                     </svg>
-                    <span className="text-base md:text-sm text-white font-semibold">AI Twin</span>
+                    <span className="text-base md:text-sm text-white font-semibold">{t.nav.aiTwin}</span>
                   </button>
 
                   <button
@@ -529,7 +531,7 @@ export function Navigation() {
                     <svg className="w-6 h-6 md:w-5 md:h-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
-                    <span className="text-base md:text-sm text-white font-semibold">Rates</span>
+                    <span className="text-base md:text-sm text-white font-semibold">{t.nav.rates}</span>
                   </button>
                 </>
               )}
@@ -546,7 +548,7 @@ export function Navigation() {
                   <svg className="w-6 h-6 md:w-5 md:h-5 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
                   </svg>
-                  <span className="text-base md:text-sm text-white font-semibold">Library</span>
+                  <span className="text-base md:text-sm text-white font-semibold">{t.nav.library}</span>
                 </button>
               )}
 
@@ -559,7 +561,7 @@ export function Navigation() {
                 style={{ minHeight: '56px' }}
               >
                 <Settings className="w-6 h-6 md:w-5 md:h-5 text-gray-300" />
-                <span className="text-base md:text-sm text-white font-semibold">Settings</span>
+                <span className="text-base md:text-sm text-white font-semibold">{t.nav.settings}</span>
               </button>
 
               <button
@@ -573,7 +575,7 @@ export function Navigation() {
                 <svg className="w-6 h-6 md:w-5 md:h-5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
                 </svg>
-                <span className="text-base md:text-sm text-red-400 font-semibold">Sign Out</span>
+                <span className="text-base md:text-sm text-red-400 font-semibold">{t.nav.signOut}</span>
               </button>
 
             </div>
@@ -685,7 +687,7 @@ export function Navigation() {
                   {/* LIVE badge for creators who are live */}
                   {isLive && (
                     <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 bg-red-500 text-white text-[8px] font-black px-1.5 py-0.5 rounded-full shadow-lg">
-                      LIVE
+                      {t.common.live}
                     </div>
                   )}
                 </button>
@@ -753,7 +755,7 @@ export function Navigation() {
               {/* Fan Navigation: All items equal styling - Home, Streams, Chats, Profile */}
               {navItems.map((item, _index) => {
                 const Icon = item.icon;
-                const isChats = item.label === 'Chats';
+                const isChats = item.label === t.nav.chats;
                 const isProfile = (item as any).isProfile;
 
                 return (
@@ -886,7 +888,7 @@ export function Navigation() {
                     <div className="text-2xl font-black text-green-400">
                       {balance !== null ? balance.toLocaleString() : '—'}
                     </div>
-                    <div className="text-xs text-gray-400 mt-0.5">Coins</div>
+                    <div className="text-xs text-gray-400 mt-0.5">{t.common.coins}</div>
                   </div>
                 </div>
 
@@ -902,7 +904,7 @@ export function Navigation() {
                     <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-green-500 to-emerald-500 flex items-center justify-center shadow-[0_0_15px_rgba(34,197,94,0.3)]">
                       <Coins className="w-5 h-5 text-white" />
                     </div>
-                    <span className="text-base text-white font-semibold">Buy Coins</span>
+                    <span className="text-base text-white font-semibold">{t.nav.buyCoins}</span>
                   </button>
                 </div>
               </div>
@@ -937,12 +939,12 @@ export function Navigation() {
               {isLive ? (
                 <>
                   <div className="w-4 h-4 bg-white rounded-full animate-pulse" />
-                  <span className="text-[10px] font-black text-white">LIVE</span>
+                  <span className="text-[10px] font-black text-white">{t.common.live}</span>
                 </>
               ) : (
                 <>
                   <Radio className="w-6 h-6 text-white" />
-                  <span className="text-[10px] font-bold text-white">Go Live</span>
+                  <span className="text-[10px] font-bold text-white">{t.nav.goLive}</span>
                 </>
               )}
             </div>
@@ -951,7 +953,7 @@ export function Navigation() {
 
         {/* Navigation Items - Skip "Go Live" and "Profile" on desktop since they have their own buttons above */}
         <div className="flex-1 flex flex-col gap-2">
-          {navItems.filter(item => item.label !== 'Go Live' && item.label !== 'Profile').map((item) => {
+          {navItems.filter(item => item.label !== t.nav.goLive && item.label !== t.nav.profile).map((item) => {
             const IconComponent = item.icon;
             return (
               <button
@@ -970,7 +972,7 @@ export function Navigation() {
                 )}
                 <div className="relative">
                   <IconComponent className="w-6 h-6" />
-                  {item.label === 'Chats' && unreadCount > 0 && (
+                  {item.label === t.nav.chats && unreadCount > 0 && (
                     <div className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full flex items-center justify-center text-xs font-bold text-white shadow-lg">
                       {unreadCount > 9 ? '9+' : unreadCount}
                     </div>

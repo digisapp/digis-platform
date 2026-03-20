@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { LoadingSpinner } from '@/components/ui';
 import { Crown, Trash2, AlertCircle, X } from 'lucide-react';
+import { useLanguage } from '@/context/LanguageContext';
 
 interface ActionsSectionProps {
   currentUser: any;
@@ -12,6 +13,7 @@ interface ActionsSectionProps {
 
 export function ActionsSection({ currentUser, signOut }: ActionsSectionProps) {
   const router = useRouter();
+  const { t } = useLanguage();
 
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deleteConfirmText, setDeleteConfirmText] = useState('');
@@ -56,17 +58,17 @@ export function ActionsSection({ currentUser, signOut }: ActionsSectionProps) {
           <div>
             <h3 className="text-lg font-semibold text-white mb-3 flex items-center gap-2">
               <Crown className="w-5 h-5 text-digis-pink" />
-              Creator Account
+              {t.settings.creatorAccount}
             </h3>
             <p className="text-sm text-gray-400 mb-3">
-              Upgrade to a creator account to start streaming, receive tips, and build your community.
+              {t.settings.upgradeToCreator}
             </p>
             <button
               type="button"
               onClick={() => router.push('/creator/apply')}
               className="w-full px-6 py-3 bg-gradient-to-r from-digis-cyan to-digis-pink rounded-xl font-semibold text-white hover:scale-[1.02] transition-transform"
             >
-              Become a Creator
+              {t.settings.becomeCreator}
             </button>
           </div>
         )}
@@ -75,10 +77,10 @@ export function ActionsSection({ currentUser, signOut }: ActionsSectionProps) {
         <div className="pt-6 border-t border-red-500/20">
           <h3 className="text-lg font-semibold text-red-400 mb-2 flex items-center gap-2">
             <Trash2 className="w-5 h-5" />
-            Delete Account
+            {t.settings.deleteAccount}
           </h3>
           <p className="text-sm text-gray-400 mb-4">
-            Permanently delete your account and all associated data. This action cannot be undone.
+            {t.settings.deleteAccountDesc}
           </p>
           <button
             type="button"
@@ -89,13 +91,13 @@ export function ActionsSection({ currentUser, signOut }: ActionsSectionProps) {
             }}
             className="px-4 py-2 bg-red-500/20 hover:bg-red-500/30 border border-red-500/50 rounded-lg text-red-400 text-sm font-medium transition-all"
           >
-            Delete My Account
+            {t.settings.deleteMyAccount}
           </button>
         </div>
 
         {/* Support */}
         <div className="pt-6 border-t border-cyan-500/20 text-center">
-          <span className="text-gray-400">Contact Support: </span>
+          <span className="text-gray-400">{t.settings.contactSupport} </span>
           <a
             href="mailto:support@digis.cc?subject=Digis Support Request"
             className="text-cyan-400 hover:text-cyan-300 transition-colors"
@@ -118,7 +120,7 @@ export function ActionsSection({ currentUser, signOut }: ActionsSectionProps) {
             <div className="flex items-center justify-between p-4 border-b border-red-500/20">
               <h2 className="text-lg font-bold text-red-400 flex items-center gap-2">
                 <AlertCircle className="w-5 h-5" />
-                Delete Account
+                {t.settings.deleteAccount}
               </h2>
               <button
                 onClick={() => !deleting && setShowDeleteModal(false)}
@@ -132,28 +134,28 @@ export function ActionsSection({ currentUser, signOut }: ActionsSectionProps) {
             {/* Modal Content */}
             <div className="p-4 space-y-4">
               <div className="p-3 bg-red-500/10 border border-red-500/30 rounded-lg">
-                <p className="text-sm text-red-300 font-medium mb-2">This action is permanent and cannot be undone.</p>
+                <p className="text-sm text-red-300 font-medium mb-2">{t.settings.permanentAction}</p>
                 <p className="text-xs text-gray-400">
-                  All your data will be permanently deleted, including:
+                  {t.settings.allDataDeleted}
                 </p>
                 <ul className="text-xs text-gray-400 mt-2 space-y-1 list-disc list-inside">
-                  <li>Profile information and settings</li>
-                  <li>Messages and conversations</li>
-                  <li>Content, streams, and VODs</li>
-                  <li>Wallet balance and transaction history</li>
-                  <li>Subscriptions and followers</li>
+                  <li>{t.settings.profileInfo}</li>
+                  <li>{t.settings.messagesConversations}</li>
+                  <li>{t.settings.contentStreamsVods}</li>
+                  <li>{t.settings.walletHistory}</li>
+                  <li>{t.settings.subsFollowers}</li>
                 </ul>
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-white mb-2">
-                  Type <span className="font-mono text-red-400">DELETE</span> to confirm
+                  {t.settings.typeDelete.split('DELETE')[0]}<span className="font-mono text-red-400">DELETE</span>{t.settings.typeDelete.split('DELETE')[1]}
                 </label>
                 <input
                   type="text"
                   value={deleteConfirmText}
                   onChange={(e) => setDeleteConfirmText(e.target.value.toUpperCase())}
-                  placeholder="Type DELETE"
+                  placeholder={t.settings.typeDeletePlaceholder}
                   disabled={deleting}
                   className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-red-500/50 disabled:opacity-50 font-mono"
                 />
@@ -173,7 +175,7 @@ export function ActionsSection({ currentUser, signOut }: ActionsSectionProps) {
                 disabled={deleting}
                 className="flex-1 py-3 bg-white/5 hover:bg-white/10 text-white rounded-xl transition-all disabled:opacity-50"
               >
-                Cancel
+                {t.common.cancel}
               </button>
               <button
                 onClick={handleDeleteAccount}
@@ -183,12 +185,12 @@ export function ActionsSection({ currentUser, signOut }: ActionsSectionProps) {
                 {deleting ? (
                   <>
                     <LoadingSpinner size="sm" />
-                    Deleting...
+                    {t.settings.deleting}
                   </>
                 ) : (
                   <>
                     <Trash2 className="w-4 h-4" />
-                    Delete Forever
+                    {t.settings.deleteForever}
                   </>
                 )}
               </button>

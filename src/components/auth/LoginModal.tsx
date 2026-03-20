@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { GlassModal, GlassInput, PasswordInput } from '@/components/ui';
 import { CheckCircle, ArrowLeft } from 'lucide-react';
+import { useLanguage } from '@/context/LanguageContext';
 
 interface LoginModalProps {
   isOpen: boolean;
@@ -13,6 +14,7 @@ interface LoginModalProps {
 }
 
 export function LoginModal({ isOpen, onClose, onSwitchToSignup, initialEmail = '' }: LoginModalProps) {
+  const { t } = useLanguage();
   const [email, setEmail] = useState(initialEmail);
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -161,14 +163,14 @@ export function LoginModal({ isOpen, onClose, onSwitchToSignup, initialEmail = '
                 className="text-digis-cyan hover:text-digis-pink transition-colors font-semibold flex items-center gap-2 mx-auto"
               >
                 <ArrowLeft className="w-4 h-4" />
-                Back to Sign In
+                {t.auth.backToSignIn}
               </button>
             </div>
           ) : (
             // Reset form
             <form onSubmit={handleForgotPassword} className="space-y-5">
               <div className="text-center mb-2">
-                <h3 className="text-xl font-bold text-white mb-2">Forgot Password?</h3>
+                <h3 className="text-xl font-bold text-white mb-2">{t.auth.forgotPassword}</h3>
                 <p className="text-gray-400 text-sm">
                   Enter your email and we&apos;ll send you a reset link
                 </p>
@@ -176,7 +178,7 @@ export function LoginModal({ isOpen, onClose, onSwitchToSignup, initialEmail = '
 
               <GlassInput
                 type="email"
-                label="Email"
+                label={t.auth.email}
                 placeholder="your@email.com"
                 value={resetEmail}
                 onChange={(e) => setResetEmail(e.target.value)}
@@ -197,9 +199,9 @@ export function LoginModal({ isOpen, onClose, onSwitchToSignup, initialEmail = '
                 {resetLoading ? (
                   <div className="flex items-center justify-center gap-2">
                     <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                    <span>Sending...</span>
+                    <span>{t.auth.sending}</span>
                   </div>
-                ) : 'Send Reset Link'}
+                ) : t.auth.sendResetLink}
               </button>
 
               <div className="text-center">
@@ -209,7 +211,7 @@ export function LoginModal({ isOpen, onClose, onSwitchToSignup, initialEmail = '
                   className="text-gray-400 hover:text-white transition-colors text-sm flex items-center gap-2 mx-auto"
                 >
                   <ArrowLeft className="w-4 h-4" />
-                  Back to Sign In
+                  {t.auth.backToSignIn}
                 </button>
               </div>
             </form>
@@ -220,7 +222,7 @@ export function LoginModal({ isOpen, onClose, onSwitchToSignup, initialEmail = '
         <form onSubmit={handleSubmit} className="space-y-5" action="javascript:void(0)">
           <GlassInput
             type="email"
-            label="Email"
+            label={t.auth.email}
             placeholder="your@email.com"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
@@ -229,7 +231,7 @@ export function LoginModal({ isOpen, onClose, onSwitchToSignup, initialEmail = '
 
           <div>
             <PasswordInput
-              label="Password"
+              label={t.auth.password}
               placeholder="••••••••"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
@@ -245,7 +247,7 @@ export function LoginModal({ isOpen, onClose, onSwitchToSignup, initialEmail = '
                 }}
                 className="text-sm text-gray-400 hover:text-digis-cyan transition-colors"
               >
-                Forgot password?
+                {t.auth.forgotPassword}
               </button>
             </div>
           </div>
@@ -266,17 +268,17 @@ export function LoginModal({ isOpen, onClose, onSwitchToSignup, initialEmail = '
                 <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
                 <span>Signing in...</span>
               </div>
-            ) : 'Sign In'}
+            ) : t.auth.signIn}
           </button>
 
           <div className="text-center text-white text-sm md:text-base font-medium">
-            Don&apos;t have an account?{' '}
+            {t.auth.dontHaveAccount}{' '}
             <button
               type="button"
               onClick={onSwitchToSignup}
               className="text-digis-cyan hover:text-digis-pink transition-colors font-bold underline"
             >
-              Sign up
+              {t.auth.signUp}
             </button>
           </div>
         </form>

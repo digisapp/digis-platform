@@ -3,6 +3,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { Camera, Dumbbell, Heart } from 'lucide-react';
+import { useLanguage } from '@/context/LanguageContext';
 
 interface MarketingPageProps {
   onLogin: () => void;
@@ -10,6 +11,17 @@ interface MarketingPageProps {
 }
 
 export function MarketingPage({ onLogin, onSignup }: MarketingPageProps) {
+  const { t } = useLanguage();
+
+  const features = [
+    t.landing.featureLiveStreams,
+    t.landing.featureVideoCalls,
+    t.landing.featureChats,
+    t.landing.featureEvents,
+    t.landing.featureGifts,
+    t.landing.featureDigitals,
+  ];
+
   return (
     <div className="min-h-screen bg-black">
       <div className="relative h-screen overflow-hidden">
@@ -49,13 +61,13 @@ export function MarketingPage({ onLogin, onSignup }: MarketingPageProps) {
                 onClick={onLogin}
                 className="px-5 md:px-7 py-2.5 md:py-3 rounded-full bg-white/10 backdrop-blur-md border border-white/30 text-white font-bold text-sm md:text-base hover:bg-white/20 hover:scale-105 transition-all"
               >
-                Sign In
+                {t.auth.signIn}
               </button>
               <button
                 onClick={() => onSignup('/welcome')}
                 className="px-5 md:px-7 py-2.5 md:py-3 rounded-full bg-gradient-to-r from-digis-cyan via-digis-purple to-digis-pink text-white font-bold text-sm md:text-base hover:scale-105 hover:shadow-[0_0_30px_rgba(168,85,247,0.5)] transition-all"
               >
-                Sign Up
+                {t.auth.signUp}
               </button>
             </div>
           </div>
@@ -73,7 +85,7 @@ export function MarketingPage({ onLogin, onSignup }: MarketingPageProps) {
                 filter: 'drop-shadow(0 0 30px rgba(0, 212, 255, 0.5)) drop-shadow(0 0 60px rgba(255, 0, 110, 0.3))',
               }}
             >
-              what's your digis?
+              {t.landing.heroTitle}
             </h1>
 
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-8 md:mb-10 mt-6 md:mt-8">
@@ -81,12 +93,12 @@ export function MarketingPage({ onLogin, onSignup }: MarketingPageProps) {
                 onClick={() => onSignup('/creator/apply')}
                 className="relative w-full sm:w-auto px-10 py-4 md:py-4 rounded-full bg-gradient-to-r from-digis-cyan via-digis-purple to-digis-pink text-white font-bold text-lg hover:scale-105 transition-all duration-300 shadow-[0_0_30px_rgba(0,212,255,0.4),0_0_60px_rgba(168,85,247,0.3)] hover:shadow-[0_0_40px_rgba(0,212,255,0.6),0_0_80px_rgba(168,85,247,0.5)] animate-glow-pulse text-center"
               >
-                Become a Creator
+                {t.landing.heroCta}
               </button>
             </div>
 
             <div className="flex flex-wrap items-center justify-center gap-3">
-              {['Live Streams', 'Video Calls', 'Chats', 'Exclusive Events', 'Virtual Gifts', 'Digitals'].map((feature, index) => (
+              {features.map((feature, index) => (
                 <span
                   key={feature}
                   className="px-4 py-2 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 text-white/80 text-sm font-medium animate-fade-in-up hover:bg-white/20 hover:border-white/30 transition-all cursor-default"
@@ -122,7 +134,7 @@ export function MarketingPage({ onLogin, onSignup }: MarketingPageProps) {
                 backgroundClip: 'text',
               }}
             >
-              How Creators Use Digis
+              {t.landing.howCreatorsUse}
             </h2>
           </div>
 
@@ -133,16 +145,11 @@ export function MarketingPage({ onLogin, onSignup }: MarketingPageProps) {
                   <Camera className="w-6 h-6 text-pink-400" />
                 </div>
                 <div>
-                  <h3 className="text-lg font-bold text-white">Models & Influencers</h3>
-                  <p className="text-sm text-pink-300">Glamour, Fashion, Lifestyle</p>
+                  <h3 className="text-lg font-bold text-white">{t.landing.modelsTitle}</h3>
+                  <p className="text-sm text-pink-300">{t.landing.modelsSubtitle}</p>
                 </div>
               </div>
-              <div className="space-y-2 text-sm text-white/70">
-                <p>📸 Sell exclusive photosets & behind-the-scenes</p>
-                <p>🔥 Go live for Q&As and GRWM</p>
-                <p>📹 Offer paid 1-on-1 video calls</p>
-                <p>🤖 AI Twin chats while you sleep</p>
-              </div>
+              <p className="text-sm text-white/70">{t.landing.modelsDesc}</p>
             </div>
 
             <div className="p-6 rounded-2xl bg-gradient-to-br from-green-500/10 to-cyan-500/10 border border-white/10 hover:border-green-500/30 transition-all hover:scale-[1.02]">
@@ -151,16 +158,11 @@ export function MarketingPage({ onLogin, onSignup }: MarketingPageProps) {
                   <Dumbbell className="w-6 h-6 text-green-400" />
                 </div>
                 <div>
-                  <h3 className="text-lg font-bold text-white">Fitness Creators</h3>
-                  <p className="text-sm text-green-300">Training, Yoga, Wellness</p>
+                  <h3 className="text-lg font-bold text-white">{t.landing.fitnessTitle}</h3>
+                  <p className="text-sm text-green-300">{t.landing.fitnessSubtitle}</p>
                 </div>
               </div>
-              <div className="space-y-2 text-sm text-white/70">
-                <p>🏋️ Host live workout classes</p>
-                <p>📱 Sell workout plans & guides</p>
-                <p>📹 Private coaching video calls</p>
-                <p>🧘 Meditation & wellness content</p>
-              </div>
+              <p className="text-sm text-white/70">{t.landing.fitnessDesc}</p>
             </div>
 
             <div className="p-6 rounded-2xl bg-gradient-to-br from-red-500/10 to-pink-500/10 border border-white/10 hover:border-red-500/30 transition-all hover:scale-[1.02]">
@@ -169,16 +171,11 @@ export function MarketingPage({ onLogin, onSignup }: MarketingPageProps) {
                   <Heart className="w-6 h-6 text-red-400" />
                 </div>
                 <div>
-                  <h3 className="text-lg font-bold text-white">Virtual Companions</h3>
-                  <p className="text-sm text-red-300">Dates, Conversation, Connection</p>
+                  <h3 className="text-lg font-bold text-white">{t.landing.companionsTitle}</h3>
+                  <p className="text-sm text-red-300">{t.landing.companionsSubtitle}</p>
                 </div>
               </div>
-              <div className="space-y-2 text-sm text-white/70">
-                <p>🍷 Virtual dinner dates</p>
-                <p>💬 Premium per-minute rates</p>
-                <p>🎯 Set your own boundaries</p>
-                <p>🤖 AI Twin handles overflow</p>
-              </div>
+              <p className="text-sm text-white/70">{t.landing.companionsDesc}</p>
             </div>
           </div>
         </div>
@@ -196,19 +193,19 @@ export function MarketingPage({ onLogin, onSignup }: MarketingPageProps) {
                 height={34}
                 className="h-8 w-auto opacity-60 mb-3"
               />
-              <p className="text-white/40 text-sm">A Global Content Creator Community</p>
+              <p className="text-white/40 text-sm">{t.landing.globalCommunity}</p>
             </div>
 
             <div className="flex gap-10 text-sm">
               <div className="flex flex-col gap-2">
-                <span className="text-white/50 font-semibold text-xs uppercase tracking-wider mb-1">Platform</span>
-                <Link href="/explore" className="text-white/40 hover:text-white transition-colors">Explore</Link>
-                <button onClick={() => onSignup('/creator/apply')} className="text-white/40 hover:text-white transition-colors">Become a Creator</button>
+                <span className="text-white/50 font-semibold text-xs uppercase tracking-wider mb-1">{t.landing.platform}</span>
+                <Link href="/explore" className="text-white/40 hover:text-white transition-colors">{t.landing.footerExplore}</Link>
+                <button onClick={() => onSignup('/creator/apply')} className="text-white/40 hover:text-white transition-colors">{t.landing.footerBecomeCreator}</button>
               </div>
               <div className="flex flex-col gap-2">
-                <span className="text-white/50 font-semibold text-xs uppercase tracking-wider mb-1">Legal</span>
-                <Link href="/terms" className="text-white/40 hover:text-white transition-colors">Terms</Link>
-                <Link href="/privacy" className="text-white/40 hover:text-white transition-colors">Privacy</Link>
+                <span className="text-white/50 font-semibold text-xs uppercase tracking-wider mb-1">{t.landing.legal}</span>
+                <Link href="/terms" className="text-white/40 hover:text-white transition-colors">{t.landing.footerTerms}</Link>
+                <Link href="/privacy" className="text-white/40 hover:text-white transition-colors">{t.landing.footerPrivacy}</Link>
               </div>
             </div>
           </div>

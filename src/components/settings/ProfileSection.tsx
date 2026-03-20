@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { GlassInput, LoadingSpinner } from '@/components/ui';
 import { CheckCircle, XCircle, Loader2, User, AtSign, MessageSquare, AlertCircle, Upload, Image as ImageIcon, Mail, Calendar, Shield, Crown, Star, Tag } from 'lucide-react';
 import { CREATOR_CATEGORIES } from '@/lib/constants/categories';
+import { useLanguage } from '@/context/LanguageContext';
 import { getNextTierProgress, getTierConfig, type SpendTier } from '@/lib/tiers/spend-tiers';
 import { getCreatorNextTierProgress } from '@/lib/tiers/creator-tiers';
 import type { SettingsFormState } from '@/hooks/useSettingsForm';
@@ -21,6 +22,7 @@ interface CategoryDropdownProps {
 }
 
 function CategoryDropdown({ label, hint, selectedValue, excludeValue, showNone, isOpen, onToggle, onSelect }: CategoryDropdownProps) {
+  const { t } = useLanguage();
   const categories = excludeValue
     ? CREATOR_CATEGORIES.filter(cat => cat.value !== excludeValue)
     : CREATOR_CATEGORIES;
@@ -48,7 +50,7 @@ function CategoryDropdown({ label, hint, selectedValue, excludeValue, showNone, 
                 <span className="text-white font-medium">{CREATOR_CATEGORIES.find(c => c.value === selectedValue)?.label}</span>
               </>
             ) : (
-              <span className="text-gray-400">{showNone ? 'None' : 'Select a category...'}</span>
+              <span className="text-gray-400">{showNone ? t.settings.none : t.settings.selectCategory}</span>
             )}
           </span>
           <svg
@@ -74,7 +76,7 @@ function CategoryDropdown({ label, hint, selectedValue, excludeValue, showNone, 
                 }`}
               >
                 <span className="text-xl">-</span>
-                <span className="font-medium">None</span>
+                <span className="font-medium">{t.settings.none}</span>
               </button>
             )}
             {categories.map((cat) => (
@@ -126,6 +128,7 @@ export function ProfileSection({
   newUsername, setNewUsername, usernameStatus, usernameError, usernameCooldown,
   savingUsername, handleChangeUsername,
 }: ProfileSectionProps) {
+  const { t } = useLanguage();
   const { displayName, bio, city, state, phoneNumber, avatarUrl, bannerUrl,
     primaryCategory, secondaryCategory, email, contactEmail } = form;
 
@@ -138,7 +141,7 @@ export function ProfileSection({
       <div>
         <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
           <ImageIcon className="w-5 h-5 text-digis-cyan" />
-          Profile Media
+          {t.settings.profileMedia}
         </h3>
         <div className="space-y-4">
           {/* Banner Preview - Clickable - Creators Only */}

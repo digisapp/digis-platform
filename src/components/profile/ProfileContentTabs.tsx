@@ -3,6 +3,7 @@
 import { useRouter } from 'next/navigation';
 import { LoadingSpinner } from '@/components/ui';
 import { UserCircle, Video, Ticket, Clock, Lock, Play, Heart, Scissors, Eye, Sparkles, Image, Film } from 'lucide-react';
+import { useLanguage } from '@/context/LanguageContext';
 import type { ContentItem, StreamItem, ClipItem } from './types';
 
 interface ProfileContentTabsProps {
@@ -49,6 +50,7 @@ export function ProfileContentTabs({
   onLikeContent,
 }: ProfileContentTabsProps) {
   const router = useRouter();
+  const { t } = useLanguage();
 
   const photos = content.filter(c => c.type === 'photo');
   const videos = content.filter(c => c.type === 'video');
@@ -66,7 +68,7 @@ export function ProfileContentTabs({
           }`}
         >
           <Image className="w-3.5 h-3.5 relative z-10" />
-          <span className="relative z-10">Photos</span>
+          <span className="relative z-10">{t.profile.photos}</span>
         </button>
         <button
           onClick={() => onTabChange('video')}
@@ -77,7 +79,7 @@ export function ProfileContentTabs({
           }`}
         >
           <Film className="w-3.5 h-3.5 relative z-10" />
-          <span className="relative z-10">Video</span>
+          <span className="relative z-10">{t.profile.video}</span>
         </button>
         <button
           onClick={() => onTabChange('streams')}
@@ -88,7 +90,7 @@ export function ProfileContentTabs({
           }`}
         >
           <Video className="w-3.5 h-3.5 relative z-10" />
-          <span className="relative z-10">Streams</span>
+          <span className="relative z-10">{t.nav.streams}</span>
         </button>
         <button
           onClick={() => onTabChange('about')}
@@ -99,7 +101,7 @@ export function ProfileContentTabs({
           }`}
         >
           <UserCircle className="w-3.5 h-3.5 relative z-10" />
-          <span className="relative z-10">About</span>
+          <span className="relative z-10">{t.profile.about}</span>
         </button>
       </div>
 

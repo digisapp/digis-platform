@@ -7,6 +7,7 @@ import { ArrowLeft } from 'lucide-react';
 import { GlassModal, GlassInput, PasswordInput } from '@/components/ui';
 import { createClient } from '@/lib/supabase/client';
 import { useToastContext } from '@/context/ToastContext';
+import { useLanguage } from '@/context/LanguageContext';
 
 interface SignupModalProps {
   isOpen: boolean;
@@ -17,6 +18,7 @@ interface SignupModalProps {
 
 export function SignupModal({ isOpen, onClose, onSwitchToLogin, redirectTo }: SignupModalProps) {
   const { showSuccess, showError } = useToastContext();
+  const { t } = useLanguage();
   const router = useRouter();
   const [step, setStep] = useState<'role' | 'form' | 'success'>('role');
   const [selectedRole, setSelectedRole] = useState<'fan' | 'creator' | null>(null);
@@ -150,7 +152,7 @@ export function SignupModal({ isOpen, onClose, onSwitchToLogin, redirectTo }: Si
     } catch (err: any) {
       console.error('Signup error:', err);
       if (err.message?.includes('already registered') || err.message?.includes('already exists')) {
-        setError('This email is already registered. Please sign in instead.');
+        setError(t.auth.emailAlreadyRegistered);
       } else {
         setError(err.message || 'An error occurred during signup');
       }
@@ -178,8 +180,8 @@ export function SignupModal({ isOpen, onClose, onSwitchToLogin, redirectTo }: Si
       {step === 'role' && (
         <div className="space-y-4">
           <div className="text-center mb-6">
-            <h2 className="text-2xl font-black text-white mb-1">Join Digis</h2>
-            <p className="text-gray-400 text-sm">How do you want to use the platform?</p>
+            <h2 className="text-2xl font-black text-white mb-1">{t.auth.joinDigis}</h2>
+            <p className="text-gray-400 text-sm">{t.auth.howDoYouWant}</p>
           </div>
 
           <button
@@ -193,8 +195,8 @@ export function SignupModal({ isOpen, onClose, onSwitchToLogin, redirectTo }: Si
                 </svg>
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-white font-bold text-lg">I'm a Fan</p>
-                <p className="text-gray-400 text-sm mt-0.5">Watch live streams, book video calls &amp; access exclusive content</p>
+                <p className="text-white font-bold text-lg">{t.auth.imAFan}</p>
+                <p className="text-gray-400 text-sm mt-0.5">{t.auth.fanDescription}</p>
               </div>
               <svg className="w-5 h-5 text-cyan-400 opacity-0 group-hover:opacity-100 transition-opacity mt-1 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
@@ -213,9 +215,9 @@ export function SignupModal({ isOpen, onClose, onSwitchToLogin, redirectTo }: Si
                 </svg>
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-white font-bold text-lg">I'm a Creator</p>
-                <p className="text-gray-400 text-sm mt-0.5">Go live, offer paid calls &amp; earn from your content</p>
-                <span className="inline-block mt-2 text-xs font-medium text-purple-300 bg-purple-500/20 px-2 py-0.5 rounded-full">Requires application review</span>
+                <p className="text-white font-bold text-lg">{t.auth.imACreator}</p>
+                <p className="text-gray-400 text-sm mt-0.5">{t.auth.creatorDescription}</p>
+                <span className="inline-block mt-2 text-xs font-medium text-purple-300 bg-purple-500/20 px-2 py-0.5 rounded-full">{t.auth.requiresReview}</span>
               </div>
               <svg className="w-5 h-5 text-purple-400 opacity-0 group-hover:opacity-100 transition-opacity mt-1 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
@@ -224,13 +226,13 @@ export function SignupModal({ isOpen, onClose, onSwitchToLogin, redirectTo }: Si
           </button>
 
           <div className="text-center pt-2 text-sm text-gray-500">
-            Already have an account?{' '}
+            {t.auth.alreadyHaveAccount}{' '}
             <button
               type="button"
               onClick={onSwitchToLogin}
               className="text-digis-cyan hover:text-digis-pink transition-colors font-bold underline"
             >
-              Sign in
+              {t.auth.signIn}
             </button>
           </div>
         </div>
@@ -249,7 +251,7 @@ export function SignupModal({ isOpen, onClose, onSwitchToLogin, redirectTo }: Si
             </button>
             <div>
               <h2 className="text-xl font-bold text-white leading-tight">
-                {selectedRole === 'creator' ? 'Create Creator Account' : 'Create Fan Account'}
+                {selectedRole === 'creator' ? t.auth.createCreatorAccount : t.auth.createFanAccount}
               </h2>
               <p className="text-xs text-gray-500">
                 {selectedRole === 'creator'
@@ -262,7 +264,7 @@ export function SignupModal({ isOpen, onClose, onSwitchToLogin, redirectTo }: Si
           <form onSubmit={handleSubmit} className="space-y-4">
             <GlassInput
               type="email"
-              label="Email"
+              label={t.auth.email}
               placeholder="your@email.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
@@ -271,14 +273,14 @@ export function SignupModal({ isOpen, onClose, onSwitchToLogin, redirectTo }: Si
             />
 
             <PasswordInput
-              label="Password"
+              label={t.auth.password}
               placeholder="••••••••"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
               autoComplete="new-password"
             />
-            <p className="text-xs text-gray-500 -mt-2">At least 8 characters</p>
+            <p className="text-xs text-gray-500 -mt-2">{t.auth.atLeast8Chars}</p>
 
             {/* Honeypot field - hidden from real users, bots will fill it */}
             <div className="absolute -left-[9999px] opacity-0 pointer-events-none" aria-hidden="true">
@@ -308,19 +310,19 @@ export function SignupModal({ isOpen, onClose, onSwitchToLogin, redirectTo }: Si
               {loading ? (
                 <div className="flex items-center justify-center gap-2">
                   <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                  <span>Creating account...</span>
+                  <span>{t.auth.creatingAccount}</span>
                 </div>
-              ) : 'Create Account →'}
+              ) : t.auth.createAccount}
             </button>
 
             <div className="text-center text-white text-sm md:text-base font-medium">
-              Already have an account?{' '}
+              {t.auth.alreadyHaveAccount}{' '}
               <button
                 type="button"
                 onClick={onSwitchToLogin}
                 className="text-digis-cyan hover:text-digis-pink transition-colors font-bold underline"
               >
-                Sign in
+                {t.auth.signIn}
               </button>
             </div>
           </form>
@@ -343,7 +345,7 @@ export function SignupModal({ isOpen, onClose, onSwitchToLogin, redirectTo }: Si
 
           <div className="space-y-3">
             <h3 className="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-digis-cyan via-digis-purple to-digis-pink">
-              Check Your Email!
+              {t.auth.checkYourEmail}
             </h3>
             <p className="text-lg text-white font-semibold">
               We sent a confirmation link to{' '}
@@ -367,7 +369,7 @@ export function SignupModal({ isOpen, onClose, onSwitchToLogin, redirectTo }: Si
               }}
               className="w-full px-6 py-4 bg-gradient-to-r from-digis-cyan via-digis-purple to-digis-pink text-white rounded-2xl font-bold text-lg hover:scale-105 hover:shadow-2xl transition-all shadow-lg"
             >
-              Back to Sign In
+              {t.auth.backToSignIn}
             </button>
             <button
               onClick={handleResend}
@@ -377,9 +379,9 @@ export function SignupModal({ isOpen, onClose, onSwitchToLogin, redirectTo }: Si
               {resendLoading ? (
                 <div className="flex items-center justify-center gap-2">
                   <div className="w-4 h-4 border-2 border-gray-300 border-t-transparent rounded-full animate-spin"></div>
-                  <span>Sending...</span>
+                  <span>{t.auth.sending}</span>
                 </div>
-              ) : 'Resend Email'}
+              ) : t.auth.resendEmail}
             </button>
           </div>
 

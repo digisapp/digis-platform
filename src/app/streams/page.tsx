@@ -7,6 +7,7 @@ import { MobileHeader } from '@/components/layout/MobileHeader';
 import { Search, Coins, Lock, Unlock, Clock, Play, Calendar, Film, Eye } from 'lucide-react';
 import Image from 'next/image';
 import { getCategoryById, getCategoryIcon } from '@/lib/constants/stream-categories';
+import { useLanguage } from '@/context/LanguageContext';
 
 type TabType = 'live' | 'schedule' | 'replays';
 
@@ -68,6 +69,7 @@ const POPULAR_CATEGORIES = ['fitness', 'beauty', 'music', 'cooking', 'gaming', '
 
 export default function StreamsPage() {
   const router = useRouter();
+  const { t } = useLanguage();
   const [activeTab, setActiveTab] = useState<TabType>('live');
   const [liveStreams, setLiveStreams] = useState<LiveStream[]>([]);
   const [upcomingShows, setUpcomingShows] = useState<UpcomingShow[]>([]);
@@ -124,7 +126,7 @@ export default function StreamsPage() {
     } catch (err: any) {
       clearTimeout(timeoutId);
       if (err.name !== 'AbortError') {
-        setError('Failed to load content');
+        setError(t.streams.failedToLoad);
       }
     } finally {
       setLoading(false);
@@ -176,7 +178,7 @@ export default function StreamsPage() {
       return `in ${days}d`;
     }
 
-    if (diffMinutes < 1) return 'Just started';
+    if (diffMinutes < 1) return t.streams.justStarted;
     if (diffMinutes < 60) return `${diffMinutes}m ago`;
     const hours = Math.floor(diffMinutes / 60);
     return `${hours}h ago`;
@@ -192,8 +194,8 @@ export default function StreamsPage() {
 
     const timeStr = date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
 
-    if (isToday) return `Today ${timeStr}`;
-    if (isTomorrow) return `Tomorrow ${timeStr}`;
+    if (isToday) return `${t.streams.today} ${timeStr}`;
+    if (isTomorrow) return `${t.streams.tomorrow} ${timeStr}`;
 
     return date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }) + ` ${timeStr}`;
   };
@@ -236,7 +238,7 @@ export default function StreamsPage() {
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search streams, shows, creators..."
+              placeholder={t.streams.searchStreams}
               className="w-full pl-12 pr-4 py-3 backdrop-blur-2xl bg-black/40 border-2 border-cyan-500/30 rounded-2xl text-white placeholder-gray-500 focus:outline-none focus:border-cyan-500 transition-all"
             />
           </div>
@@ -256,7 +258,7 @@ export default function StreamsPage() {
               <span className={`absolute inline-flex h-full w-full rounded-full ${activeTab === 'live' ? 'bg-white' : 'bg-red-400'} opacity-75 ${counts.live > 0 ? 'animate-ping' : ''}`}></span>
               <span className={`relative inline-flex rounded-full h-2 w-2 ${activeTab === 'live' ? 'bg-white' : 'bg-red-500'}`}></span>
             </span>
-            Live Now
+            {t.streams.liveNow}
             {counts.live > 0 && (
               <span className={`px-1.5 py-0.5 rounded-full text-xs ${activeTab === 'live' ? 'bg-white/20' : 'bg-red-500/20 text-red-400'}`}>
                 {counts.live}
@@ -273,7 +275,7 @@ export default function StreamsPage() {
             }`}
           >
             <Calendar className="w-4 h-4" />
-            Schedule
+            {t.streams.schedule}
             {counts.upcoming > 0 && (
               <span className={`px-1.5 py-0.5 rounded-full text-xs ${activeTab === 'schedule' ? 'bg-white/20' : 'bg-amber-500/20 text-amber-400'}`}>
                 {counts.upcoming}
@@ -290,7 +292,7 @@ export default function StreamsPage() {
             }`}
           >
             <Film className="w-4 h-4" />
-            Replays
+            {t.streams.replays}
             {counts.vods > 0 && (
               <span className={`px-1.5 py-0.5 rounded-full text-xs ${activeTab === 'replays' ? 'bg-white/20' : 'bg-purple-500/20 text-purple-400'}`}>
                 {counts.vods}
@@ -309,7 +311,7 @@ export default function StreamsPage() {
                 : 'bg-white/5 text-gray-300 hover:bg-white/10 border border-white/10'
             }`}
           >
-            All
+            {t.dashboard.all}
           </button>
           {POPULAR_CATEGORIES.map((catId) => {
             const category = getCategoryById(catId);
@@ -374,7 +376,7 @@ export default function StreamsPage() {
                           {/* Live Badge */}
                           <div className="absolute top-3 left-3 flex items-center gap-2 px-3 py-1.5 bg-red-500 rounded-lg shadow-lg shadow-red-500/50">
                             <div className="w-1.5 h-1.5 bg-white rounded-full animate-pulse" />
-                            <span className="text-white text-xs font-bold">LIVE</span>
+                            <span className="text-white text-xs font-bold">{t.common.live}</span>
                           </div>
 
                           {/* Free/Paid Badge */}
@@ -386,7 +388,7 @@ export default function StreamsPage() {
                             {stream.isFree ? (
                               <>
                                 <Unlock className="w-3 h-3" />
-                                FREE
+                                {t.common.free}
                               </>
                             ) : (
                               <>
@@ -441,20 +443,20 @@ export default function StreamsPage() {
             ) : (
               <div className="text-center py-16">
                 <div className="text-6xl mb-4">📺</div>
-                <h3 className="text-xl font-bold text-white mb-2">No Live Streams Right Now</h3>
-                <p className="text-gray-400 mb-6">Check out the schedule or watch some replays!</p>
+                <h3 className="text-xl font-bold text-white mb-2">{t.streams.noLiveStreams}</h3>
+                <p className="text-gray-400 mb-6">{t.streams.checkSchedule}</p>
                 <div className="flex gap-4 justify-center">
                   <button
                     onClick={() => setActiveTab('schedule')}
                     className="px-6 py-3 bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-xl font-bold hover:scale-105 transition-transform"
                   >
-                    View Schedule
+                    {t.streams.viewSchedule}
                   </button>
                   <button
                     onClick={() => setActiveTab('replays')}
                     className="px-6 py-3 bg-white/10 border border-white/20 text-white rounded-xl font-bold hover:bg-white/20 transition-all"
                   >
-                    Watch Replays
+                    {t.streams.watchReplays}
                   </button>
                 </div>
               </div>
@@ -503,7 +505,7 @@ export default function StreamsPage() {
                           {/* Tickets Sold */}
                           <div className="absolute bottom-3 right-3 flex items-center gap-1 px-2 py-1 bg-black/60 backdrop-blur-sm rounded-lg text-white text-xs">
                             <Lock className="w-3 h-3" />
-                            {show.ticketsSold}{show.maxTickets ? `/${show.maxTickets}` : ''} tickets
+                            {show.ticketsSold}{show.maxTickets ? `/${show.maxTickets}` : ''} {t.common.tickets}
                           </div>
                         </div>
 
@@ -538,13 +540,13 @@ export default function StreamsPage() {
             ) : (
               <div className="text-center py-16">
                 <div className="text-6xl mb-4">📅</div>
-                <h3 className="text-xl font-bold text-white mb-2">No Scheduled Shows</h3>
-                <p className="text-gray-400 mb-6">Check back later for upcoming streams!</p>
+                <h3 className="text-xl font-bold text-white mb-2">{t.streams.noScheduled}</h3>
+                <p className="text-gray-400 mb-6">{t.streams.checkBackStreams}</p>
                 <button
                   onClick={() => router.push('/explore')}
                   className="px-6 py-3 bg-gradient-to-r from-cyan-500 to-purple-500 text-white rounded-xl font-bold hover:scale-105 transition-transform"
                 >
-                  Explore Creators
+                  {t.feed.exploreCreators}
                 </button>
               </div>
             )}
@@ -593,7 +595,7 @@ export default function StreamsPage() {
                             {vod.isPublic || vod.priceCoins === 0 ? (
                               <>
                                 <Unlock className="w-3 h-3" />
-                                FREE
+                                {t.common.free}
                               </>
                             ) : (
                               <>
@@ -606,7 +608,7 @@ export default function StreamsPage() {
                           {/* View Count */}
                           <div className="absolute bottom-3 left-3 flex items-center gap-1 px-2 py-1 bg-black/60 backdrop-blur-sm rounded-lg text-white text-xs">
                             <Eye className="w-3 h-3" />
-                            {vod.viewCount} views
+                            {vod.viewCount} {t.common.views}
                           </div>
                         </div>
 
@@ -641,13 +643,13 @@ export default function StreamsPage() {
             ) : (
               <div className="text-center py-16">
                 <div className="text-6xl mb-4">🎬</div>
-                <h3 className="text-xl font-bold text-white mb-2">No Replays Yet</h3>
-                <p className="text-gray-400 mb-6">Check back later for VOD content!</p>
+                <h3 className="text-xl font-bold text-white mb-2">{t.streams.noReplays}</h3>
+                <p className="text-gray-400 mb-6">{t.streams.checkBackVods}</p>
                 <button
                   onClick={() => router.push('/explore')}
                   className="px-6 py-3 bg-gradient-to-r from-cyan-500 to-purple-500 text-white rounded-xl font-bold hover:scale-105 transition-transform"
                 >
-                  Explore Creators
+                  {t.feed.exploreCreators}
                 </button>
               </div>
             )}

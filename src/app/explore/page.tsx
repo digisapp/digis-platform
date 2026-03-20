@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { LoadingSpinner } from '@/components/ui';
 import { MobileHeader } from '@/components/layout/MobileHeader';
+import { useLanguage } from '@/context/LanguageContext';
 import { Search, UserCircle, Radio, Sparkles, BadgeCheck, X } from 'lucide-react';
 
 interface Creator {
@@ -23,15 +24,16 @@ interface Creator {
   createdAt?: string;
 }
 
-const FILTERS = [
-  { key: 'all', label: 'All' },
-  { key: 'live', label: 'Live' },
-  { key: 'online', label: 'Online' },
-  { key: 'new', label: 'New' },
-];
-
 export default function ExplorePage() {
   const router = useRouter();
+  const { t } = useLanguage();
+
+  const translatedFilters = [
+    { key: 'all', label: t.dashboard.all },
+    { key: 'live', label: t.dashboard.live },
+    { key: 'online', label: t.dashboard.online },
+    { key: 'new', label: t.dashboard.new },
+  ];
   const [creators, setCreators] = useState<Creator[]>([]);
   const [liveCreators, setLiveCreators] = useState<Creator[]>([]);
   const [categories, setCategories] = useState<string[]>([]);
@@ -183,7 +185,7 @@ export default function ExplorePage() {
                   setSearchTerm(e.target.value);
                   setSearching(true);
                 }}
-                placeholder="Search creators..."
+                placeholder={t.dashboard.searchCreators}
                 className="w-full pl-12 pr-10 py-3 bg-white/5 border border-white/10 rounded-2xl text-white placeholder-gray-500 focus:outline-none focus:border-cyan-500/50 transition-colors"
               />
               {searchTerm ? (
@@ -204,7 +206,7 @@ export default function ExplorePage() {
 
           {/* Filters */}
           <div className="flex gap-2 mb-4 overflow-x-auto pb-1 scrollbar-hide">
-            {FILTERS.map((filter) => (
+            {translatedFilters.map((filter) => (
               <button
                 key={filter.key}
                 onClick={() => setSelectedFilter(filter.key)}
@@ -248,7 +250,7 @@ export default function ExplorePage() {
                     <Radio className="w-5 h-5" />
                   </div>
                 </div>
-                <h2 className="text-lg font-bold text-white">Live Now</h2>
+                <h2 className="text-lg font-bold text-white">{t.dashboard.liveNow}</h2>
                 <span className="text-sm text-gray-400">({liveCreators.length})</span>
               </div>
 
@@ -275,24 +277,24 @@ export default function ExplorePage() {
             <div className="py-20 text-center">
               <UserCircle className="w-16 h-16 text-gray-600 mx-auto mb-4" />
               <h3 className="text-xl font-semibold text-white mb-2">
-                {searchTerm ? 'No results found' : 'No creators found'}
+                {searchTerm ? t.common.noResults : t.dashboard.noCreators}
               </h3>
               <p className="text-gray-400 text-sm">
-                {searchTerm ? 'Try a different search term' : 'Check back soon for new creators'}
+                {searchTerm ? t.dashboard.tryDifferentSearch : t.dashboard.checkBackSoon}
               </p>
               {searchTerm && (
                 <button
                   onClick={clearSearch}
                   className="mt-4 px-5 py-2 rounded-full bg-white/10 text-white text-sm font-medium hover:bg-white/15 transition-colors"
                 >
-                  Clear search
+                  {t.common.clearSearch}
                 </button>
               )}
             </div>
           ) : (
             <>
               {liveCreators.length > 0 && selectedFilter !== 'live' && creators.length > 0 && (
-                <h2 className="text-lg font-bold text-white mb-4">Discover Creators</h2>
+                <h2 className="text-lg font-bold text-white mb-4">{t.dashboard.discoverCreators}</h2>
               )}
 
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
@@ -309,7 +311,7 @@ export default function ExplorePage() {
                 {loadingMore && (
                   <div className="flex items-center gap-2">
                     <LoadingSpinner size="sm" />
-                    <span className="text-gray-400 text-sm">Loading more...</span>
+                    <span className="text-gray-400 text-sm">{t.common.loadingMore}</span>
                   </div>
                 )}
               </div>
@@ -324,6 +326,7 @@ export default function ExplorePage() {
 // Live Creator Card — prominent with red border + pulse
 const LiveCreatorCard = memo(function LiveCreatorCard({ creator, onClick }: { creator: Creator; onClick: () => void }) {
   const [imgError, setImgError] = useState(false);
+  const { t } = useLanguage();
 
   return (
     <div
@@ -332,7 +335,7 @@ const LiveCreatorCard = memo(function LiveCreatorCard({ creator, onClick }: { cr
     >
       <div className="absolute top-2 left-2 z-10 flex items-center gap-1.5 px-2.5 py-1 bg-red-500 rounded-full">
         <div className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
-        <span className="text-xs font-bold text-white">LIVE</span>
+        <span className="text-xs font-bold text-white">{t.common.live}</span>
       </div>
 
       <div className="relative aspect-[3/4] overflow-hidden">
@@ -368,6 +371,7 @@ const LiveCreatorCard = memo(function LiveCreatorCard({ creator, onClick }: { cr
 // Regular Creator Card — portrait, clean design
 const CreatorCard = memo(function CreatorCard({ creator, onClick }: { creator: Creator; onClick: () => void }) {
   const [imgError, setImgError] = useState(false);
+  const { t } = useLanguage();
 
   const isNew = creator.createdAt &&
     Math.floor((Date.now() - new Date(creator.createdAt).getTime()) / (1000 * 60 * 60 * 24)) <= 30;
@@ -400,18 +404,18 @@ const CreatorCard = memo(function CreatorCard({ creator, onClick }: { creator: C
           {creator.isLive && (
             <span className="flex items-center gap-1 px-2 py-0.5 bg-red-500 rounded-full text-xs font-bold text-white">
               <div className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
-              LIVE
+              {t.common.live}
             </span>
           )}
           {creator.isOnline && !creator.isLive && (
             <span className="px-2 py-0.5 bg-green-500/80 rounded-full text-xs font-medium text-white">
-              Online
+              {t.dashboard.online}
             </span>
           )}
           {isNew && (
             <span className="flex items-center gap-1 px-2 py-0.5 bg-amber-500/80 rounded-full text-xs font-medium text-white">
               <Sparkles className="w-3 h-3" />
-              New
+              {t.dashboard.new}
             </span>
           )}
         </div>

@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { CheckCircle, Sparkles, MessageCircle, Gift, Bot, Share2, Check } from 'lucide-react';
 import { AnimatedAvatar } from '@/components/profile/AnimatedAvatar';
 import { RequestCallButton } from '@/components/calls/RequestCallButton';
+import { useLanguage } from '@/context/LanguageContext';
 import type { ProfileData } from './types';
 
 interface ProfileHeaderCardProps {
@@ -42,6 +43,7 @@ export function ProfileHeaderCard({
   const { user } = profile;
   const isOwnProfile = currentUserId === user.id;
   const [copied, setCopied] = useState(false);
+  const { t } = useLanguage();
 
   const handleShare = async () => {
     const url = `${window.location.origin}/${user.username}`;
@@ -63,7 +65,7 @@ export function ProfileHeaderCard({
         <button
           onClick={handleShare}
           className="absolute top-4 right-4 p-2 rounded-full bg-white/10 hover:bg-white/20 border border-white/10 text-white/70 hover:text-white transition-all hover:scale-110"
-          title="Share profile"
+          title={t.profile.shareProfile}
         >
           {copied ? <Check className="w-4 h-4 text-green-400" /> : <Share2 className="w-4 h-4" />}
         </button>
@@ -91,7 +93,7 @@ export function ProfileHeaderCard({
                 {user.displayName || user.username}
               </h1>
               {user.isCreatorVerified && (
-                <div className="relative flex-shrink-0 group" title="Verified Creator">
+                <div className="relative flex-shrink-0 group" title={t.profile.verifiedCreator}>
                   <div className="absolute -inset-1 bg-blue-500 rounded-full blur opacity-75 group-hover:opacity-100"></div>
                   <CheckCircle className="relative w-5 h-5 sm:w-6 sm:h-6 text-white fill-blue-500" strokeWidth={2.5} />
                 </div>
@@ -104,7 +106,7 @@ export function ProfileHeaderCard({
               return daysSinceJoined <= 30 ? (
                 <div className="flex items-center gap-1.5 text-xs sm:text-sm font-medium text-amber-400 mb-3">
                   <Sparkles className="w-3.5 h-3.5 flex-shrink-0" />
-                  <span>New Creator</span>
+                  <span>{t.profile.newCreator}</span>
                 </div>
               ) : null;
             })()}
@@ -120,7 +122,7 @@ export function ProfileHeaderCard({
                     : 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white hover:scale-105 shadow-sm shadow-cyan-500/30'
                 }`}
               >
-                {followLoading ? '...' : isFollowing ? 'Following' : 'Follow'}
+                {followLoading ? '...' : isFollowing ? t.common.following : t.common.follow}
               </button>
 
               {user.role === 'creator' && subscriptionTier && !isSubscribed && (
@@ -131,13 +133,13 @@ export function ProfileHeaderCard({
                     isOwnProfile ? 'opacity-50 cursor-not-allowed' : 'hover:scale-105'
                   }`}
                 >
-                  Sub
+                  {t.profile.sub}
                 </button>
               )}
 
               {user.role === 'creator' && isSubscribed && !isOwnProfile && (
                 <div className="px-3 py-1 rounded-full font-medium text-[11px] flex items-center bg-white/10 border border-purple-500/50 text-purple-400">
-                  Subscribed
+                  {t.profile.subscribed}
                 </div>
               )}
             </div>
@@ -224,7 +226,7 @@ export function ProfileHeaderCard({
             className="group px-4 py-2 rounded-full bg-white/10 border border-white/20 hover:border-digis-cyan/50 transition-all hover:scale-105 flex items-center gap-2 text-white text-sm font-semibold"
           >
             <MessageCircle className="w-4 h-4" />
-            <span>Chat</span>
+            <span>{t.profile.chat}</span>
           </button>
 
           {user.role === 'creator' && aiTwinEnabled && (
@@ -233,7 +235,7 @@ export function ProfileHeaderCard({
               className="group px-4 py-2 rounded-full bg-gradient-to-r from-cyan-500/20 to-purple-500/20 border border-cyan-500/50 hover:border-cyan-400 transition-all hover:scale-105 flex items-center gap-2 text-white text-sm font-semibold"
             >
               <Bot className="w-4 h-4 text-cyan-400" />
-              <span>AI Twin</span>
+              <span>{t.profile.aiTwin}</span>
             </button>
           )}
         </div>

@@ -3,6 +3,7 @@
 import { GlassButton, LoadingSpinner } from '@/components/ui';
 import { X } from 'lucide-react';
 import { LINK_EMOJI_OPTIONS, type CreatorLink } from './types';
+import { useLanguage } from '@/context/LanguageContext';
 
 interface LinkModalProps {
   isOpen: boolean;
@@ -15,6 +16,7 @@ interface LinkModalProps {
 }
 
 export function LinkModal({ isOpen, onClose, editingLink, linkFormData, setLinkFormData, onSave, saving }: LinkModalProps) {
+  const { t } = useLanguage();
   if (!isOpen) return null;
 
   return (
@@ -28,7 +30,7 @@ export function LinkModal({ isOpen, onClose, editingLink, linkFormData, setLinkF
         {/* Modal Header */}
         <div className="flex items-center justify-between p-4 border-b border-white/10">
           <h2 className="text-lg font-bold text-white">
-            {editingLink ? 'Edit Link' : 'Add New Link'}
+            {editingLink ? t.settings.editLink : t.settings.addNewLink}
           </h2>
           <button
             onClick={onClose}
@@ -44,7 +46,7 @@ export function LinkModal({ isOpen, onClose, editingLink, linkFormData, setLinkF
           {/* Emoji Picker */}
           <div>
             <label className="block text-sm font-medium text-white mb-2">
-              Icon (optional)
+              {t.settings.iconOptional}
             </label>
             <div className="flex flex-wrap gap-2">
               {LINK_EMOJI_OPTIONS.map((emoji) => (
@@ -75,13 +77,13 @@ export function LinkModal({ isOpen, onClose, editingLink, linkFormData, setLinkF
           {/* Title */}
           <div>
             <label className="block text-sm font-medium text-white mb-2">
-              Title <span className="text-red-400">*</span>
+              {t.settings.title} <span className="text-red-400">*</span>
             </label>
             <input
               type="text"
               value={linkFormData.title}
               onChange={(e) => setLinkFormData({ ...linkFormData, title: e.target.value })}
-              placeholder="e.g., Shop My Favorites"
+              placeholder={t.settings.linkTitlePlaceholder}
               maxLength={50}
               className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-cyan-500/50"
             />
@@ -90,13 +92,13 @@ export function LinkModal({ isOpen, onClose, editingLink, linkFormData, setLinkF
           {/* URL */}
           <div>
             <label className="block text-sm font-medium text-white mb-2">
-              URL <span className="text-red-400">*</span>
+              {t.settings.url} <span className="text-red-400">*</span>
             </label>
             <input
               type="url"
               value={linkFormData.url}
               onChange={(e) => setLinkFormData({ ...linkFormData, url: e.target.value })}
-              placeholder="https://example.com/my-link"
+              placeholder={t.settings.linkUrlPlaceholder}
               className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-cyan-500/50"
             />
           </div>
@@ -108,7 +110,7 @@ export function LinkModal({ isOpen, onClose, editingLink, linkFormData, setLinkF
             onClick={onClose}
             className="flex-1 py-3 bg-white/5 hover:bg-white/10 text-white rounded-xl transition-all"
           >
-            Cancel
+            {t.common.cancel}
           </button>
           <GlassButton
             onClick={onSave}
@@ -116,7 +118,7 @@ export function LinkModal({ isOpen, onClose, editingLink, linkFormData, setLinkF
             variant="gradient"
             className="flex-1"
           >
-            {saving ? <LoadingSpinner size="sm" /> : (editingLink ? 'Save Changes' : 'Add Link')}
+            {saving ? <LoadingSpinner size="sm" /> : t.common.save}
           </GlassButton>
         </div>
       </div>

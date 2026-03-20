@@ -1,6 +1,7 @@
 'use client';
 
 import { useAuth } from '@/context/AuthContext';
+import { useLanguage } from '@/context/LanguageContext';
 import { GlassButton, LoadingSpinner, ResponsiveSettingsLayout, ImageCropper } from '@/components/ui';
 import { MobileHeader } from '@/components/layout/MobileHeader';
 import { CheckCircle, AlertCircle, User, Share2, Settings, Circle, Globe } from 'lucide-react';
@@ -12,6 +13,7 @@ import { ShareDigisCard } from '@/components/share/ShareDigisCard';
 
 export default function SettingsPage() {
   const { signOut } = useAuth();
+  const { t } = useLanguage();
 
   const { form, setField, populateFromApi, markAsSaved, hasUnsavedChanges } = useSettingsForm();
 
@@ -44,7 +46,7 @@ export default function SettingsPage() {
   const sections = [
     {
       id: 'profile',
-      label: 'Profile',
+      label: t.settings.profile,
       icon: User,
       content: (
         <ProfileSection
@@ -69,7 +71,7 @@ export default function SettingsPage() {
     },
     ...(currentUser?.role === 'creator' ? [{
       id: 'social',
-      label: 'Social',
+      label: t.settings.social,
       icon: Share2,
       content: (
         <>
@@ -88,7 +90,7 @@ export default function SettingsPage() {
           <div className="pt-6 mt-6 border-t border-cyan-500/20">
             <div className="flex items-center gap-2 mb-4">
               <Share2 className="w-5 h-5 text-digis-cyan" />
-              <h3 className="text-lg font-semibold text-white">Share Your Digis</h3>
+              <h3 className="text-lg font-semibold text-white">{t.settings.shareYourDigis}</h3>
             </div>
             <ShareDigisCard
               username={currentUser?.username || ''}
@@ -102,13 +104,13 @@ export default function SettingsPage() {
     }] : []),
     {
       id: 'language',
-      label: 'Language',
+      label: t.settings.language,
       icon: Globe,
       content: <LanguageSection />,
     },
     {
       id: 'actions',
-      label: 'Actions',
+      label: t.settings.actions,
       icon: Settings,
       content: <ActionsSection currentUser={currentUser} signOut={signOut} />,
     },
@@ -129,7 +131,7 @@ export default function SettingsPage() {
       <div className="max-w-5xl mx-auto space-y-6 relative z-10">
         {/* Page Header with Save State Indicator */}
         <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-bold text-white">Settings</h1>
+          <h1 className="text-2xl font-bold text-white">{t.nav.settings}</h1>
           <div className="flex items-center gap-2">
             {hasUnsavedChanges ? (
               <span className="text-yellow-400 text-sm flex items-center gap-1.5 px-3 py-1.5 bg-yellow-500/10 rounded-lg border border-yellow-500/20">
@@ -175,7 +177,7 @@ export default function SettingsPage() {
               disabled={saving}
               className="w-full md:w-auto"
             >
-              {saving ? <LoadingSpinner size="sm" /> : 'Save Profile'}
+              {saving ? <LoadingSpinner size="sm" /> : t.common.save}
             </GlassButton>
           </div>
         </form>
