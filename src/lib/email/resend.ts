@@ -18,9 +18,10 @@ interface SendEmailOptions {
   text?: string;
   html?: string;
   from?: string;
+  replyTo?: string;
 }
 
-export async function sendEmail({ to, subject, text, html, from = DEFAULT_FROM }: SendEmailOptions) {
+export async function sendEmail({ to, subject, text, html, from = DEFAULT_FROM, replyTo }: SendEmailOptions) {
   // If Resend is not configured, log and return success (for development)
   if (!resend) {
     console.log('📧 [DEV] Email would be sent:', {
@@ -38,6 +39,7 @@ export async function sendEmail({ to, subject, text, html, from = DEFAULT_FROM }
       subject,
       text: text || '',
       ...(html && { html }),
+      ...(replyTo && { reply_to: replyTo }),
     });
 
     if (error) {

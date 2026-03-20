@@ -4,8 +4,11 @@ import { eq, desc, and, or, ilike, count } from 'drizzle-orm';
 import { sendEmail } from './resend';
 import { v4 as uuidv4 } from 'uuid';
 
-const ADMIN_FROM = `Digis <${process.env.ADMIN_EMAIL_ADDRESS || 'admin@digis.cc'}>`;
-const ADMIN_ADDRESS = process.env.ADMIN_EMAIL_ADDRESS || 'admin@digis.cc';
+// Inbound address — where replies go (subdomain to preserve Gmail MX on main domain)
+const INBOUND_ADDRESS = process.env.ADMIN_EMAIL_ADDRESS || 'inbox@inbound.digis.cc';
+// Outbound sender — uses verified main domain for DKIM/SPF
+const ADMIN_FROM = 'Digis <admin@digis.cc>';
+const ADMIN_FROM_ADDRESS = 'admin@digis.cc';
 
 // ── Spam Filter ──
 
@@ -191,13 +194,14 @@ export const AdminInboxService = {
       threadId = uuidv4();
     }
 
-    // Send via Resend
+    // Send via Resend — from verified domain, reply-to inbound subdomain
     const result = await sendEmail({
       to,
       subject,
       text: bodyText,
       html: bodyHtml,
       from: ADMIN_FROM,
+      replyTo: INBOUND_ADDRESS,
     });
 
     if (!result.success) {
@@ -211,7 +215,7 @@ export const AdminInboxService = {
         direction: 'outbound',
         threadId,
         resendEmailId: result.id || null,
-        fromAddress: ADMIN_ADDRESS,
+        fromAddress: ADMIN_FROM_ADDRESS,
         fromName: 'Digis',
         toAddress: to,
         subject,
