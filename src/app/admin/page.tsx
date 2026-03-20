@@ -1,10 +1,11 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import { GlassCard, LoadingSpinner } from '@/components/ui';
 import {
   Users, UserCheck, UserPlus, ClipboardList,
   RefreshCw, Mail, Gift, MessageCircle, CreditCard,
-  ChevronRight, Rocket,
+  ChevronRight, Rocket, Inbox,
 } from 'lucide-react';
 import { MobileHeader } from '@/components/layout/MobileHeader';
 import { AdminModal, AdminToast } from '@/components/ui/AdminModal';
@@ -20,6 +21,15 @@ import {
 
 export default function AdminDashboard() {
   const d = useAdminDashboard();
+
+  // Fetch unread email count for inbox badge
+  const [unreadEmails, setUnreadEmails] = useState(0);
+  useEffect(() => {
+    fetch('/api/admin/inbox/unread')
+      .then(r => r.ok ? r.json() : null)
+      .then(data => { if (data?.count) setUnreadEmails(data.count); })
+      .catch(() => {});
+  }, []);
 
   if (d.loading && !d.stats) {
     return (
@@ -88,15 +98,20 @@ export default function AdminDashboard() {
         )}
 
         {/* Admin Pages Grid */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-2 mb-8">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-7 gap-2 mb-8">
           {ADMIN_PAGES.map((page) => (
             <button
               key={page.label}
               onClick={() => d.router.push(page.path)}
-              className={`flex items-center gap-2.5 px-3 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/5 hover:border-white/15 transition-all group`}
+              className={`flex items-center gap-2.5 px-3 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/5 hover:border-white/15 transition-all group relative`}
             >
               <page.icon className={`w-4 h-4 ${page.color} flex-shrink-0`} />
               <span className="text-sm text-gray-300 group-hover:text-white transition-colors truncate">{page.label}</span>
+              {page.badgeKey === 'unreadEmails' && unreadEmails > 0 && (
+                <span className="px-1.5 py-0.5 text-[10px] rounded-full bg-cyan-500/20 text-cyan-400 font-bold ml-auto flex-shrink-0">
+                  {unreadEmails}
+                </span>
+              )}
               <ChevronRight className="w-3 h-3 text-gray-600 group-hover:text-gray-400 ml-auto flex-shrink-0 transition-colors" />
             </button>
           ))}
@@ -166,6 +181,7 @@ export default function AdminDashboard() {
 /* ── Admin Pages grid data ── */
 const ADMIN_PAGES = [
   { label: 'Community', path: '/admin/community', icon: Users, color: 'text-purple-400' },
+  { label: 'Inbox', path: '/admin/inbox', icon: Inbox, color: 'text-cyan-400', badgeKey: 'unreadEmails' as const },
   { label: 'Campaigns', path: '/admin/campaigns', icon: Mail, color: 'text-pink-400' },
   { label: 'Chats', path: '/admin/chats', icon: MessageCircle, color: 'text-blue-400' },
   { label: 'Referrals', path: '/admin/referrals', icon: Users, color: 'text-cyan-400' },

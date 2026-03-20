@@ -27,3 +27,4 @@ export * from './cloud';
 export * from './cloud-phase2';
 export * from './community';
 export * from './revenue-splits';
+export * from './emails';
