@@ -352,7 +352,7 @@ export function useAdminInbox() {
       const fullBody = compose.quotedText
         ? `${compose.bodyText}\n${compose.quotedText}`
         : compose.bodyText;
-      const escapedBody = fullBody.replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\n/g, '<br>');
+      const escapedBody = fullBody.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/\n/g, '<br>');
 
       const res = await fetch('/api/admin/inbox', {
         method: 'POST',

@@ -152,10 +152,16 @@ export const AdminInboxService = {
   },
 
   async bulkMarkRead(ids: string[]) {
+    // Only update status to 'read' for emails still in 'received' state
+    // to avoid overwriting 'replied'/'delivered' status
     await db
       .update(adminEmails)
-      .set({ isRead: true, readAt: new Date(), status: 'read' })
+      .set({ isRead: true, readAt: new Date() })
       .where(inArray(adminEmails.id, ids));
+    await db
+      .update(adminEmails)
+      .set({ status: 'read' })
+      .where(and(inArray(adminEmails.id, ids), eq(adminEmails.status, 'received')));
   },
 
   async bulkDelete(ids: string[]) {
@@ -288,6 +294,19 @@ export const AdminInboxService = {
     messageId?: string;
     inReplyToHeader?: string;
   }) {
+    // Deduplicate: skip if messageId already exists (webhook retry)
+    if (messageId) {
+      const [existing] = await db
+        .select({ id: adminEmails.id })
+        .from(adminEmails)
+        .where(eq(adminEmails.messageId, messageId))
+        .limit(1);
+      if (existing) {
+        console.log(`[Inbox] Skipping duplicate email messageId=${messageId}`);
+        return null;
+      }
+    }
+
     const spam = isLikelySpam({ from, subject, text });
 
     // Try to find thread by In-Reply-To header
@@ -377,6 +396,11 @@ export const AdminInboxService = {
   },
 
   async deleteEmail(id: string) {
+    // Clear inReplyToEmailId references first to avoid dangling references
+    await db
+      .update(adminEmails)
+      .set({ inReplyToEmailId: null })
+      .where(eq(adminEmails.inReplyToEmailId, id));
     await db.delete(adminEmails).where(eq(adminEmails.id, id));
   },
 

@@ -40,7 +40,10 @@ export const PATCH = withAdminParams<{ id: string }>(async ({ params, request })
         bodyText: email.aiDraftText,
         replyToEmailId: id,
       });
-      return NextResponse.json({ success: true, sent: result.success });
+      if (!result.success) {
+        return NextResponse.json({ error: result.error || 'Failed to send AI draft' }, { status: 500 });
+      }
+      return NextResponse.json({ success: true, sent: true });
     }
     return NextResponse.json({ error: 'No AI draft available' }, { status: 400 });
   }

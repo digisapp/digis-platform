@@ -17,6 +17,6 @@ export const PUT = withAdmin(async ({ request }) => {
   const body = await request.json();
   const { key, value } = body;
   if (!key) return NextResponse.json({ error: 'key required' }, { status: 400 });
-  await AdminInboxService.setSettings(key, JSON.stringify(value));
+  await AdminInboxService.setSettings(key, String(value));
   return NextResponse.json({ success: true });
 });
