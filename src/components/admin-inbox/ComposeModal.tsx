@@ -1,6 +1,7 @@
 'use client';
 
-import { X, Send } from 'lucide-react';
+import { X, Send, ChevronDown, ChevronUp } from 'lucide-react';
+import { useState } from 'react';
 import { GlassModal } from '@/components/ui';
 import type { ComposeData } from '@/hooks/useAdminInbox';
 
@@ -15,6 +16,7 @@ interface ComposeModalProps {
 
 export function ComposeModal({ isOpen, compose, setCompose, sending, onSend, onClose }: ComposeModalProps) {
   const isValid = compose.to && compose.subject && compose.bodyText;
+  const [showQuoted, setShowQuoted] = useState(false);
 
   return (
     <GlassModal isOpen={isOpen} onClose={onClose} title={compose.replyToEmailId ? 'Reply' : 'New Email'} size="lg">
@@ -54,6 +56,24 @@ export function ComposeModal({ isOpen, compose, setCompose, sending, onSend, onC
             className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-gray-500 focus:outline-none focus:border-cyan-500/50 transition-colors text-sm resize-none leading-relaxed"
           />
         </div>
+
+        {/* Quoted original */}
+        {compose.quotedText && (
+          <div>
+            <button
+              onClick={() => setShowQuoted(!showQuoted)}
+              className="flex items-center gap-1.5 text-xs text-gray-500 hover:text-gray-400 transition-colors mb-1.5"
+            >
+              {showQuoted ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+              {showQuoted ? 'Hide' : 'Show'} quoted text
+            </button>
+            {showQuoted && (
+              <div className="px-3 py-2 rounded-xl bg-white/[0.02] border border-white/5 text-xs text-gray-500 whitespace-pre-wrap max-h-40 overflow-y-auto leading-relaxed">
+                {compose.quotedText}
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Actions */}
         <div className="flex items-center justify-end gap-3 pt-2">

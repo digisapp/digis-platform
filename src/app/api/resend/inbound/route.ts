@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { AdminInboxService } from '@/lib/email/admin-inbox';
+import { classifyAndDraftReply, sendAutoReply } from '@/lib/email/ai-email';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -55,7 +56,7 @@ export async function POST(request: Request) {
 
       console.log(`[Resend Inbound] Email received from ${from}: ${subject}`);
 
-      await AdminInboxService.storeInboundEmail({
+      const stored = await AdminInboxService.storeInboundEmail({
         from,
         fromName,
         to,
@@ -66,10 +67,48 @@ export async function POST(request: Request) {
         inReplyToHeader: inReplyTo || undefined,
       });
 
+      // Async AI classification (non-blocking)
+      if (stored && !stored.isSpam) {
+        classifyAndDraftReply({ from, fromName, subject, text, html })
+          .then(async (result) => {
+            if (result) {
+              await AdminInboxService.updateAiFields(stored.id, {
+                aiCategory: result.category,
+                aiConfidence: result.confidence,
+                aiSummary: result.summary,
+                aiDraftText: result.draftText,
+                aiDraftHtml: result.draftHtml,
+              });
+              // Auto-reply if safe
+              await sendAutoReply(stored.id, result, {
+                from,
+                fromName,
+                subject,
+                threadId: stored.threadId,
+                messageId: stored.messageId,
+              });
+            }
+          })
+          .catch(err => console.error('[AI Email] Classification failed:', err));
+      }
+
       return NextResponse.json({ received: true });
     }
 
-    // For other event types (email.sent, email.delivered, etc.), just acknowledge
+    // Handle delivery status events
+    if (eventType === 'email.delivered') {
+      const data = body.data;
+      await AdminInboxService.updateDeliveryStatus(data.email_id, 'delivered');
+      return NextResponse.json({ received: true });
+    }
+
+    if (eventType === 'email.bounced') {
+      const data = body.data;
+      await AdminInboxService.updateDeliveryStatus(data.email_id, 'bounced');
+      return NextResponse.json({ received: true });
+    }
+
+    // For other event types, just acknowledge
     console.log(`[Resend Webhook] Event: ${eventType}`);
     return NextResponse.json({ received: true });
   } catch (error) {

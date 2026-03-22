@@ -28,6 +28,23 @@ export const PATCH = withAdminParams<{ id: string }>(async ({ params, request })
   const { id } = await params;
   const body = await request.json();
 
+  if (body.useAiDraft) {
+    // Fetch the email to get the AI draft
+    const email = await AdminInboxService.getEmail(id);
+    if (email?.aiDraftText && email?.aiDraftHtml) {
+      // Send the AI draft as a reply
+      const result = await AdminInboxService.sendNewEmail({
+        to: email.fromAddress,
+        subject: email.subject.startsWith('Re:') ? email.subject : `Re: ${email.subject}`,
+        bodyHtml: email.aiDraftHtml,
+        bodyText: email.aiDraftText,
+        replyToEmailId: id,
+      });
+      return NextResponse.json({ success: true, sent: result.success });
+    }
+    return NextResponse.json({ error: 'No AI draft available' }, { status: 400 });
+  }
+
   if (body.isRead !== undefined) {
     await AdminInboxService.markRead(id, body.isRead);
   }

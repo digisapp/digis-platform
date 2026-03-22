@@ -3,7 +3,7 @@
 import { GlassCard, LoadingSpinner } from '@/components/ui';
 import {
   ArrowLeft, Search, Plus, RefreshCw, Inbox, Send,
-  ChevronLeft, ChevronRight,
+  ChevronLeft, ChevronRight, CheckSquare, Trash2, Mail, Bot,
 } from 'lucide-react';
 import { MobileHeader } from '@/components/layout/MobileHeader';
 import { useAdminInbox } from '@/hooks/useAdminInbox';
@@ -11,6 +11,7 @@ import { EmailList, EmailDetailView, ComposeModal } from '@/components/admin-inb
 
 export default function AdminInboxPage() {
   const d = useAdminInbox();
+  const hasBulkSelection = d.selectedIds.size > 0;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 md:pl-20">
@@ -35,6 +36,24 @@ export default function AdminInboxPage() {
               </div>
             </div>
             <div className="flex items-center gap-2">
+              {/* Auto-reply toggle */}
+              {!d.autoReplyLoading && (
+                <button
+                  onClick={d.toggleAutoReply}
+                  className={`flex items-center gap-2 px-3 py-2 rounded-xl border text-xs font-medium transition-colors ${
+                    d.autoReplyEnabled
+                      ? 'bg-purple-500/20 border-purple-500/30 text-purple-400'
+                      : 'bg-white/5 border-white/10 text-gray-500'
+                  }`}
+                  title={d.autoReplyEnabled ? 'AI auto-reply is ON' : 'AI auto-reply is OFF'}
+                >
+                  <Bot className="w-3.5 h-3.5" />
+                  <span className="hidden sm:inline">Auto-Reply</span>
+                  <div className={`w-7 h-4 rounded-full relative transition-colors ${d.autoReplyEnabled ? 'bg-purple-500' : 'bg-gray-600'}`}>
+                    <div className={`absolute top-0.5 w-3 h-3 rounded-full bg-white transition-transform ${d.autoReplyEnabled ? 'translate-x-3.5' : 'translate-x-0.5'}`} />
+                  </div>
+                </button>
+              )}
               <button
                 onClick={d.refresh}
                 className="p-2.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 transition-colors"
@@ -96,6 +115,39 @@ export default function AdminInboxPage() {
             </p>
           </div>
 
+          {/* Bulk action bar */}
+          {hasBulkSelection && (
+            <div className="flex items-center gap-3 mb-3 px-4 py-2.5 rounded-xl bg-white/5 border border-white/10">
+              <span className="text-sm text-gray-300 font-medium">
+                {d.selectedIds.size} selected
+              </span>
+              <div className="flex items-center gap-2 ml-auto">
+                <button
+                  onClick={d.bulkMarkRead}
+                  disabled={d.bulkActing}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-gray-400 text-xs font-medium transition-colors disabled:opacity-50"
+                >
+                  <Mail className="w-3.5 h-3.5" />
+                  Mark Read
+                </button>
+                <button
+                  onClick={d.bulkDelete}
+                  disabled={d.bulkActing}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-400 text-xs font-medium transition-colors disabled:opacity-50"
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                  Delete
+                </button>
+                <button
+                  onClick={d.clearSelection}
+                  className="px-3 py-1.5 rounded-lg hover:bg-white/10 text-gray-500 text-xs font-medium transition-colors"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          )}
+
           {/* Main Content — Split View on Desktop */}
           <GlassCard className="overflow-hidden min-h-[60vh]">
             <div className="flex h-[calc(100vh-280px)] md:h-[calc(100vh-260px)]">
@@ -103,6 +155,19 @@ export default function AdminInboxPage() {
               <div className={`w-full md:w-[380px] md:border-r border-white/10 overflow-y-auto flex-shrink-0 ${
                 d.selectedEmail ? 'hidden md:block' : ''
               }`}>
+                {/* Select all */}
+                {d.emails.length > 0 && (
+                  <div className="flex items-center gap-2 px-4 py-2 border-b border-white/5">
+                    <button
+                      onClick={d.selectAll}
+                      className="flex items-center gap-2 text-xs text-gray-500 hover:text-gray-400 transition-colors"
+                    >
+                      <CheckSquare className={`w-3.5 h-3.5 ${d.selectedIds.size === d.emails.length && d.emails.length > 0 ? 'text-cyan-400' : ''}`} />
+                      {d.selectedIds.size === d.emails.length && d.emails.length > 0 ? 'Deselect all' : 'Select all'}
+                    </button>
+                  </div>
+                )}
+
                 {d.loading ? (
                   <div className="flex items-center justify-center py-20">
                     <LoadingSpinner size="md" />
@@ -115,6 +180,9 @@ export default function AdminInboxPage() {
                       tab={d.tab}
                       onSelect={d.selectEmail}
                       onToggleStar={d.toggleStar}
+                      selectedIds={d.selectedIds}
+                      onToggleSelect={d.toggleSelect}
+                      bulkMode={d.selectedIds.size > 0}
                     />
 
                     {/* Pagination */}
@@ -155,6 +223,8 @@ export default function AdminInboxPage() {
                     onToggleStar={d.toggleStar}
                     onMarkSpam={d.markSpam}
                     onDelete={d.deleteEmail}
+                    onUseAiDraft={d.useAiDraft}
+                    onEditAiDraft={d.editAiDraft}
                   />
                 ) : (
                   <div className="flex-1 flex flex-col items-center justify-center text-gray-600">

@@ -1,6 +1,6 @@
 import { db } from '@/lib/data/system';
-import { adminEmails, users } from '@/db/schema';
-import { eq, desc, and, or, ilike, count } from 'drizzle-orm';
+import { adminEmails, users, platformSettings } from '@/db/schema';
+import { eq, desc, and, or, ilike, count, inArray } from 'drizzle-orm';
 import { sendEmail } from './resend';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -87,6 +87,10 @@ export const AdminInboxService = {
           isSpam: adminEmails.isSpam,
           isStarred: adminEmails.isStarred,
           linkedUserId: adminEmails.linkedUserId,
+          status: adminEmails.status,
+          aiCategory: adminEmails.aiCategory,
+          aiConfidence: adminEmails.aiConfidence,
+          aiSummary: adminEmails.aiSummary,
           createdAt: adminEmails.createdAt,
         })
         .from(adminEmails)
@@ -124,7 +128,20 @@ export const AdminInboxService = {
   },
 
   async markRead(id: string, isRead: boolean) {
-    await db.update(adminEmails).set({ isRead }).where(eq(adminEmails.id, id));
+    const updates: Record<string, unknown> = { isRead };
+    if (isRead) {
+      updates.readAt = new Date();
+      // Only set status to 'read' if currently 'received'
+      const [email] = await db
+        .select({ status: adminEmails.status })
+        .from(adminEmails)
+        .where(eq(adminEmails.id, id))
+        .limit(1);
+      if (email?.status === 'received') {
+        updates.status = 'read';
+      }
+    }
+    await db.update(adminEmails).set(updates).where(eq(adminEmails.id, id));
   },
 
   async markThreadRead(threadId: string) {
@@ -132,6 +149,22 @@ export const AdminInboxService = {
       .update(adminEmails)
       .set({ isRead: true })
       .where(and(eq(adminEmails.threadId, threadId), eq(adminEmails.isRead, false)));
+  },
+
+  async bulkMarkRead(ids: string[]) {
+    await db
+      .update(adminEmails)
+      .set({ isRead: true, readAt: new Date(), status: 'read' })
+      .where(inArray(adminEmails.id, ids));
+  },
+
+  async bulkDelete(ids: string[]) {
+    // Clear inReplyToEmailId references first to avoid FK constraint issues
+    await db
+      .update(adminEmails)
+      .set({ inReplyToEmailId: null })
+      .where(inArray(adminEmails.inReplyToEmailId, ids));
+    await db.delete(adminEmails).where(inArray(adminEmails.id, ids));
   },
 
   async setStar(id: string, isStarred: boolean) {
@@ -222,10 +255,16 @@ export const AdminInboxService = {
         bodyText,
         bodyHtml,
         isRead: true, // Outbound are always "read"
+        status: 'sent',
         inReplyToEmailId,
         metadata: Object.keys(headers).length > 0 ? JSON.stringify({ headers }) : null,
       })
       .returning();
+
+    // Mark the original email as replied
+    if (replyToEmailId) {
+      await this.markReplied(replyToEmailId);
+    }
 
     return { success: true, id: stored?.id, resendId: result.id };
   },
@@ -323,6 +362,7 @@ export const AdminInboxService = {
         bodyText: text || null,
         bodyHtml: html || null,
         isRead: false,
+        status: 'received',
         isSpam: spam,
         linkedUserId,
         inReplyToEmailId,
@@ -338,5 +378,60 @@ export const AdminInboxService = {
 
   async deleteEmail(id: string) {
     await db.delete(adminEmails).where(eq(adminEmails.id, id));
+  },
+
+  async markReplied(id: string) {
+    await db
+      .update(adminEmails)
+      .set({ status: 'replied', repliedAt: new Date() })
+      .where(eq(adminEmails.id, id));
+  },
+
+  async updateDeliveryStatus(
+    resendEmailId: string,
+    status: 'delivered' | 'bounced' | 'failed',
+  ) {
+    await db
+      .update(adminEmails)
+      .set({ status })
+      .where(eq(adminEmails.resendEmailId, resendEmailId));
+  },
+
+  async updateAiFields(
+    id: string,
+    fields: {
+      aiCategory?: string;
+      aiConfidence?: number;
+      aiSummary?: string;
+      aiDraftText?: string;
+      aiDraftHtml?: string;
+    },
+  ) {
+    await db
+      .update(adminEmails)
+      .set({
+        ...fields,
+        aiProcessedAt: new Date(),
+      })
+      .where(eq(adminEmails.id, id));
+  },
+
+  async getSettings(key: string) {
+    const [row] = await db
+      .select({ value: platformSettings.value })
+      .from(platformSettings)
+      .where(eq(platformSettings.key, key))
+      .limit(1);
+    return row?.value ?? null;
+  },
+
+  async setSettings(key: string, value: string) {
+    await db
+      .insert(platformSettings)
+      .values({ key, value, updatedAt: new Date() })
+      .onConflictDoUpdate({
+        target: platformSettings.key,
+        set: { value, updatedAt: new Date() },
+      });
   },
 };

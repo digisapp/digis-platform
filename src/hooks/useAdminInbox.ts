@@ -9,6 +9,7 @@ export interface ComposeData {
   subject: string;
   bodyText: string;
   replyToEmailId?: string;
+  quotedText?: string;
 }
 
 const SEARCH_DEBOUNCE_MS = 300;
@@ -38,6 +39,14 @@ export function useAdminInbox() {
 
   // Unread count
   const [unreadCount, setUnreadCount] = useState(0);
+
+  // Bulk selection
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [bulkActing, setBulkActing] = useState(false);
+
+  // Auto-reply toggle
+  const [autoReplyEnabled, setAutoReplyEnabled] = useState(false);
+  const [autoReplyLoading, setAutoReplyLoading] = useState(true);
 
   // Search debounce
   const searchTimerRef = useRef<NodeJS.Timeout>();
@@ -97,6 +106,35 @@ export function useAdminInbox() {
     return () => clearInterval(interval);
   }, [fetchUnreadCount]);
 
+  // Fetch auto-reply setting
+  useEffect(() => {
+    (async () => {
+      try {
+        const res = await fetch('/api/admin/settings?key=ai_auto_reply_enabled');
+        if (res.ok) {
+          const data = await res.json();
+          setAutoReplyEnabled(data.value === 'true');
+        }
+      } catch {} finally {
+        setAutoReplyLoading(false);
+      }
+    })();
+  }, []);
+
+  const toggleAutoReply = useCallback(async () => {
+    const newValue = !autoReplyEnabled;
+    setAutoReplyEnabled(newValue);
+    try {
+      await fetch('/api/admin/settings', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ key: 'ai_auto_reply_enabled', value: String(newValue) }),
+      });
+    } catch {
+      setAutoReplyEnabled(!newValue); // revert
+    }
+  }, [autoReplyEnabled]);
+
   // Select email — fetch detail + mark read
   const selectEmail = useCallback(async (id: string) => {
     setDetailLoading(true);
@@ -115,9 +153,8 @@ export function useAdminInbox() {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ isRead: true }),
         });
-        // Update local state
-        setEmails(prev => prev.map(e => e.id === id ? { ...e, isRead: true } : e));
-        setSelectedEmail(prev => prev ? { ...prev, isRead: true } : prev);
+        setEmails(prev => prev.map(e => e.id === id ? { ...e, isRead: true, status: 'read' as const } : e));
+        setSelectedEmail(prev => prev ? { ...prev, isRead: true, status: 'read' } : prev);
         fetchUnreadCount();
       }
     } catch (err) {
@@ -134,11 +171,9 @@ export function useAdminInbox() {
 
   // Toggle star
   const toggleStar = useCallback(async (id: string) => {
-    // Determine new value from current state
     const current = emails.find(e => e.id === id);
     const newStarred = !(current?.isStarred ?? false);
 
-    // Optimistic update
     setEmails(prev => prev.map(e => e.id === id ? { ...e, isStarred: newStarred } : e));
     if (selectedEmail?.id === id) {
       setSelectedEmail(prev => prev ? { ...prev, isStarred: newStarred } : prev);
@@ -151,7 +186,6 @@ export function useAdminInbox() {
         body: JSON.stringify({ isStarred: newStarred }),
       });
     } catch (err) {
-      // Revert on failure
       setEmails(prev => prev.map(e => e.id === id ? { ...e, isStarred: !newStarred } : e));
       if (selectedEmail?.id === id) {
         setSelectedEmail(prev => prev ? { ...prev, isStarred: !newStarred } : prev);
@@ -168,7 +202,6 @@ export function useAdminInbox() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ isSpam: true }),
       });
-      // Remove from list
       setEmails(prev => prev.filter(e => e.id !== id));
       if (selectedEmail?.id === id) {
         setSelectedEmail(null);
@@ -193,14 +226,113 @@ export function useAdminInbox() {
     }
   }, [selectedEmail?.id, fetchUnreadCount]);
 
+  // --- Bulk actions ---
+  const toggleSelect = useCallback((id: string) => {
+    setSelectedIds(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }, []);
+
+  const selectAll = useCallback(() => {
+    if (selectedIds.size === emails.length) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(emails.map(e => e.id)));
+    }
+  }, [emails, selectedIds.size]);
+
+  const clearSelection = useCallback(() => {
+    setSelectedIds(new Set());
+  }, []);
+
+  const bulkMarkRead = useCallback(async () => {
+    if (selectedIds.size === 0) return;
+    setBulkActing(true);
+    const ids = Array.from(selectedIds);
+    try {
+      await fetch('/api/admin/inbox', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ids, action: 'markRead' }),
+      });
+      setEmails(prev => prev.map(e => ids.includes(e.id) ? { ...e, isRead: true, status: 'read' as const } : e));
+      setSelectedIds(new Set());
+      fetchUnreadCount();
+    } catch (err) {
+      console.error('Bulk mark read failed:', err);
+    } finally {
+      setBulkActing(false);
+    }
+  }, [selectedIds, fetchUnreadCount]);
+
+  const bulkDelete = useCallback(async () => {
+    if (selectedIds.size === 0) return;
+    setBulkActing(true);
+    const ids = Array.from(selectedIds);
+    try {
+      await fetch('/api/admin/inbox', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ids }),
+      });
+      setEmails(prev => prev.filter(e => !ids.includes(e.id)));
+      if (selectedEmail && ids.includes(selectedEmail.id)) {
+        setSelectedEmail(null);
+      }
+      setSelectedIds(new Set());
+      fetchUnreadCount();
+    } catch (err) {
+      console.error('Bulk delete failed:', err);
+    } finally {
+      setBulkActing(false);
+    }
+  }, [selectedIds, selectedEmail, fetchUnreadCount]);
+
+  // --- AI draft actions ---
+  const useAiDraft = useCallback(async (emailId: string) => {
+    try {
+      const res = await fetch(`/api/admin/inbox/${emailId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ useAiDraft: true }),
+      });
+      if (!res.ok) throw new Error('Failed to send AI draft');
+      // Refresh the detail
+      await selectEmail(emailId);
+      fetchEmails();
+    } catch (err) {
+      console.error('Failed to use AI draft:', err);
+      alert('Failed to send AI draft reply');
+    }
+  }, [selectEmail, fetchEmails]);
+
+  const editAiDraft = useCallback((email: EmailDetail) => {
+    if (!email.aiDraftText) return;
+    setCompose({
+      to: email.fromAddress,
+      subject: email.subject.startsWith('Re:') ? email.subject : `Re: ${email.subject}`,
+      bodyText: email.aiDraftText,
+      replyToEmailId: email.id,
+      quotedText: email.bodyText || undefined,
+    });
+    setShowCompose(true);
+  }, []);
+
   // Compose & send
   const openCompose = useCallback((replyTo?: EmailDetail) => {
     if (replyTo) {
+      const quotedBody = replyTo.bodyText
+        ? `\n\n--- Original Message ---\nFrom: ${replyTo.fromName || replyTo.fromAddress}\nDate: ${new Date(replyTo.createdAt).toLocaleString()}\nSubject: ${replyTo.subject}\n\n${replyTo.bodyText}`
+        : '';
       setCompose({
         to: replyTo.direction === 'inbound' ? replyTo.fromAddress : replyTo.toAddress,
         subject: replyTo.subject.startsWith('Re:') ? replyTo.subject : `Re: ${replyTo.subject}`,
         bodyText: '',
         replyToEmailId: replyTo.id,
+        quotedText: quotedBody,
       });
     } else {
       setCompose({ to: '', subject: '', bodyText: '' });
@@ -217,14 +349,19 @@ export function useAdminInbox() {
     if (!compose.to || !compose.subject || !compose.bodyText) return;
     setSending(true);
     try {
+      const fullBody = compose.quotedText
+        ? `${compose.bodyText}\n${compose.quotedText}`
+        : compose.bodyText;
+      const escapedBody = fullBody.replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\n/g, '<br>');
+
       const res = await fetch('/api/admin/inbox', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           to: compose.to,
           subject: compose.subject,
-          bodyText: compose.bodyText,
-          bodyHtml: `<div style="font-family: sans-serif; white-space: pre-wrap;">${compose.bodyText.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</div>`,
+          bodyText: fullBody,
+          bodyHtml: `<div style="font-family: sans-serif;">${escapedBody}</div>`,
           replyToEmailId: compose.replyToEmailId,
         }),
       });
@@ -235,7 +372,6 @@ export function useAdminInbox() {
       }
 
       closeCompose();
-      // Refresh if on sent tab
       if (tab === 'sent') {
         fetchEmails();
       }
@@ -253,6 +389,7 @@ export function useAdminInbox() {
     setPage(1);
     setSelectedEmail(null);
     setThread([]);
+    setSelectedIds(new Set());
   }, []);
 
   return {
@@ -263,6 +400,12 @@ export function useAdminInbox() {
     selectedEmail, thread, detailLoading, selectEmail, closeDetail,
     // Actions
     toggleStar, markSpam, deleteEmail,
+    // Bulk selection
+    selectedIds, toggleSelect, selectAll, clearSelection,
+    bulkMarkRead, bulkDelete, bulkActing,
+    // AI
+    useAiDraft, editAiDraft,
+    autoReplyEnabled, autoReplyLoading, toggleAutoReply,
     // Compose
     showCompose, compose, setCompose, sending,
     openCompose, closeCompose, handleSend,

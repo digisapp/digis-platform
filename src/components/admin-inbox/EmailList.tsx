@@ -1,7 +1,8 @@
 'use client';
 
-import { Star, Circle } from 'lucide-react';
+import { Star, Circle, CheckSquare, Square } from 'lucide-react';
 import type { EmailListItem } from './types';
+import { AI_CATEGORY_LABELS, STATUS_LABELS } from './types';
 
 function formatDate(dateStr: string) {
   const date = new Date(dateStr);
@@ -22,15 +23,32 @@ function truncate(text: string | null, maxLen: number) {
   return text.length > maxLen ? text.substring(0, maxLen) + '...' : text;
 }
 
+const CATEGORY_COLORS: Record<string, string> = {
+  cyan: 'bg-cyan-500/20 text-cyan-400',
+  blue: 'bg-blue-500/20 text-blue-400',
+  green: 'bg-green-500/20 text-green-400',
+  yellow: 'bg-yellow-500/20 text-yellow-400',
+  purple: 'bg-purple-500/20 text-purple-400',
+  orange: 'bg-orange-500/20 text-orange-400',
+  pink: 'bg-pink-500/20 text-pink-400',
+  indigo: 'bg-indigo-500/20 text-indigo-400',
+  red: 'bg-red-500/20 text-red-400',
+  gray: 'bg-gray-500/20 text-gray-400',
+};
+
 interface EmailListProps {
   emails: EmailListItem[];
   selectedId: string | null;
   tab: 'inbox' | 'sent';
   onSelect: (id: string) => void;
   onToggleStar: (id: string) => void;
+  // Bulk selection
+  selectedIds: Set<string>;
+  onToggleSelect: (id: string) => void;
+  bulkMode: boolean;
 }
 
-export function EmailList({ emails, selectedId, tab, onSelect, onToggleStar }: EmailListProps) {
+export function EmailList({ emails, selectedId, tab, onSelect, onToggleStar, selectedIds, onToggleSelect, bulkMode }: EmailListProps) {
   if (emails.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-16 text-gray-500">
@@ -51,9 +69,13 @@ export function EmailList({ emails, selectedId, tab, onSelect, onToggleStar }: E
     <div className="divide-y divide-white/5">
       {emails.map((email) => {
         const isSelected = email.id === selectedId;
+        const isChecked = selectedIds.has(email.id);
         const displayName = tab === 'inbox'
           ? (email.fromName || email.fromAddress)
           : (email.toName || email.toAddress);
+
+        const catInfo = email.aiCategory ? AI_CATEGORY_LABELS[email.aiCategory] : null;
+        const statusInfo = email.status ? STATUS_LABELS[email.status] : null;
 
         return (
           <button
@@ -64,12 +86,27 @@ export function EmailList({ emails, selectedId, tab, onSelect, onToggleStar }: E
             }`}
           >
             <div className="flex items-start gap-3">
-              {/* Unread indicator */}
-              <div className="flex-shrink-0 mt-1.5">
-                {!email.isRead && tab === 'inbox' ? (
-                  <Circle className="w-2.5 h-2.5 fill-cyan-500 text-cyan-500" />
+              {/* Checkbox or unread indicator */}
+              <div className="flex-shrink-0 mt-1">
+                {bulkMode ? (
+                  <button
+                    onClick={(e) => { e.stopPropagation(); onToggleSelect(email.id); }}
+                    className="p-0.5"
+                  >
+                    {isChecked ? (
+                      <CheckSquare className="w-4 h-4 text-cyan-400" />
+                    ) : (
+                      <Square className="w-4 h-4 text-gray-600" />
+                    )}
+                  </button>
                 ) : (
-                  <div className="w-2.5 h-2.5" />
+                  <div className="mt-0.5">
+                    {!email.isRead && tab === 'inbox' ? (
+                      <Circle className="w-2.5 h-2.5 fill-cyan-500 text-cyan-500" />
+                    ) : (
+                      <div className="w-2.5 h-2.5" />
+                    )}
+                  </div>
                 )}
               </div>
 
@@ -84,9 +121,23 @@ export function EmailList({ emails, selectedId, tab, onSelect, onToggleStar }: E
                 <p className={`text-sm truncate mt-0.5 ${!email.isRead && tab === 'inbox' ? 'font-semibold text-gray-200' : 'text-gray-400'}`}>
                   {email.subject}
                 </p>
-                <p className="text-xs text-gray-500 truncate mt-0.5">
-                  {truncate(email.bodyText, 80)}
-                </p>
+                <div className="flex items-center gap-1.5 mt-1">
+                  <p className="text-xs text-gray-500 truncate flex-1">
+                    {truncate(email.bodyText, 60)}
+                  </p>
+                  {/* AI category badge */}
+                  {catInfo && (
+                    <span className={`text-[10px] px-1.5 py-0.5 rounded font-medium flex-shrink-0 ${CATEGORY_COLORS[catInfo.color] || CATEGORY_COLORS.gray}`}>
+                      {catInfo.label}
+                    </span>
+                  )}
+                  {/* Status badge for outbound */}
+                  {tab === 'sent' && statusInfo && email.status !== 'sent' && (
+                    <span className={`text-[10px] px-1.5 py-0.5 rounded font-medium flex-shrink-0 ${CATEGORY_COLORS[statusInfo.color] || CATEGORY_COLORS.gray}`}>
+                      {statusInfo.label}
+                    </span>
+                  )}
+                </div>
               </div>
 
               {/* Star */}

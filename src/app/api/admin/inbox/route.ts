@@ -50,3 +50,27 @@ export const POST = withAdmin(async ({ request }) => {
 
   return NextResponse.json({ success: true, id: result.id });
 });
+
+// PUT /api/admin/inbox — Bulk actions (e.g. mark read)
+export const PUT = withAdmin(async ({ request }) => {
+  const body = await request.json();
+  const { ids, action } = body;
+  if (!ids || !Array.isArray(ids)) {
+    return NextResponse.json({ error: 'ids array required' }, { status: 400 });
+  }
+  if (action === 'markRead') {
+    await AdminInboxService.bulkMarkRead(ids);
+  }
+  return NextResponse.json({ success: true });
+});
+
+// DELETE /api/admin/inbox — Bulk delete
+export const DELETE = withAdmin(async ({ request }) => {
+  const body = await request.json();
+  const { ids } = body;
+  if (!ids || !Array.isArray(ids) || ids.length === 0) {
+    return NextResponse.json({ error: 'ids array required' }, { status: 400 });
+  }
+  await AdminInboxService.bulkDelete(ids);
+  return NextResponse.json({ success: true, deleted: ids.length });
+});
