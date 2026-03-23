@@ -1,8 +1,8 @@
 'use client';
 
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
 import { GlassModal } from '@/components/ui/GlassModal';
-import { Upload, X, Image, Film, AlertCircle, Check, RotateCcw, Loader2 } from 'lucide-react';
+import { Upload, X, Image, Film, AlertCircle, Check, RotateCcw, Loader2, Camera, Video } from 'lucide-react';
 import { useUploadQueue, QueueItem, UploadStatus } from '@/hooks/useUploadQueue';
 
 interface UploadModalProps {
@@ -12,7 +12,6 @@ interface UploadModalProps {
 }
 
 const MAX_FILES = 50;
-const ACCEPTED_TYPES = 'image/*,video/*';
 
 function formatSize(bytes: number) {
   if (bytes >= 1024 * 1024 * 1024) return `${(bytes / (1024 * 1024 * 1024)).toFixed(1)} GB`;
@@ -33,8 +32,17 @@ const STATUS_CONFIG: Record<UploadStatus, { label: string; color: string }> = {
 export function UploadModal({ isOpen, onClose, onUploadComplete }: UploadModalProps) {
   const [dragging, setDragging] = useState(false);
   const [error, setError] = useState('');
-  const inputRef = useRef<HTMLInputElement>(null);
+  const [isMobile, setIsMobile] = useState(false);
+  const photoInputRef = useRef<HTMLInputElement>(null);
+  const videoInputRef = useRef<HTMLInputElement>(null);
+  const capturePhotoRef = useRef<HTMLInputElement>(null);
+  const captureVideoRef = useRef<HTMLInputElement>(null);
+  const desktopInputRef = useRef<HTMLInputElement>(null);
   const uploadQueue = useUploadQueue();
+
+  useEffect(() => {
+    setIsMobile(/iPhone|iPad|iPod|Android/i.test(navigator.userAgent));
+  }, []);
 
   const handleAddFiles = useCallback((files: File[]) => {
     setError('');
@@ -56,9 +64,9 @@ export function UploadModal({ isOpen, onClose, onUploadComplete }: UploadModalPr
     uploadQueue.addFiles(valid);
   }, [uploadQueue]);
 
-  const handleFileSelect = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileSelect = useCallback((ref: React.RefObject<HTMLInputElement | null>) => (e: React.ChangeEvent<HTMLInputElement>) => {
     handleAddFiles(Array.from(e.target.files || []));
-    if (inputRef.current) inputRef.current.value = '';
+    if (ref.current) ref.current.value = '';
   }, [handleAddFiles]);
 
   const handleDrop = useCallback((e: React.DragEvent) => {
@@ -92,33 +100,77 @@ export function UploadModal({ isOpen, onClose, onUploadComplete }: UploadModalPr
   return (
     <GlassModal isOpen={isOpen} onClose={handleClose} title="Upload to Cloud" size="sm">
       <div className="space-y-5">
-        {/* Drop zone — always visible to add more files */}
-        <div
-          className={`border-2 border-dashed rounded-2xl p-6 text-center cursor-pointer transition-colors ${
-            dragging
-              ? 'border-cyan-400 bg-cyan-500/10'
-              : 'border-cyan-500/30 hover:border-cyan-500/60'
-          }`}
-          onClick={() => inputRef.current?.click()}
-          onDrop={handleDrop}
-          onDragOver={handleDragOver}
-          onDragLeave={handleDragLeave}
-        >
-          <Upload className={`w-8 h-8 mx-auto mb-3 ${dragging ? 'text-cyan-300' : 'text-cyan-400'}`} />
-          <p className="text-white font-bold text-base">
-            {dragging ? 'Drop files here' : 'Upload Pictures and Videos Separately'}
-          </p>
-          <p className="text-gray-400 text-sm mt-2 font-medium">Tap to select your files</p>
-          <p className="text-gray-500 text-xs mt-1">Videos may take a moment to prepare on iPhone</p>
-          <input
-            ref={inputRef}
-            type="file"
-            multiple
-            accept={ACCEPTED_TYPES}
-            onChange={handleFileSelect}
-            className="hidden"
-          />
-        </div>
+        {/* Hidden file inputs — separate for photos and videos (iOS requires this) */}
+        <input ref={photoInputRef} type="file" multiple accept="image/*" onChange={handleFileSelect(photoInputRef)} className="hidden" />
+        <input ref={videoInputRef} type="file" multiple accept="video/*" onChange={handleFileSelect(videoInputRef)} className="hidden" />
+        <input ref={capturePhotoRef} type="file" accept="image/*" capture="environment" onChange={handleFileSelect(capturePhotoRef)} className="hidden" />
+        <input ref={captureVideoRef} type="file" accept="video/*" capture="environment" onChange={handleFileSelect(captureVideoRef)} className="hidden" />
+        <input ref={desktopInputRef} type="file" multiple accept="image/*,video/*" onChange={handleFileSelect(desktopInputRef)} className="hidden" />
+
+        {isMobile ? (
+          <>
+            {/* Mobile: Two big buttons for photos and videos */}
+            <div className="grid grid-cols-2 gap-3">
+              <button
+                onClick={() => photoInputRef.current?.click()}
+                className="flex flex-col items-center gap-2.5 p-5 rounded-2xl bg-gradient-to-br from-blue-500/15 to-blue-600/10 border border-blue-500/25 hover:border-blue-500/50 active:scale-[0.97] transition-all"
+              >
+                <Image className="w-8 h-8 text-blue-400" />
+                <span className="text-white font-semibold text-sm">Photos</span>
+                <span className="text-gray-500 text-xs">From library</span>
+              </button>
+              <button
+                onClick={() => videoInputRef.current?.click()}
+                className="flex flex-col items-center gap-2.5 p-5 rounded-2xl bg-gradient-to-br from-purple-500/15 to-purple-600/10 border border-purple-500/25 hover:border-purple-500/50 active:scale-[0.97] transition-all"
+              >
+                <Film className="w-8 h-8 text-purple-400" />
+                <span className="text-white font-semibold text-sm">Videos</span>
+                <span className="text-gray-500 text-xs">From library</span>
+              </button>
+            </div>
+
+            {/* Camera capture row */}
+            <div className="grid grid-cols-2 gap-3">
+              <button
+                onClick={() => capturePhotoRef.current?.click()}
+                className="flex items-center justify-center gap-2 py-3 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 active:scale-[0.97] transition-all"
+              >
+                <Camera className="w-4 h-4 text-gray-400" />
+                <span className="text-gray-300 text-sm font-medium">Take Photo</span>
+              </button>
+              <button
+                onClick={() => captureVideoRef.current?.click()}
+                className="flex items-center justify-center gap-2 py-3 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 active:scale-[0.97] transition-all"
+              >
+                <Video className="w-4 h-4 text-gray-400" />
+                <span className="text-gray-300 text-sm font-medium">Record Video</span>
+              </button>
+            </div>
+
+            <p className="text-gray-500 text-xs text-center">
+              Select up to {MAX_FILES} files per batch · Videos may take a moment to prepare
+            </p>
+          </>
+        ) : (
+          /* Desktop: Drag-and-drop zone */
+          <div
+            className={`border-2 border-dashed rounded-2xl p-6 text-center cursor-pointer transition-colors ${
+              dragging
+                ? 'border-cyan-400 bg-cyan-500/10'
+                : 'border-cyan-500/30 hover:border-cyan-500/60'
+            }`}
+            onClick={() => desktopInputRef.current?.click()}
+            onDrop={handleDrop}
+            onDragOver={handleDragOver}
+            onDragLeave={handleDragLeave}
+          >
+            <Upload className={`w-8 h-8 mx-auto mb-3 ${dragging ? 'text-cyan-300' : 'text-cyan-400'}`} />
+            <p className="text-white font-bold text-base">
+              {dragging ? 'Drop files here' : 'Drag & drop or click to browse'}
+            </p>
+            <p className="text-gray-400 text-sm mt-2 font-medium">Photos and videos · up to {MAX_FILES} files</p>
+          </div>
+        )}
 
         {/* Queue summary bar */}
         {hasItems && (

@@ -28,6 +28,7 @@ import {
   Send,
   Flame,
   LayoutGrid,
+  Plus,
 } from 'lucide-react';
 
 const statusFilters = [
@@ -369,6 +370,15 @@ export default function CloudPage() {
         onBulkSetStatus={cloud.bulkSetStatus}
         onBulkSetPrice={cloud.bulkSetPrice}
       />
+
+      {/* Floating upload FAB — always accessible on mobile */}
+      <button
+        onClick={() => setShowUpload(true)}
+        className="fixed bottom-24 right-5 z-40 w-14 h-14 rounded-full bg-gradient-to-br from-cyan-500 to-cyan-600 shadow-lg shadow-cyan-500/30 flex items-center justify-center active:scale-90 transition-all hover:shadow-cyan-500/50 sm:hidden"
+        aria-label="Upload"
+      >
+        <Plus className="w-7 h-7 text-black" />
+      </button>
 
     </div>
   );
