@@ -19,8 +19,6 @@ import {
   EyeOff,
   CheckSquare,
   Eye,
-  Image,
-  Film,
   X,
   CheckCheck,
   Tag,
@@ -152,31 +150,6 @@ export default function CloudPage() {
                 </button>
               );
             })}
-
-            <div className="w-px h-5 bg-white/10 mx-1 flex-shrink-0" />
-
-            <button
-              onClick={() => cloud.setTypeFilter(cloud.typeFilter === 'photo' ? 'all' : 'photo')}
-              className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium transition-all whitespace-nowrap ${
-                cloud.typeFilter === 'photo'
-                  ? 'bg-white/10 text-cyan-400'
-                  : 'text-gray-500 hover:text-gray-300'
-              }`}
-            >
-              <Image className="w-4 h-4" />
-              <span>{t.cloud.photos}</span>
-            </button>
-            <button
-              onClick={() => cloud.setTypeFilter(cloud.typeFilter === 'video' ? 'all' : 'video')}
-              className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium transition-all whitespace-nowrap ${
-                cloud.typeFilter === 'video'
-                  ? 'bg-white/10 text-cyan-400'
-                  : 'text-gray-500 hover:text-gray-300'
-              }`}
-            >
-              <Film className="w-4 h-4" />
-              <span>{t.cloud.videos}</span>
-            </button>
           </div>
 
           {/* Selection mode toggle */}
