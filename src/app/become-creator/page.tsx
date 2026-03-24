@@ -108,9 +108,10 @@ export default function BecomeCreatorPage() {
                 </div>
               </div>
               <div className="space-y-2 text-sm text-white/70">
-                <p>📸 Sell exclusive photosets & behind-the-scenes</p>
-                <p>🔥 Go live for Q&As and GRWM</p>
+                <p>🔴 Go live and connect with fans in real time</p>
                 <p>📹 Offer paid 1-on-1 video calls</p>
+                <p>💬 Chat with fans and build your community</p>
+                <p>📸 Upload and sell photos & videos on Cloud</p>
                 <p>🤖 AI Twin chats while you sleep</p>
               </div>
             </div>
@@ -127,10 +128,10 @@ export default function BecomeCreatorPage() {
                 </div>
               </div>
               <div className="space-y-2 text-sm text-white/70">
-                <p>🏋️ Host live workout classes</p>
-                <p>📱 Sell workout plans & guides</p>
-                <p>📹 Private coaching video calls</p>
-                <p>🧘 Meditation & wellness content</p>
+                <p>🏋️ Live 1-on-1 workout sessions with clients</p>
+                <p>🔴 Stream classes and earn tips from viewers</p>
+                <p>📹 Coaching video calls on your schedule</p>
+                <p>📸 Sell workout plans, guides & fitness content</p>
               </div>
             </div>
 
@@ -146,10 +147,10 @@ export default function BecomeCreatorPage() {
                 </div>
               </div>
               <div className="space-y-2 text-sm text-white/70">
-                <p>🍷 Virtual dinner dates</p>
-                <p>💬 Premium per-minute rates</p>
-                <p>🎯 Set your own boundaries</p>
-                <p>🤖 AI Twin handles overflow</p>
+                <p>📹 Video calls and virtual dates</p>
+                <p>💬 Chat and build real connections</p>
+                <p>🎁 Receive virtual gifts and tips from fans</p>
+                <p>🤖 AI Twin chats while you're away</p>
               </div>
             </div>
           </div>
