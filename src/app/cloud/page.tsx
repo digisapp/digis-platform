@@ -90,7 +90,7 @@ export default function CloudPage() {
                 {t.cloud.cloud}
               </h1>
               <p className="text-gray-500 text-sm mt-0.5">
-                {cloud.total} {t.cloud.items}
+                Upload Photos and Videos
               </p>
             </div>
             {/* Streak badge */}

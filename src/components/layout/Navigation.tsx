@@ -346,13 +346,6 @@ export function Navigation() {
       path: '/chats',
       active: isActive('/chats') || pathname?.startsWith('/chats'),
     },
-    {
-      label: t.nav.analytics,
-      icon: BarChart3,
-      path: '/creator/analytics',
-      active: isActive('/creator/analytics'),
-      desktopOnly: true,
-    },
   ] : [
     // Home — fans land on Explore, admins on Admin dashboard
     {
