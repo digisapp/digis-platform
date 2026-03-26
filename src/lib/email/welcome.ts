@@ -173,7 +173,7 @@ export async function sendWelcomeEmail(data: WelcomeEmailData): Promise<{ succes
 
   try {
     const subject = data.isCreator
-      ? `Welcome to Digis, ${data.name}! Let's start earning 💰`
+      ? `Welcome to Digis, ${data.name}! Let's Build Your Profile 📸`
       : `Welcome to Digis, ${data.name}! 🎉`;
 
     const { error } = await resend.emails.send({

@@ -17,6 +17,7 @@ import {
   LayoutGrid,
   Compass,
   BarChart3,
+  GraduationCap,
 } from 'lucide-react';
 import { BuyCoinsModal } from '@/components/wallet/BuyCoinsModal';
 import { useRef } from 'react';
@@ -537,6 +538,18 @@ export function Navigation() {
                   >
                     <BarChart3 className="w-6 h-6 md:w-5 md:h-5 text-cyan-400" />
                     <span className="text-base md:text-sm text-white font-semibold">{t.nav.analytics}</span>
+                  </button>
+
+                  <button
+                    onClick={() => {
+                      router.push('/creator/learn');
+                      setShowProfileMenu(false);
+                    }}
+                    className="w-full px-5 py-4 md:px-4 md:py-3 flex items-center gap-3 hover:bg-white/5 active:bg-white/10 transition-all text-left active:scale-98 border-t border-cyan-500/20"
+                    style={{ minHeight: '56px' }}
+                  >
+                    <GraduationCap className="w-6 h-6 md:w-5 md:h-5 text-yellow-400" />
+                    <span className="text-base md:text-sm text-white font-semibold">Creator Academy</span>
                   </button>
                 </>
               )}

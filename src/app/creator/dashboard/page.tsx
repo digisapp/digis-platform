@@ -14,9 +14,75 @@ import {
   DashboardActivity,
 } from '@/components/creator-dashboard';
 import {
-  Radio, Upload, Calendar, Ticket, Package, AlertCircle,
+  Radio, Upload, Calendar, Ticket, Package, AlertCircle, GraduationCap, X,
 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
+import { useState, useEffect } from 'react';
+
+function CreatorAcademyPopup({ createdAt }: { createdAt?: string }) {
+  const router = useRouter();
+  const [show, setShow] = useState(false);
+
+  useEffect(() => {
+    // Already dismissed
+    if (localStorage.getItem('digis_academy_dismissed')) return;
+
+    // Only show for accounts created within the last 7 days
+    if (createdAt) {
+      const accountAge = Date.now() - new Date(createdAt).getTime();
+      const sevenDays = 7 * 24 * 60 * 60 * 1000;
+      if (accountAge > sevenDays) {
+        localStorage.setItem('digis_academy_dismissed', '1');
+        return;
+      }
+    }
+
+    setShow(true);
+  }, [createdAt]);
+
+  if (!show) return null;
+
+  const dismiss = () => {
+    localStorage.setItem('digis_academy_dismissed', '1');
+    setShow(false);
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4">
+      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={dismiss} />
+      <div className="relative w-full max-w-sm bg-gradient-to-br from-gray-900 to-gray-950 border border-yellow-500/30 rounded-2xl p-6 shadow-[0_0_40px_rgba(234,179,8,0.15)]">
+        <button
+          onClick={dismiss}
+          className="absolute top-3 right-3 p-1.5 rounded-lg text-gray-500 hover:text-white hover:bg-white/10 transition-colors"
+        >
+          <X className="w-5 h-5" />
+        </button>
+
+        <div className="flex flex-col items-center text-center">
+          <div className="w-16 h-16 rounded-full bg-gradient-to-br from-yellow-500/20 to-orange-500/20 border border-yellow-500/30 flex items-center justify-center mb-4">
+            <GraduationCap className="w-8 h-8 text-yellow-400" />
+          </div>
+          <h3 className="text-lg font-bold text-white mb-1">Welcome to Digis!</h3>
+          <p className="text-gray-400 text-sm mb-5">
+            New here? Learn how to go live, earn tips, set up video calls, and more in Creator Academy.
+          </p>
+          <button
+            onClick={() => { dismiss(); router.push('/creator/learn'); }}
+            className="w-full py-3 rounded-xl bg-gradient-to-r from-yellow-500 to-orange-500 text-black font-semibold text-sm hover:from-yellow-400 hover:to-orange-400 active:scale-[0.97] transition-all"
+          >
+            Get Started
+          </button>
+          <button
+            onClick={dismiss}
+            className="mt-3 text-sm text-gray-500 hover:text-gray-300 transition-colors"
+          >
+            I'll explore on my own
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export default function CreatorDashboard() {
   const router = useRouter();
@@ -55,6 +121,8 @@ export default function CreatorDashboard() {
           avatarUrl: d.userProfile.avatarUrl,
         } : undefined}
       />
+
+      <CreatorAcademyPopup createdAt={d.userProfile?.createdAt} />
 
       <div className="container mx-auto">
         <div className="px-4 pt-2 md:pt-10 pb-24 md:pb-10 max-w-6xl mx-auto">
