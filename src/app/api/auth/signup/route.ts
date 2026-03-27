@@ -210,13 +210,13 @@ export async function POST(request: NextRequest) {
                   .from('creator_settings')
                   .insert({
                     user_id: authData.user.id,
-                    message_rate: 25,
+                    message_rate: 3,
                     call_rate_per_minute: 25,
                     minimum_call_duration: 5,
-                    is_available_for_calls: false,
+                    is_available_for_calls: true,
                     voice_call_rate_per_minute: 15,
                     minimum_voice_call_duration: 5,
-                    is_available_for_voice_calls: false,
+                    is_available_for_voice_calls: true,
                   })
                   .select()
                   .single();
