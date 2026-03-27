@@ -286,6 +286,8 @@ interface FeedItem {
 /**
  * Calculate engagement score for feed ranking.
  * Higher score = shown first.
+ * Includes a random factor so the feed feels fresh on each visit,
+ * while still keeping high-quality and recent content near the top.
  */
 function calculateEngagement(
   views: number,
@@ -304,5 +306,11 @@ function calculateEngagement(
   // Followed creator boost
   const followBoost = isFollowed ? 200 : 0;
 
-  return engagement + recencyBoost + followBoost;
+  // Random shuffle factor: adds 0-400 random points so the feed
+  // varies on each load while still respecting quality signals.
+  // This keeps top content competitive but lets mid-tier content
+  // surface unpredictably, making the feed feel alive.
+  const randomFactor = Math.random() * 400;
+
+  return engagement + recencyBoost + followBoost + randomFactor;
 }
