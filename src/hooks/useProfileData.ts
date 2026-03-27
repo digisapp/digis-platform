@@ -14,7 +14,7 @@ function transformContentItem(item: any): ContentItem {
   const isVideoFile = rawThumb && /\.(mp4|mov|webm|avi)(\?|$)/i.test(rawThumb);
   const thumbnail = (type === 'video' && isVideoFile) ? null : rawThumb;
   const priceCoins = item.priceCoins ?? item.unlockPrice ?? 0;
-  const isFree = item.priceCoins === null || item.priceCoins === undefined || item.isFree === true;
+  const isFree = item.priceCoins === null || item.priceCoins === undefined || item.priceCoins === 0 || item.isFree === true;
   const timestamp = item.publishedAt || item.uploadedAt || item.createdAt;
 
   return {
