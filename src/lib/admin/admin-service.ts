@@ -172,10 +172,10 @@ export class AdminService {
         messageRate: 3, // 3 coins = $0.30 per message (minimum)
         callRatePerMinute: 25, // 25 coins/min = $2.50/min
         minimumCallDuration: 5,
-        isAvailableForCalls: false,
+        isAvailableForCalls: true,
         voiceCallRatePerMinute: 15, // 15 coins/min = $1.50/min
         minimumVoiceCallDuration: 5,
-        isAvailableForVoiceCalls: false,
+        isAvailableForVoiceCalls: true,
       })
       .onConflictDoNothing();
 
@@ -357,10 +357,10 @@ export class AdminService {
           messageRate: 3, // 3 coins = $0.30 per message (minimum)
           callRatePerMinute: 25, // 25 coins/min = $2.50/min
           minimumCallDuration: 5,
-          isAvailableForCalls: false,
+          isAvailableForCalls: true,
           voiceCallRatePerMinute: 15, // 15 coins/min = $1.50/min
           minimumVoiceCallDuration: 5,
-          isAvailableForVoiceCalls: false,
+          isAvailableForVoiceCalls: true,
         })
         .onConflictDoNothing();
 

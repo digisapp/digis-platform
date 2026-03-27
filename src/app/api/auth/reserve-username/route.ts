@@ -217,10 +217,10 @@ export async function POST(request: NextRequest) {
           messageRate: 3,
           callRatePerMinute: 25,
           minimumCallDuration: 5,
-          isAvailableForCalls: false,
+          isAvailableForCalls: true,
           voiceCallRatePerMinute: 15,
           minimumVoiceCallDuration: 5,
-          isAvailableForVoiceCalls: false,
+          isAvailableForVoiceCalls: true,
         }).onConflictDoNothing();
         console.log(`[Signup] Creator settings created for: ${cleanEmail}`);
       } catch (err) {

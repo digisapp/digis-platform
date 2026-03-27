@@ -295,10 +295,10 @@ export async function POST(
         messageRate: 3,
         callRatePerMinute: 25,
         minimumCallDuration: 5,
-        isAvailableForCalls: false,
+        isAvailableForCalls: true,
         voiceCallRatePerMinute: 15,
         minimumVoiceCallDuration: 5,
-        isAvailableForVoiceCalls: false,
+        isAvailableForVoiceCalls: true,
       }).onConflictDoNothing();
       console.log(`[Claim] Creator settings created for: ${userEmail}`);
     } catch (settingsError) {
