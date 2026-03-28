@@ -14,8 +14,10 @@ import { eq } from 'drizzle-orm';
 // Constants
 // ---------------------------------------------------------------------------
 
-const GROK_API_URL = 'https://api.x.ai/v1/chat/completions';
-const GROK_MODEL = 'grok-3-mini';
+import { XAI_API_URL, XAI_MODEL_FAST } from '@/lib/xai';
+
+const GROK_API_URL = XAI_API_URL;
+const GROK_MODEL = XAI_MODEL_FAST;
 
 const INBOUND_ADDRESS = process.env.ADMIN_EMAIL_ADDRESS || 'inbox@inbound.digis.cc';
 const ADMIN_FROM = 'Digis <admin@digis.cc>';

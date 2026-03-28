@@ -6,6 +6,7 @@ import { eq } from 'drizzle-orm';
 import { buildContextualPrompt } from '@/lib/coach/prompts';
 import type { CoachMessage } from '@/lib/coach/types';
 import { rateLimit } from '@/lib/rate-limit';
+import { XAI_MODEL_REASONING } from '@/lib/xai';
 
 export const runtime = 'nodejs';
 
@@ -157,7 +158,7 @@ async function callXaiApi(
         'Authorization': `Bearer ${apiKey}`,
       },
       body: JSON.stringify({
-        model: 'grok-3-mini',
+        model: XAI_MODEL_REASONING,
         messages,
         max_tokens: 800,
         temperature: 0.7,

@@ -5,6 +5,7 @@ import { aiTwinSettings, users, wallets, walletTransactions, conversations, mess
 import { eq, and, or, sql } from 'drizzle-orm';
 import { v4 as uuidv4 } from 'uuid';
 import { XaiCollectionsService } from '@/lib/services/xai-collections-service';
+import { XAI_MODEL_FAST } from '@/lib/xai';
 
 export const runtime = 'nodejs';
 
@@ -288,7 +289,7 @@ async function callXaiApi(systemPrompt: string, userMessage: string): Promise<st
         'Authorization': `Bearer ${apiKey}`,
       },
       body: JSON.stringify({
-        model: 'grok-3-mini',
+        model: XAI_MODEL_FAST,
         messages: [
           { role: 'system', content: systemPrompt },
           { role: 'user', content: userMessage },

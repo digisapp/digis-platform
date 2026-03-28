@@ -3,6 +3,7 @@ import { aiTwinSettings, users, streamMessages } from '@/db/schema';
 import { eq, sql } from 'drizzle-orm';
 import { AblyRealtimeService } from '@/lib/streams/ably-realtime-service';
 import { XaiCollectionsService } from './xai-collections-service';
+import { XAI_MODEL_FAST } from '@/lib/xai';
 
 // In-memory cooldown tracking (per stream)
 const streamCooldowns = new Map<string, number>();
@@ -231,7 +232,7 @@ export class AiStreamChatService {
           Authorization: `Bearer ${apiKey}`,
         },
         body: JSON.stringify({
-          model: 'grok-3-mini',
+          model: XAI_MODEL_FAST,
           messages: [
             { role: 'system', content: systemPrompt },
             { role: 'user', content: `@${message.username}: ${message.message}` },
@@ -316,7 +317,7 @@ Examples:
           Authorization: `Bearer ${apiKey}`,
         },
         body: JSON.stringify({
-          model: 'grok-3-mini',
+          model: XAI_MODEL_FAST,
           messages: [
             { role: 'system', content: systemPrompt },
             { role: 'user', content: `@${tipperUsername} just ${giftText}!` },

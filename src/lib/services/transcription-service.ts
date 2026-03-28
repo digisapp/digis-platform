@@ -2,6 +2,7 @@ import { db } from '@/lib/data/system';
 import { vodTranscripts } from '@/db/schema';
 import { eq } from 'drizzle-orm';
 import type { TranscriptSegment, TranscriptChapter } from '@/db/schema/transcripts';
+import { XAI_MODEL_FAST } from '@/lib/xai';
 
 const DEEPGRAM_API_KEY = process.env.DEEPGRAM_API_KEY;
 const XAI_API_KEY = process.env.XAI_API_KEY;
@@ -219,7 +220,7 @@ export class TranscriptionService {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'grok-3-mini',
+        model: XAI_MODEL_FAST,
         messages: [
           {
             role: 'system',

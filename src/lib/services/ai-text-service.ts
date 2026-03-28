@@ -2,6 +2,7 @@ import { db } from '@/lib/data/system';
 import { aiTwinSettings, users, conversations, messages, contentItems, fanMemories } from '@/db/schema';
 import { eq, sql, and, desc } from 'drizzle-orm';
 import { XaiCollectionsService } from './xai-collections-service';
+import { XAI_MODEL_FAST, XAI_MODEL_REASONING } from '@/lib/xai';
 
 // Types for fan memory extraction
 interface ExtractedFact {
@@ -368,7 +369,7 @@ export class AiTextService {
           Authorization: `Bearer ${apiKey}`,
         },
         body: JSON.stringify({
-          model: 'grok-3-mini',
+          model: XAI_MODEL_FAST,
           messages: apiMessages,
           max_tokens: 300, // Shorter for natural texts
           temperature: 0.9, // More creative/varied
@@ -464,7 +465,7 @@ export class AiTextService {
           Authorization: `Bearer ${apiKey}`,
         },
         body: JSON.stringify({
-          model: 'grok-3-mini',
+          model: XAI_MODEL_REASONING,
           messages: [{
             role: 'user',
             content: `Extract personal facts from this fan message. Only extract clear, specific facts - not assumptions.

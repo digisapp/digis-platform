@@ -5,6 +5,7 @@ import { users } from '@/db/schema';
 import { eq } from 'drizzle-orm';
 import { buildScriptPrompt } from '@/lib/coach/prompts';
 import type { ScriptRequest } from '@/lib/coach/types';
+import { XAI_MODEL_FAST } from '@/lib/xai';
 
 export const runtime = 'nodejs';
 
@@ -114,7 +115,7 @@ async function callXaiApi(prompt: string): Promise<string | null> {
         'Authorization': `Bearer ${apiKey}`,
       },
       body: JSON.stringify({
-        model: 'grok-3-mini',
+        model: XAI_MODEL_FAST,
         messages: [
           {
             role: 'system',

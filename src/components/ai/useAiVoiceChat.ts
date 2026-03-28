@@ -2,7 +2,7 @@
 
 import { useState, useRef, useCallback, useEffect } from 'react';
 
-const XAI_WEBSOCKET_URL = 'wss://api.x.ai/v1/realtime';
+import { XAI_WEBSOCKET_URL } from '@/lib/xai';
 const SAMPLE_RATE = 24000;
 
 // Map API error codes to user-friendly messages
@@ -557,7 +557,7 @@ export function useAiVoiceChat(options: UseAiVoiceChatOptions = {}) {
         // 4. Connect to xAI WebSocket using subprotocols for browser auth
         // Browser WebSocket API cannot set custom headers, so we use subprotocols
         // Following similar pattern to OpenAI's realtime API
-        const wsUrl = `${XAI_WEBSOCKET_URL}?model=grok-2-public`;
+        const wsUrl = XAI_WEBSOCKET_URL;
         console.log('[AI Voice] Connecting to WebSocket with subprotocol auth...');
         const ws = new WebSocket(wsUrl, [
           'realtime',
